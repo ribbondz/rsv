@@ -22,7 +22,7 @@ enum Commands {
     Head(Head),
     /// Clean file with escape chars (e.g. "")
     Clean(Clean),
-    /// Frequency table of some columns
+    /// Frequency table for column or columns
     Frequency(Frequency),
     /// Partition file into separate files according to column value
     Partition(Partition),
