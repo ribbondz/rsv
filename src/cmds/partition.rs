@@ -58,11 +58,15 @@ pub fn partition(
         let mut bytes = 0;
         let mut n = 0;
         let mut lines: Vec<String> = Vec::with_capacity(line_buffer_n);
+        
         for l in rdr {
             let l = l.unwrap();
+
             bytes += l.len() + 1;
             n += 1;
+
             lines.push(l);
+
             if n >= line_buffer_n {
                 tx.send(Task { lines, bytes }).unwrap();
                 bytes = 0;
@@ -70,10 +74,10 @@ pub fn partition(
                 lines = Vec::with_capacity(line_buffer_n);
             }
         }
+
         if lines.len() > 0 {
             tx.send(Task { lines, bytes }).unwrap();
         }
-        drop(tx);
     });
 
     // process batch work
