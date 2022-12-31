@@ -11,6 +11,7 @@ use crate::utils::file::estimate_line_count_by_mb;
 use crate::utils::filename::generate_filename;
 use crate::utils::progress::Progress;
 use crate::utils::util::datetime_str;
+use std::error::Error;
 
 struct Task {
     lines: Vec<String>,
@@ -22,7 +23,7 @@ pub fn partition(
     no_header: bool,
     sep: &str,
     col: usize,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), Box<dyn Error>> {
     // current file
     let mut path = std::env::current_dir()?;
     path.push(Path::new(filename));
@@ -58,7 +59,7 @@ pub fn partition(
         let mut bytes = 0;
         let mut n = 0;
         let mut lines: Vec<String> = Vec::with_capacity(line_buffer_n);
-        
+
         for l in rdr {
             let l = l.unwrap();
 

@@ -33,8 +33,8 @@ struct Count {
     /// File to open
     filename: String,
     /// Whether the file has a header
-    #[arg(short, long, default_value_t = false)]
-    header: bool,
+    #[arg(long, default_value_t = false)]
+    no_header: bool,
 }
 
 #[derive(Debug, Args)]
@@ -113,7 +113,7 @@ fn main() {
     // matches just as you would the top level cmd
     match &cli.command {
         Commands::Count(option) => {
-            let n = cmds::count::count(&option.filename, option.header).unwrap();
+            let n = cmds::count::count(&option.filename, option.no_header).unwrap();
             println!("{:?}", n)
         }
         Commands::Estimate(option) => {

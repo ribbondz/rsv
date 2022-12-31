@@ -4,24 +4,29 @@ use std::path::Path;
 
 extern crate bytecount;
 
-pub fn count(filename: &str, header: bool) -> Result<i32, Box<dyn std::error::Error>> {
+pub fn count(filename: &str, no_header: bool) -> Result<i32, Box<dyn std::error::Error>> {
     // current file
     let mut path = std::env::current_dir()?;
     path.push(Path::new(filename));
 
     // open file and count
-    let mut n = 0 - header as usize;
-    let mut reader = BufReader::with_capacity(1024 * 32, File::open(path)?);
+    let mut n = 0 - no_header as usize;
+    let file = File::open(path)?;
+    let mut rdr = BufReader::with_capacity(1024 * 32, file);
     loop {
-        let len = {
-            let buf = reader.fill_buf()?;
+        let bytes_read = {
+            let buf = rdr.fill_buf()?;
+
             if buf.is_empty() {
                 break;
             }
+
             n += bytecount::count(&buf, b'\n');
+
             buf.len()
         };
-        reader.consume(len);
+
+        rdr.consume(bytes_read);
     }
 
     Ok(n as i32)
