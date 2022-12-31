@@ -1,0 +1,16 @@
+# https://taskfile.dev
+
+version: "3"
+
+vars:
+  GREETING: Hello, World!
+
+tasks:
+  default:
+    cmds:
+      - cargo build --release
+      - rsv frequency -c 0, D:\\2.csv
+    silent: true
+  rsv:
+    cmds:
+      - rsv
