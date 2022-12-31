@@ -2,14 +2,16 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 
-pub fn head(filename: &str, n: usize) -> Result<(), Box<dyn std::error::Error>> {
+pub fn head(filename: &str, n: usize, no_header: bool) -> Result<(), Box<dyn std::error::Error>> {
     // current file
     let mut path = std::env::current_dir()?;
     path.push(Path::new(filename));
 
     // show head n
-    let file = File::open(path)?;
-    for l in BufReader::new(file).lines().take(n + 1) {
+    for l in BufReader::new(File::open(path)?)
+        .lines()
+        .take(n + 1 - no_header as usize)
+    {
         println!("{}", l.unwrap())
     }
 

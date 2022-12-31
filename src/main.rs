@@ -47,6 +47,9 @@ struct Filename {
 struct Head {
     /// File to open
     filename: String,
+    /// Whether the file has a header
+    #[arg(long, default_value_t = false)]
+    no_header: bool,
     /// Number of records to show
     #[arg(short, long, default_value_t = 20)]
     n: usize,
@@ -105,6 +108,7 @@ struct Partition {
 
 fn main() {
     let cli = Cli::parse();
+
     // You can check for the existence of subcommands, and if found use their
     // matches just as you would the top level cmd
     match &cli.command {
@@ -117,7 +121,7 @@ fn main() {
             println!("{:?}", n)
         }
         Commands::Head(option) => {
-            cmds::head::head(&option.filename, option.n).unwrap();
+            cmds::head::head(&option.filename, option.n, option.no_header).unwrap();
         }
         Commands::Clean(option) => {
             cmds::clean::clean(&option.filename, &option.escape, &option.f).unwrap();

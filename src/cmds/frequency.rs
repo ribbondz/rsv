@@ -63,10 +63,13 @@ pub fn frequency(
         let mut bytes = 0;
         let mut lines: Vec<String> = Vec::with_capacity(line_buffer_n);
         let mut n = 0;
+
         for l in rdr {
             let l = l.unwrap();
+
             n += 1;
             bytes += l.len();
+
             lines.push(l);
             if n >= line_buffer_n {
                 tx.send(Task { lines, bytes }).unwrap();
@@ -75,9 +78,11 @@ pub fn frequency(
                 lines = Vec::with_capacity(line_buffer_n);
             }
         }
+
         if lines.len() > 0 {
             tx.send(Task { lines, bytes }).unwrap();
         }
+
         drop(tx);
     });
 
@@ -90,7 +95,7 @@ pub fn frequency(
             if max_col >= r.len() {
                 println!("ignore a bad line # {:?}!", r);
             } else {
-                let r = col.iter().map(|&i| r[i]).collect::<Vec<&str>>().join(",");
+                let r = col.iter().map(|&i| r[i]).collect::<Vec<_>>().join(",");
                 *freq.entry(r).or_insert(0) += 1;
             }
         });
@@ -101,21 +106,19 @@ pub fn frequency(
     }
     println!("");
 
-    let mut f2 = Vec::with_capacity(freq.len());
-    for k in freq {
-        f2.push(k);
-    }
-    let mut freq = f2;
     // apply ascending
+    let mut freq = freq.into_iter().collect::<Vec<(_, _)>>();
     if ascending {
         freq.sort_by(|a, b| a.1.cmp(&b.1));
     } else {
         freq.sort_by(|a, b| b.1.cmp(&a.1));
     }
+
     // apply head n
     if n > 0 && freq.len() > n as usize {
         freq = freq[..(n as usize)].to_vec();
     }
+
     // export or print
     if export {
         let new_path = filename::new_path(&path, "-frequency");
@@ -128,12 +131,10 @@ pub fn frequency(
 }
 
 fn parse_cols(cols: &str) -> Result<Vec<isize>, std::num::ParseIntError> {
-    let cols: Result<Vec<isize>, _> = cols
-        .split(",")
+    cols.split(",")
         .filter(|&i| i != "")
         .map(|i| i.parse())
-        .collect();
-    cols
+        .collect()
 }
 
 fn null_col_names(col: &Vec<usize>) -> Vec<String> {
@@ -145,10 +146,12 @@ fn null_col_names(col: &Vec<usize>) -> Vec<String> {
 
 fn print_table(names: &Vec<String>, freq: Vec<(String, i32)>) {
     let mut builder = Builder::default();
+
     // header
     if names.len() > 0 {
         builder.set_columns(names);
     }
+
     // content
     for (key, n) in freq {
         let r: Vec<String> = key
@@ -158,9 +161,12 @@ fn print_table(names: &Vec<String>, freq: Vec<(String, i32)>) {
             .collect();
         builder.add_record(r);
     }
+
     // build
     let mut table = builder.build();
+
     // style
     table.with(Style::blank());
+
     println!("{table}");
 }

@@ -15,6 +15,7 @@ pub fn estimate(filename: &str) -> Result<i32, Box<dyn std::error::Error>> {
     for l in BufReader::new(file).lines().skip(1) {
         total_bytes += l.unwrap().len() + 1;
         n += 1;
+
         if n > 20000 {
             break;
         }

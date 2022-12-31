@@ -51,8 +51,9 @@ pub fn partition(
     };
 
     let (tx, rx) = bounded(1);
-    let line_buffer_n = estimate_line_count_by_mb(filename, Some(1024));
+
     // read
+    let line_buffer_n = estimate_line_count_by_mb(filename, Some(1024));
     thread::spawn(move || {
         let mut bytes = 0;
         let mut n = 0;
@@ -83,6 +84,7 @@ pub fn partition(
         // progress
         prog.add_chuncks(1);
         prog.add_bytes(task.bytes);
+
         // process
         let batch_work = DashMap::new();
         task.lines.par_iter().for_each(|r| {
@@ -93,12 +95,14 @@ pub fn partition(
                 batch_work.entry(seg[col]).or_insert(Vec::new()).push(r);
             }
         });
+
         // save to disk
         for (k, v) in batch_work {
             // file path
             let filename = generate_filename(k, None);
             let mut path = dir.clone();
             path.push(&filename);
+
             // open file
             let f = OpenOptions::new()
                 .write(true)
@@ -106,18 +110,21 @@ pub fn partition(
                 .create(true)
                 .open(&path)?;
             let mut wtr = BufWriter::new(f);
+
             // header
             if !no_header && !header_inserted.contains_key(&filename) {
                 header_inserted.insert(filename, true);
                 wtr.write(first_row.as_bytes())?;
                 wtr.write(terminator)?;
             }
+
             // content
             v.iter().for_each(|&r| {
                 wtr.write(r.as_bytes()).unwrap();
                 wtr.write(terminator).unwrap();
             });
         }
+
         prog.print();
     }
 

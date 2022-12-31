@@ -44,6 +44,7 @@ impl Progress {
 
     pub fn print(&mut self) {
         let t = self.start_time.elapsed().as_secs_f64() / 60.0;
+
         // must have the suffix space, otherwise current line cannot be cleaned completely
         print!(
             "\rchunk: {}, total processed: {}, elapsed time: {:.2} minutes        ",
@@ -52,6 +53,7 @@ impl Progress {
             t
         );
         io::stdout().flush().unwrap();
+
         self.print_count += 1;
     }
 }
