@@ -82,8 +82,6 @@ pub fn frequency(
         if lines.len() > 0 {
             tx.send(Task { lines, bytes }).unwrap();
         }
-
-        drop(tx);
     });
 
     // process
