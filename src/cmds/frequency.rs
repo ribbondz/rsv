@@ -17,7 +17,7 @@ struct Task {
     bytes: usize,
 }
 
-pub fn frequency(
+pub fn run(
     filename: &str,
     no_header: bool,
     sep: &str,

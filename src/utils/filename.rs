@@ -1,4 +1,7 @@
-use std::path::PathBuf;
+use std::{
+    error::Error,
+    path::{Path, PathBuf},
+};
 
 const BAD_FILENAME_CHARACTERS: [&'static str; 9] = ["<", ">", ":", "\"", "/", "\\", "|", "?", "*"];
 
@@ -29,4 +32,12 @@ pub fn new_path(path: &PathBuf, suffix: &str) -> PathBuf {
     };
 
     new_path
+}
+
+pub fn full_path_file(f: &str) -> Result<PathBuf, Box<dyn Error>> {
+    // current file
+    let mut path = std::env::current_dir()?;
+    path.push(Path::new(f));
+
+    Ok(path)
 }

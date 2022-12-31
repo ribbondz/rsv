@@ -8,7 +8,7 @@ use crate::utils::file::estimate_line_count_by_mb;
 use crate::utils::progress::Progress;
 extern crate bytecount;
 
-pub fn clean(
+pub fn run(
     filename: &str,
     escape: &str,
     new_filename: &str,

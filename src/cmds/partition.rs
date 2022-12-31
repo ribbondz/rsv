@@ -18,7 +18,7 @@ struct Task {
     bytes: usize,
 }
 
-pub fn partition(
+pub fn run(
     filename: &str,
     no_header: bool,
     sep: &str,

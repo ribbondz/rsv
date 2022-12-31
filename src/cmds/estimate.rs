@@ -1,8 +1,9 @@
+use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 
-pub fn estimate(filename: &str) -> Result<i32, Box<dyn std::error::Error>> {
+pub fn run(filename: &str) -> Result<(), Box<dyn Error>> {
     // current file
     let mut path = std::env::current_dir()?;
     path.push(Path::new(filename));
@@ -23,5 +24,7 @@ pub fn estimate(filename: &str) -> Result<i32, Box<dyn std::error::Error>> {
 
     // estimate line count
     let estimate_n = filesize / ((total_bytes as f64) / (n as f64));
-    Ok(estimate_n as i32)
+
+    println!("{}", estimate_n as usize);
+    Ok(())
 }

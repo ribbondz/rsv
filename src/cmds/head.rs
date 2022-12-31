@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 
-pub fn head(filename: &str, n: usize, no_header: bool) -> Result<(), Box<dyn std::error::Error>> {
+pub fn run(filename: &str, n: usize, no_header: bool) -> Result<(), Box<dyn std::error::Error>> {
     // current file
     let mut path = std::env::current_dir()?;
     path.push(Path::new(filename));
