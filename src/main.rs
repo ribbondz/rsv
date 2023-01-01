@@ -1,4 +1,5 @@
 use clap::{Args, Parser, Subcommand};
+use utils::cmd_desc::{COUNT_DESC, ESTIMATE_DESC, HEAD_DESC, SLICE_DESC, FLATTEN_DESC, CLEAN_DESC, HEADER_DESC, FREQUENCY_DESC};
 mod cmds;
 mod utils;
 
@@ -14,20 +15,59 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Count the number of lines
+    #[command(
+        about = "Count the number of lines",
+        override_help = COUNT_DESC
+    )]
     Count(Count),
-    /// Fast estimate the number of lines
+
+    #[command(
+        about = "Fast estimate the number of lines.",
+        override_help = ESTIMATE_DESC
+    )]
     Estimate(Filename),
-    /// Show head n lines
+
+    #[command(
+        about = "Show head n lines of CSV file.",
+        override_help = HEAD_DESC
+    )]
     Head(Head),
-    /// Clean file with escape chars (e.g. "")
+
+    #[command(
+        about = "Clean file with escape chars (e.g. \")", 
+        override_help = CLEAN_DESC
+    )]
     Clean(Clean),
-    /// Frequency table for column or columns
+
+    #[command(
+        about = "Frequency table for column or columns",
+        override_help=FREQUENCY_DESC
+    )]
     Frequency(Frequency),
-    /// Partition file into separate files according to column value
+
+    #[command(about = "Partition file into separate files according to column value")]
     Partition(Partition),
-    /// Select rows and columns by a filter
+
+    #[command(about = "Select rows and columns by a filter")]
     Select(Select),
+
+    #[command(
+        about = "Prints flattened records to view records one by one",
+        override_help = FLATTEN_DESC 
+    )]
+    Flatten(Flatten),
+
+    #[command(
+        about = "Show file headers", 
+        override_help = HEADER_DESC
+    )]
+    Headers(Headers),
+
+    #[command(
+        about = "Prints a slice of rows from CSV file.",
+        override_help = SLICE_DESC
+    )]
+    Slice(Slice),
 }
 
 #[derive(Debug, Args)]
@@ -46,24 +86,81 @@ struct Filename {
 }
 
 #[derive(Debug, Args)]
+struct Headers {
+    /// File to open
+    filename: String,
+    /// Field separator
+    #[arg(short, long, default_value_t = String::from(","))]
+    sep: String,
+}
+
+#[derive(Debug, Args)]
+struct Slice {
+    /// File to open
+    filename: String,
+    /// Start index of CSV
+    #[arg(short, long, default_value_t = 0)]
+    start: usize,
+    /// End index of CSV
+    #[arg(short, long)]
+    end: Option<usize>,
+    /// Slice length
+    #[arg(short, long)]
+    length: Option<usize>,
+    /// Index for single record of CSV
+    #[arg(short, long)]
+    index: Option<usize>,
+    /// Whether the file has a header
+    #[arg(long, default_value_t = false)]
+    no_header: bool,
+    /// Export data to a current-file-slice.csv?
+    #[arg(long, default_value_t = false)]
+    export: bool,
+}
+
+#[derive(Debug, Args)]
 struct Head {
     /// File to open
     filename: String,
+    /// Separator
+    #[arg(short, long, default_value_t = String::from(","))]
+    sep: String,
     /// Whether the file has a header
     #[arg(long, default_value_t = false)]
     no_header: bool,
     /// Number of records to show
     #[arg(short, long, default_value_t = 20)]
     n: usize,
+    /// print as a table
+    #[arg(short, long, default_value_t = false)]
+    tabled: bool,
+}
+
+#[derive(Debug, Args)]
+struct Flatten {
+    /// File to open
+    filename: String,
+    /// Separator
+    #[arg(short, long, default_value_t = String::from(","))]
+    sep: String,
+    /// Whether the file has a header
+    #[arg(long, default_value_t = false)]
+    no_header: bool,
+    /// Line delimiter for printing
+    #[arg(short, long, default_value_t = String::from("#"))]
+    delimiter: String,
+    /// Number of records to show, n=-1 to show all
+    #[arg(short, long, default_value_t = 5)]
+    n: i32,
 }
 
 #[derive(Debug, Args)]
 struct Clean {
     /// File to open
     filename: String,
-    /// New file to save data, default to current-file-cleaned.csv
+    /// Output file, default to current-file-cleaned.csv
     #[arg(short, long, default_value_t = String::from(""), hide_default_value=true)]
-    f: String,
+    output: String,
     /// Escape char to clean
     #[arg(short, long, default_value_t = String::from("\""))]
     escape: String,
@@ -138,14 +235,24 @@ fn main() {
         Commands::Count(option) => {
             cmds::count::run(&option.filename, option.no_header).unwrap();
         }
+        Commands::Headers(option) => {
+            cmds::headers::run(&option.filename, &option.sep).unwrap();
+        }
         Commands::Estimate(option) => {
             cmds::estimate::run(&option.filename).unwrap();
         }
         Commands::Head(option) => {
-            cmds::head::run(&option.filename, option.n, option.no_header).unwrap();
+            cmds::head::run(
+                &option.filename,
+                option.no_header,
+                &option.sep,
+                option.n,
+                option.tabled,
+            )
+            .unwrap();
         }
         Commands::Clean(option) => {
-            cmds::clean::run(&option.filename, &option.escape, &option.f).unwrap();
+            cmds::clean::run(&option.filename, &option.escape, &option.output).unwrap();
         }
         Commands::Frequency(option) => {
             cmds::frequency::run(
@@ -163,14 +270,38 @@ fn main() {
             cmds::partition::run(&option.filename, option.no_header, &option.sep, option.col)
                 .unwrap();
         }
-        Commands::Select(option) => cmds::select::run(
-            &option.filename,
-            option.no_header,
-            &option.sep,
-            &option.cols,
-            &option.filter,
-            option.export,
-        )
-        .unwrap(),
+        Commands::Select(option) => {
+            cmds::select::run(
+                &option.filename,
+                option.no_header,
+                &option.sep,
+                &option.cols,
+                &option.filter,
+                option.export,
+            )
+            .unwrap();
+        }
+        Commands::Flatten(option) => {
+            cmds::flatten::run(
+                &option.filename,
+                option.no_header,
+                &option.sep,
+                &option.delimiter,
+                option.n,
+            )
+            .unwrap();
+        }
+        Commands::Slice(option) => {
+            cmds::slice::run(
+                &option.filename,
+                option.no_header,
+                option.start,
+                option.end,
+                option.length,
+                option.index,
+                option.export,
+            )
+            .unwrap();
+        }
     }
 }

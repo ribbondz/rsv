@@ -8,6 +8,7 @@ use std::thread;
 use tabled::builder::Builder;
 use tabled::Style;
 
+use crate::utils::column::Columns;
 use crate::utils::file::{self, estimate_line_count_by_mb};
 use crate::utils::filename;
 use crate::utils::progress::Progress;
@@ -31,12 +32,7 @@ pub fn run(
     path.push(Path::new(filename));
 
     // cols
-    let col = parse_cols(cols).expect("Error in col syntax!");
-    if col.iter().any(|&i| i < 0) {
-        panic!("Col index should be >=0!")
-    }
-    let col: Vec<_> = col.iter().map(|&i| i as usize).collect();
-    let max_col = *col.iter().max().unwrap();
+    let col = Columns::new(cols);
 
     // open file and header
     let mut rdr = BufReader::new(File::open(&path)?).lines();
@@ -45,14 +41,11 @@ pub fn run(
     } else {
         let first_row = rdr.next().unwrap()?;
         let r = first_row.split(sep).collect::<Vec<_>>();
-        if max_col >= r.len() {
+        if col.max() >= r.len() {
             println!("read a bad line # {:?}!", r);
             null_col_names(&col)
         } else {
-            col.iter()
-                .map(|&i| r[i].to_owned())
-                .chain(std::iter::once("n".to_owned()))
-                .collect::<Vec<String>>()
+            col.select_and_append_n(&r)
         }
     };
 
@@ -90,7 +83,7 @@ pub fn run(
     for task in rx {
         task.lines.par_iter().for_each(|r| {
             let r = r.split(sep).collect::<Vec<_>>();
-            if max_col >= r.len() {
+            if col.max() >= r.len() {
                 println!("ignore a bad line # {:?}!", r);
             } else {
                 let r = col.iter().map(|&i| r[i]).collect::<Vec<_>>().join(",");
@@ -128,14 +121,7 @@ pub fn run(
     Ok(())
 }
 
-fn parse_cols(cols: &str) -> Result<Vec<isize>, std::num::ParseIntError> {
-    cols.split(",")
-        .filter(|&i| i != "")
-        .map(|i| i.parse())
-        .collect()
-}
-
-fn null_col_names(col: &Vec<usize>) -> Vec<String> {
+fn null_col_names(col: &Columns) -> Vec<String> {
     col.iter()
         .map(|&i| String::from("col") + &i.to_string())
         .chain(std::iter::once("n".to_owned()))

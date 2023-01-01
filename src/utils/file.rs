@@ -28,6 +28,18 @@ pub fn estimate_row_bytes(filename: &str) -> Result<f64, Box<dyn std::error::Err
     Ok(row_bytes)
 }
 
+pub fn column_n(filename: &str, sep: &str) -> Result<usize, Box<dyn std::error::Error>> {
+    // current file
+    let mut path = std::env::current_dir()?;
+    path.push(Path::new(filename));
+
+    // read
+    let rdr = BufReader::new(File::open(path)?);
+    let r = rdr.lines().next().unwrap()?;
+
+    Ok(r.split(sep).count())
+}
+
 pub fn estimate_line_count_by_mb(filename: &str, mb: Option<usize>) -> usize {
     match estimate_row_bytes(&filename) {
         // default chunksize to 200mb or 10_0000 lines

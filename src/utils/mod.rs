@@ -1,3 +1,4 @@
+pub mod cmd_desc;
 pub mod column;
 pub mod file;
 pub mod filename;

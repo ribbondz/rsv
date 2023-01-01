@@ -4,11 +4,13 @@ pub struct Columns {
     pub all: bool,
 }
 
-const COLUMN_SYNTAX_ERROR: &str = "Column syntax error, can only be 0,1,2 or 0-2, including 2";
-
 fn parse_col(col: &str) -> usize {
-    col.parse()
-        .unwrap_or_else(|_| panic!("{}", COLUMN_SYNTAX_ERROR))
+    col.parse().unwrap_or_else(|_| {
+        panic!(
+            "{}",
+            "Column syntax error, can only be 0,1,2 or 0-2, including 2"
+        )
+    })
 }
 
 impl Columns {
@@ -49,5 +51,21 @@ impl Columns {
 
     pub fn iter(&self) -> impl Iterator<Item = &usize> {
         self.cols.iter()
+    }
+
+    pub fn max(&self) -> usize {
+        self.max_col
+    }
+
+    pub fn _select(&self, all: &Vec<&str>) -> Vec<String> {
+        self.cols.iter().map(|&i| all[i].to_owned()).collect()
+    }
+
+    pub fn select_and_append_n(&self, all: &Vec<&str>) -> Vec<String> {
+        self.cols
+            .iter()
+            .map(|&i| all[i].to_owned())
+            .chain(std::iter::once("n".to_owned()))
+            .collect::<Vec<_>>()
     }
 }
