@@ -1,22 +1,16 @@
 use crossbeam_channel::bounded;
 use dashmap::DashMap;
 use rayon::prelude::*;
-use std::fs::File;
-use std::io::{BufRead, BufReader};
 use std::path::Path;
 use std::thread;
 use tabled::builder::Builder;
 use tabled::Style;
 
+use crate::utils::chunk_reader::ChunkReader;
 use crate::utils::column::Columns;
 use crate::utils::file::{self, estimate_line_count_by_mb};
 use crate::utils::filename;
 use crate::utils::progress::Progress;
-
-struct Task {
-    lines: Vec<String>,
-    bytes: usize,
-}
 
 pub fn run(
     filename: &str,
@@ -35,11 +29,11 @@ pub fn run(
     let col = Columns::new(cols);
 
     // open file and header
-    let mut rdr = BufReader::new(File::open(&path)?).lines();
+    let mut rdr = ChunkReader::new(&path)?;
     let names: Vec<String> = if no_header {
         null_col_names(&col)
     } else {
-        let first_row = rdr.next().unwrap()?;
+        let first_row = rdr.next()?;
         let r = first_row.split(sep).collect::<Vec<_>>();
         if col.max() >= r.len() {
             println!("read a bad line # {:?}!", r);
@@ -52,30 +46,7 @@ pub fn run(
     // read file
     let (tx, rx) = bounded(1);
     let line_buffer_n: usize = estimate_line_count_by_mb(filename, None);
-    thread::spawn(move || {
-        let mut bytes = 0;
-        let mut lines: Vec<String> = Vec::with_capacity(line_buffer_n);
-        let mut n = 0;
-
-        for l in rdr {
-            let l = l.unwrap();
-
-            n += 1;
-            bytes += l.len();
-
-            lines.push(l);
-            if n >= line_buffer_n {
-                tx.send(Task { lines, bytes }).unwrap();
-                n = 0;
-                bytes = 0;
-                lines = Vec::with_capacity(line_buffer_n);
-            }
-        }
-
-        if lines.len() > 0 {
-            tx.send(Task { lines, bytes }).unwrap();
-        }
-    });
+    thread::spawn(move || rdr.send_chunks_to_channel(tx, line_buffer_n));
 
     // process
     let freq = DashMap::new();

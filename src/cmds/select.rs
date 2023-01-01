@@ -1,21 +1,18 @@
 use crossbeam_channel::bounded;
 use rayon::prelude::*;
 
+use crate::utils::chunk_reader::{ChunkReader, Task};
 use crate::utils::column::Columns;
+use crate::utils::constants::TERMINATOR;
 use crate::utils::file::estimate_line_count_by_mb;
 use crate::utils::filename::{full_path_file, new_path};
 use crate::utils::filter::Filter;
 use crate::utils::progress::Progress;
 
+use std::error::Error;
 use std::fs::File;
-use std::io::{stdout, BufRead, BufWriter, Write};
+use std::io::{stdout, BufWriter, Write};
 use std::thread;
-use std::{error::Error, io::BufReader};
-
-struct Task {
-    lines: Vec<String>,
-    bytes: usize,
-}
 
 pub fn run(
     filename: &str,
@@ -42,21 +39,20 @@ pub fn run(
         false => Box::new(stdout()) as Box<dyn Write>,
     };
     let mut wtr = BufWriter::new(f);
-    let mut rdr = BufReader::new(File::open(&path)?).lines();
+    let mut rdr = ChunkReader::new(&path)?;
 
     // const
     let sep_bytes = sep.as_bytes();
-    let terminator = &b"\n"[..];
 
     // header
     if !no_header {
-        let row = rdr.next().unwrap()?;
+        let row = rdr.next()?;
         let row = row.split(sep).collect::<Vec<_>>();
         let record = match cols.all {
             true => row,
             false => cols.iter().map(|&i| row[i]).collect(),
         };
-        print_record(&mut wtr, &record, sep_bytes, terminator)?;
+        print_record(&mut wtr, &record, sep_bytes, TERMINATOR)?;
     }
 
     // parallel queue
@@ -64,67 +60,51 @@ pub fn run(
 
     // read
     let line_buffer_n: usize = estimate_line_count_by_mb(filename, None);
-    thread::spawn(move || {
-        let mut lines = Vec::with_capacity(line_buffer_n);
-        let mut n = 0;
-        let mut bytes = 0;
-
-        for l in rdr {
-            let l = l.unwrap();
-
-            n += 1;
-            bytes += l.len();
-
-            lines.push(l);
-
-            if n >= line_buffer_n {
-                tx.send(Task { lines, bytes }).unwrap();
-                n = 0;
-                bytes = 0;
-                lines = Vec::with_capacity(line_buffer_n);
-            }
-        }
-
-        if lines.len() > 0 {
-            tx.send(Task { lines, bytes }).unwrap();
-        }
-    });
+    thread::spawn(move || rdr.send_chunks_to_channel(tx, line_buffer_n));
 
     // process
     let mut prog = Progress::new();
     for task in rx {
-        // filter
-        let filtered = task
-            .lines
-            .par_iter()
-            .filter_map(|row| {
-                let row = row.split(sep).collect::<Vec<_>>();
-                if filter.record_is_valid(&row) {
-                    Some(row)
-                } else {
-                    None
-                }
-            })
-            .collect::<Vec<_>>();
-
-        // write
-        filtered.iter().for_each(|row| {
-            if cols.all {
-                print_record(&mut wtr, row, sep_bytes, terminator).unwrap()
-            } else {
-                let record = cols.iter().map(|&i| row[i]).collect::<Vec<_>>();
-                print_record(&mut wtr, &record, sep_bytes, terminator).unwrap()
-            }
-        });
-
-        if export {
-            prog.add_chuncks(1);
-            prog.add_bytes(task.bytes);
-            prog.print();
-        }
+        handle_task(
+            task, &filter, sep, &cols, &mut wtr, sep_bytes, export, &mut prog,
+        )
     }
 
     Ok(())
+}
+
+fn handle_task(
+    task: Task,
+    filter: &Filter,
+    sep: &str,
+    cols: &Columns,
+    mut wtr: &mut BufWriter<Box<dyn Write>>,
+    sep_bytes: &[u8],
+    export: bool,
+    prog: &mut Progress,
+) {
+    // filter
+    let filtered = task
+        .lines
+        .par_iter()
+        .filter_map(|row| filter.record_valid_map(row, sep))
+        .collect::<Vec<_>>();
+
+    // write
+    filtered.iter().for_each(|row| {
+        if cols.all {
+            print_record(&mut wtr, row, sep_bytes, TERMINATOR).unwrap()
+        } else {
+            let record = cols.iter().map(|&i| row[i]).collect::<Vec<_>>();
+            print_record(&mut wtr, &record, sep_bytes, TERMINATOR).unwrap()
+        }
+    });
+
+    if export {
+        prog.add_chuncks(1);
+        prog.add_bytes(task.bytes);
+        prog.print();
+    }
 }
 
 fn print_record(

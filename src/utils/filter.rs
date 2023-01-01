@@ -52,4 +52,13 @@ impl Filter {
             .iter()
             .all(|item| item.values.iter().any(|i| i.as_str() == row[item.col]))
     }
+
+    pub fn record_valid_map<'a, 'b>(&'b self, row: &'a String, sep: &str) -> Option<Vec<&'a str>> {
+        let row = row.split(sep).collect::<Vec<_>>();
+        if self.record_is_valid(&row) {
+            Some(row)
+        } else {
+            None
+        }
+    }
 }

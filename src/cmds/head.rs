@@ -23,13 +23,10 @@ pub fn run(
         .collect::<Vec<_>>();
 
     // tabled or not
-    match tabled {
-        true => {
-            print_as_table(r, sep, no_header);
-        }
-        false => {
-            r.iter().for_each(|i| println!("{}", i));
-        }
+    if tabled {
+        print_as_table(r, sep, no_header);
+    } else {
+        r.iter().for_each(|i| println!("{}", i));
     }
 
     Ok(())
@@ -41,12 +38,9 @@ fn print_as_table(records: Vec<String>, sep: &str, no_header: bool) {
 
     // header
     if !no_header {
-        match rdr.next() {
-            Some(row) => {
-                let col = row.split(sep).collect::<Vec<_>>();
-                builder.set_columns(col);
-            }
-            None => {}
+        if let Some(row) = rdr.next() {
+            let col = row.split(sep).collect::<Vec<_>>();
+            builder.set_columns(col);
         }
     }
 
