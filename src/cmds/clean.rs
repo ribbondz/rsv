@@ -34,7 +34,7 @@ pub fn run(
 
     // copy
     let re = Regex::new(escape)?;
-    let null = &b""[..];
+    let empty_bytes = &b""[..];
     let mut buf = vec![];
     let mut i = 0;
     while let Ok(bytes_read) = rdr.read_until(b'\n', &mut buf) {
@@ -42,7 +42,7 @@ pub fn run(
             break;
         }
 
-        let str = &re.replace_all(&buf[..bytes_read], null);
+        let str = &re.replace_all(&buf[..bytes_read], empty_bytes);
         wtr.write(str)?;
         buf.clear();
 
@@ -58,6 +58,6 @@ pub fn run(
 
     prog.print();
 
-    println!("\nSaved to new file: {:?}.", new_path);
+    println!("\nSaved to file: {}", new_path.display());
     Ok(())
 }

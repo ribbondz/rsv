@@ -24,6 +24,7 @@ pub fn run(
 ) -> Result<(), Box<dyn Error>> {
     // current file
     let path = full_path_file(filename)?;
+    let out_path = new_path(&path, "-selected");
 
     // filters and cols
     let filter = Filter::new(filter);
@@ -31,10 +32,7 @@ pub fn run(
 
     // open file
     let f = match export {
-        true => {
-            let out_path = new_path(&path, "-selected");
-            Box::new(File::create(&out_path)?) as Box<dyn Write>
-        }
+        true => Box::new(File::create(&out_path)?) as Box<dyn Write>,
         false => Box::new(stdout()) as Box<dyn Write>,
     };
     let mut wtr = BufWriter::new(f);
@@ -69,6 +67,9 @@ pub fn run(
         )
     }
 
+    if export {
+        println!("\nSaved to file: {}", out_path.display())
+    }
     Ok(())
 }
 
@@ -116,7 +117,7 @@ fn print_record(
 
     while let Some(&field) = it.next() {
         wtr.write(field.as_bytes())?;
-        
+
         if it.peek().is_none() {
             wtr.write(terminator)?;
         } else {

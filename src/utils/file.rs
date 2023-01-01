@@ -4,6 +4,8 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use super::constants::MB_USIZE;
+
 pub fn estimate_row_bytes(filename: &str) -> Result<f64, Box<dyn std::error::Error>> {
     // current file
     let mut path = std::env::current_dir()?;
@@ -43,7 +45,7 @@ pub fn column_n(filename: &str, sep: &str) -> Result<usize, Box<dyn std::error::
 pub fn estimate_line_count_by_mb(filename: &str, mb: Option<usize>) -> usize {
     match estimate_row_bytes(&filename) {
         // default chunksize to 200mb or 10_0000 lines
-        Ok(v) => ((mb.unwrap_or(200) as f64) * 1024.0 * 1024.0 / v) as usize,
+        Ok(v) => ((mb.unwrap_or(200) * MB_USIZE) as f64 / v) as usize,
         Err(_) => 10_0000,
     }
 }

@@ -33,6 +33,7 @@ pub fn run(filename: &str, no_header: bool) -> Result<(), Box<dyn Error>> {
 
         rdr.consume(bytes_read);
     }
+    
     println!("{}", n);
     prog.print_elapsed_time();
 

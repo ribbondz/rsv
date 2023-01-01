@@ -15,10 +15,10 @@ pub fn run(
 ) -> Result<(), Box<dyn Error>> {
     // current file
     let path = full_path_file(filename)?;
+    let out_path = new_path(&path, "-slice");
 
     // open file
     let f = if export {
-        let out_path = new_path(&path, "-selected");
         Box::new(File::create(&out_path)?) as Box<dyn Write>
     } else {
         Box::new(stdout()) as Box<dyn Write>
@@ -43,6 +43,10 @@ pub fn run(
                 .unwrap();
             write_by_range(&mut rdr, &mut wtr, start, e)?;
         }
+    }
+
+    if export {
+        println!("Saved to file: {}", out_path.display())
     }
 
     Ok(())

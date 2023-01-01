@@ -86,7 +86,7 @@ pub fn run(
     if export {
         let new_path = filename::new_path(&path, "-frequency");
         file::write_to_csv(&new_path, &names, freq);
-        println!("Saved to new file: {:?}.", new_path);
+        println!("Saved to file: {}", new_path.display());
     } else {
         print_table(&names, freq)
     }
