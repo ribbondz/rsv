@@ -17,13 +17,13 @@ pub fn run(
     let path = full_path_file(filename)?;
 
     // open file
-    let f = match export {
-        true => {
-            let out_path = new_path(&path, "-selected");
-            Box::new(File::create(&out_path)?) as Box<dyn Write>
-        }
-        false => Box::new(stdout()) as Box<dyn Write>,
+    let f = if export {
+        let out_path = new_path(&path, "-selected");
+        Box::new(File::create(&out_path)?) as Box<dyn Write>
+    } else {
+        Box::new(stdout()) as Box<dyn Write>
     };
+
     let mut wtr = BufWriter::new(f);
     let mut rdr = BufReader::new(File::open(&path)?);
 

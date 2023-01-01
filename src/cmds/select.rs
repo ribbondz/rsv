@@ -116,6 +116,7 @@ fn print_record(
 
     while let Some(&field) = it.next() {
         wtr.write(field.as_bytes())?;
+        
         if it.peek().is_none() {
             wtr.write(terminator)?;
         } else {

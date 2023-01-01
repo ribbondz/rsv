@@ -34,7 +34,7 @@ pub fn run(
     let column_width = columns.iter().map(|i| i.len()).max().unwrap();
 
     // read file
-    let n = if n == -1 { usize::MAX } else { n as usize };
+    let n = if n <= 0 { usize::MAX } else { n as usize };
     let mut rdr = rdr.take(n).peekable();
     while let Some(l) = rdr.next() {
         let l = l.unwrap();

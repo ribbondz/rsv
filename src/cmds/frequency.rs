@@ -31,13 +31,13 @@ pub fn run(
     // open file and header
     let mut rdr = ChunkReader::new(&path)?;
     let names: Vec<String> = if no_header {
-        null_col_names(&col)
+        artificial_cols(&col)
     } else {
         let first_row = rdr.next()?;
         let r = first_row.split(sep).collect::<Vec<_>>();
         if col.max() >= r.len() {
             println!("read a bad line # {:?}!", r);
-            null_col_names(&col)
+            artificial_cols(&col)
         } else {
             col.select_and_append_n(&r)
         }
@@ -66,6 +66,7 @@ pub fn run(
         prog.add_bytes(task.bytes);
         prog.print();
     }
+
     println!("");
 
     // apply ascending
@@ -89,10 +90,11 @@ pub fn run(
     } else {
         print_table(&names, freq)
     }
+
     Ok(())
 }
 
-fn null_col_names(col: &Columns) -> Vec<String> {
+fn artificial_cols(col: &Columns) -> Vec<String> {
     col.iter()
         .map(|&i| String::from("col") + &i.to_string())
         .chain(std::iter::once("n".to_owned()))
@@ -109,11 +111,11 @@ fn print_table(names: &Vec<String>, freq: Vec<(String, i32)>) {
 
     // content
     for (key, n) in freq {
-        let r: Vec<String> = key
+        let r = key
             .split(",")
             .map(|i| i.to_owned())
             .chain(std::iter::once(n.to_string()))
-            .collect();
+            .collect::<Vec<_>>();
         builder.add_record(r);
     }
 
