@@ -39,15 +39,9 @@ pub fn run(
     match index {
         Some(index) => write_by_index(&mut rdr, &mut wtr, index)?,
         None => {
-            let e = if let Some(e) = end {
-                e
-            } else {
-                if let Some(l) = length {
-                    start + l
-                } else {
-                    usize::MAX
-                }
-            };
+            let e = end
+                .or(length.and_then(|l| Some(start + l)).or(Some(usize::MAX)))
+                .unwrap();
             write_by_range(&mut rdr, &mut wtr, start, e)?;
         }
     }
