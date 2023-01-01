@@ -19,22 +19,24 @@ impl Filter {
             return f;
         }
 
-        raw.split("&").for_each(|i| {
-            let segs = i.split("=").collect::<Vec<_>>();
-
-            if segs.len() != 2 {
-                panic!("Filter syntax error, can only be 0=a,b,c or 0=a,b&2=c.");
-            }
-
-            let col: usize = segs[0].parse().unwrap_or_else(|_| {
-                panic!("Column should be an interger bigger than or equal to 0.")
-            });
-            let values = segs[1].split(",").map(|i| i.to_owned()).collect::<Vec<_>>();
-
-            f.append(col, values);
-        });
+        raw.split("&").for_each(|one| Filter::parse(&mut f, one));
 
         f
+    }
+
+    fn parse(f: &mut Filter, one: &str) {
+        let segs = one.split("=").collect::<Vec<_>>();
+
+        if segs.len() != 2 {
+            panic!("Filter syntax error, can only be 0=a,b,c or 0=a,b&2=c.");
+        }
+
+        let col: usize = segs[0]
+            .parse()
+            .unwrap_or_else(|_| panic!("Column should be an interger bigger than or equal to 0."));
+        let values = segs[1].split(",").map(|i| i.to_owned()).collect::<Vec<_>>();
+
+        f.append(col, values);
     }
 
     pub fn append(&mut self, col: usize, values: Vec<String>) {
