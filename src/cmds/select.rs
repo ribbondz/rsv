@@ -33,8 +33,7 @@ pub fn run(
     let f = match export {
         true => {
             let out_path = new_path(&path, "-selected");
-            let f = File::create(&out_path)?;
-            Box::new(f) as Box<dyn Write>
+            Box::new(File::create(&out_path)?) as Box<dyn Write>
         }
         false => Box::new(stdout()) as Box<dyn Write>,
     };
