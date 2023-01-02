@@ -1,5 +1,5 @@
 use clap::{Args, Parser, Subcommand};
-use utils::cmd_desc::{COUNT_DESC, ESTIMATE_DESC, HEAD_DESC, SLICE_DESC, FLATTEN_DESC, CLEAN_DESC, HEADER_DESC, FREQUENCY_DESC};
+use utils::cmd_desc::{COUNT_DESC, ESTIMATE_DESC, HEAD_DESC, SLICE_DESC, FLATTEN_DESC, CLEAN_DESC, HEADER_DESC, FREQUENCY_DESC, PARTITION_DESC,SELECT_DESC};
 mod cmds;
 mod utils;
 
@@ -40,15 +40,21 @@ enum Commands {
     Clean(Clean),
 
     #[command(
-        about = "Frequency table for column or columns",
+        about = "Frequency table for column(s)",
         override_help=FREQUENCY_DESC
     )]
     Frequency(Frequency),
 
-    #[command(about = "Partition file into separate files according to column value")]
+    #[command(
+        about = "Partition file into separate files according to column value",
+        override_help=PARTITION_DESC
+    )]
     Partition(Partition),
 
-    #[command(about = "Select rows and columns by a filter")]
+    #[command(
+        about = "Select rows and columns by filter",
+        override_help=SELECT_DESC
+    )]
     Select(Select),
 
     #[command(

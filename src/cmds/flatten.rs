@@ -20,7 +20,7 @@ pub fn run(
     let columns: Vec<String> = if no_header {
         let column_n = file::column_n(filename, sep)?;
         (1..=column_n)
-            .map(|i| "col".to_string() + &i.to_string())
+            .map(|i| "col".to_owned() + &i.to_string())
             .collect::<Vec<_>>()
     } else {
         let first_row = rdr.next().unwrap()?;

@@ -31,22 +31,22 @@ pub fn run(
     // open file and header
     let mut rdr = ChunkReader::new(&path)?;
     let names: Vec<String> = if no_header {
-        artificial_cols(&col)
+        col.artificial_cols()
     } else {
         let first_row = rdr.next()?;
         let r = first_row.split(sep).collect::<Vec<_>>();
         if col.max() >= r.len() {
             println!("read a bad line # {:?}!", r);
-            artificial_cols(&col)
+            col.artificial_cols()
         } else {
-            col.select_and_append_n(&r)
+            col.select_owned_vector_and_append_n(&r)
         }
     };
 
     // read file
     let (tx, rx) = bounded(1);
     let line_buffer_n: usize = estimate_line_count_by_mb(filename, None);
-    thread::spawn(move || rdr.send_chunks_to_channel(tx, line_buffer_n));
+    thread::spawn(move || rdr.send_to_channel_in_line_chunks(tx, line_buffer_n));
 
     // process
     let freq = DashMap::new();
@@ -57,7 +57,7 @@ pub fn run(
             if col.max() >= r.len() {
                 println!("ignore a bad line # {:?}!", r);
             } else {
-                let r = col.iter().map(|&i| r[i]).collect::<Vec<_>>().join(",");
+                let r = col.select_owned_string(&r);
                 *freq.entry(r).or_insert(0) += 1;
             }
         });
@@ -67,10 +67,7 @@ pub fn run(
         prog.print();
     }
 
-    println!("");
-
-    // apply ascending
-    let mut freq = freq.into_iter().collect::<Vec<(_, _)>>();
+    let mut freq: Vec<(String, i32)> = freq.into_iter().collect::<Vec<(_, _)>>();
     if ascending {
         freq.sort_by(|a, b| a.1.cmp(&b.1));
     } else {
@@ -78,11 +75,12 @@ pub fn run(
     }
 
     // apply head n
-    if n > 0 && freq.len() > n as usize {
-        freq = freq[..(n as usize)].to_vec();
+    if n > 0 {
+        freq = freq.into_iter().take(n as usize).collect()
     }
 
     // export or print
+    println!("");
     if export {
         let new_path = filename::new_path(&path, "-frequency");
         file::write_to_csv(&new_path, &names, freq);
@@ -92,13 +90,6 @@ pub fn run(
     }
 
     Ok(())
-}
-
-fn artificial_cols(col: &Columns) -> Vec<String> {
-    col.iter()
-        .map(|&i| String::from("col") + &i.to_string())
-        .chain(std::iter::once("n".to_owned()))
-        .collect::<Vec<_>>()
 }
 
 fn print_table(names: &Vec<String>, freq: Vec<(String, i32)>) {

@@ -11,6 +11,7 @@ pub fn run(filename: &str) -> Result<(), Box<dyn Error>> {
     // read 20000 lines to estimate bytes per line
     let file = File::open(path)?;
     let filesize = file.metadata()?.len() as f64;
+    
     let mut total_bytes = 0;
     let mut n = 0;
     for l in BufReader::new(file).lines().skip(1) {

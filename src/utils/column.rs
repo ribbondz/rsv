@@ -57,11 +57,28 @@ impl Columns {
         self.max_col
     }
 
-    pub fn _select(&self, all: &Vec<&str>) -> Vec<String> {
+    pub fn artificial_cols(&self) -> Vec<String> {
+        self.iter()
+            .map(|&i| String::from("col") + &i.to_string())
+            .chain(std::iter::once("n".to_owned()))
+            .collect::<Vec<_>>()
+    }
+
+    #[allow(dead_code)]
+    pub fn select_str_vector<'a>(&self, all: &Vec<&'a str>) -> Vec<&'a str> {
+        self.cols.iter().map(|&i| all[i]).collect::<Vec<_>>()
+    }
+
+    pub fn select_owned_string(&self, all: &Vec<&str>) -> String {
+        self.iter().map(|&i| all[i]).collect::<Vec<_>>().join(",")
+    }
+
+    #[allow(dead_code)]
+    pub fn select_owned_vector(&self, all: &Vec<&str>) -> Vec<String> {
         self.cols.iter().map(|&i| all[i].to_owned()).collect()
     }
 
-    pub fn select_and_append_n(&self, all: &Vec<&str>) -> Vec<String> {
+    pub fn select_owned_vector_and_append_n(&self, all: &Vec<&str>) -> Vec<String> {
         self.cols
             .iter()
             .map(|&i| all[i].to_owned())

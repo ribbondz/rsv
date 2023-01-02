@@ -42,8 +42,8 @@ pub fn run(
             break;
         }
 
-        let str = &re.replace_all(&buf[..bytes_read], empty_bytes);
-        wtr.write(str)?;
+        let str = re.replace_all(&buf[..bytes_read], empty_bytes);
+        wtr.write(&str)?;
         buf.clear();
 
         // progress print

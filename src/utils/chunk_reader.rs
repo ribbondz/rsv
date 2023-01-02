@@ -25,7 +25,7 @@ impl ChunkReader {
         self.rdr.next().unwrap()
     }
 
-    pub fn send_chunks_to_channel(&mut self, tx: Sender<Task>, line_buffer_n: usize) {
+    pub fn send_to_channel_in_line_chunks(&mut self, tx: Sender<Task>, line_buffer_n: usize) {
         let mut lines = Vec::with_capacity(line_buffer_n);
         let mut n = 0;
         let mut bytes = 0;

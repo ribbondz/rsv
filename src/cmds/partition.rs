@@ -46,7 +46,7 @@ pub fn run(filename: &str, no_header: bool, sep: &str, col: usize) -> Result<(),
     let (tx, rx) = bounded(1);
     // read
     let line_buffer_n = estimate_line_count_by_mb(filename, Some(512));
-    thread::spawn(move || rdr.send_chunks_to_channel(tx, line_buffer_n));
+    thread::spawn(move || rdr.send_to_channel_in_line_chunks(tx, line_buffer_n));
 
     // process batch work
     let mut header_inserted: AHashMap<String, bool> = AHashMap::new();

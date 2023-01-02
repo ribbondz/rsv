@@ -57,7 +57,7 @@ pub fn run(
 
     // read
     let line_buffer_n: usize = estimate_line_count_by_mb(filename, None);
-    thread::spawn(move || rdr.send_chunks_to_channel(tx, line_buffer_n));
+    thread::spawn(move || rdr.send_to_channel_in_line_chunks(tx, line_buffer_n));
 
     // process
     let mut prog = Progress::new();
