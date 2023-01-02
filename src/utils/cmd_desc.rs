@@ -1,5 +1,5 @@
-pub const COUNT_DESC: &str = "Count the number of lines. The command is fast 
-by reading bytes and avoiding copying.
+pub const COUNT_DESC: &str = "Count the number of lines. The command deals with raw bytes
+and is therefore fast.
 
 Usage: 
   rsv.exe count [OPTIONS] <FILENAME>
@@ -52,13 +52,13 @@ Options:
 pub const ESTIMATE_DESC: &str = "Fast estimate the number of lines. 
     
 The command first read 20000 lines (except the header) from the CSV file, 
-and then estimate average bytes of a line by dividing the total bytes 
-read by the number of lines.
+and then estimate average bytes of a line by dividing total bytes and
+number of lines.
 
 The total number of lines of CSV file is estimtaed according to file size
 and average bytes per line.
 
-The estimate is fast.
+The estimate is every fast.
 
 Usage: 
   rsv.exe estimate <FILENAME>
@@ -71,7 +71,8 @@ Options:
   -h, --help  Print help information (use `--help` for more detail)
 ";
 
-pub const CLEAN_DESC: &str = "Clean file with escape chars (e.g. \")
+pub const CLEAN_DESC: &str = "Clean file with escape chars (e.g. \"). Other special strings
+can also be cleaned.
 
 Usage: 
   rsv.exe clean [OPTIONS] <FILENAME>
@@ -90,7 +91,7 @@ Options:
 pub const FLATTEN_DESC: &str =
     "Prints flattened records to view records one by one. Records are separared
 by \"#\", which could be changed with the --delimiter flag. The command is 
-similiar to \"xsv flatten\" and \"\\G\" in mysql.
+similiar to \"xsv flatten\" and \"\\G\" command in mysql.
 
 Usage: 
   rsv.exe flatten [OPTIONS] <FILENAME>
