@@ -38,7 +38,7 @@ for example, rsv frequency --help.
 
 - **rsv head**
 
-```
+```shell
 rsv head data.csv                   # print as the file is
 rsv head --tabled data.csv          # tabled
 rsv head -t data.csv                # tabled too
@@ -48,7 +48,7 @@ rsv head --help                     # help info on all flags
 
 - **rsv header**
 
-```
+```shell
 rsv headers data.csv                # separator "," (default)
 rsv headers -s \t data.csv          # separator tab
 rsv headers --help                  # help info on all flags
@@ -56,7 +56,7 @@ rsv headers --help                  # help info on all flags
 
 - **rsv count**
 
-```
+```shell
 rsv count data.csv
 rsv count --no-header data.csv
 rsv count --help                    # help info on all flags
@@ -64,14 +64,14 @@ rsv count --help                    # help info on all flags
 
 - **rsv estimate**
 
-```
+```shell
 rsv estimate data.csv
 rsv estimate --help                 # help info on all flags
 ```
 
 - **rsv clean**
 
-```
+```shell
 rsv clean data.csv                               # default to clean escape char "
 rsv clean -e \"content-to-delete\" data.csv      # clean str to empty
 rsv clean -o new-file.csv data.csv               # save to new-file.csv
@@ -80,7 +80,7 @@ rsv clean --help                                 # help info on all flags
 
 - **rsv frequency**
 
-```
+```shell
 rsv frequency -c 0 data.csv              # default to the first column, descending order
 rsv frequency -c 0,1,2 data.csv          # columns 0, 1, and 2
 rsv frequency -c 0-2 data.csv            # same as above
@@ -96,7 +96,7 @@ column selection syntax:
 
 - **rsv partition**
 
-```
+```shell
 rsv partition data.csv              # default to first column and field separator of ,
 rsv partition -s \\t data.csv       # tab separator
 rsv partition -c 1 data.csv         # partition based on second column
@@ -106,7 +106,7 @@ rsv partition --help                # help info on all flags
 
 - **rsv select**
 
-```
+```shell
 rsv select -f 0=a,b,c data.csv             # first column has values of a, b, or c
 rsv select -f 0=a,b&1=c data.csv           # first column is a or b, AND the second column equals c
 rsv select -f 0=a,b&1=c --export data.csv  # export result
@@ -128,7 +128,7 @@ column selection syntax:
 
 - **rsv flatten**
 
-```
+```shell
 rsv flatten data.csv                       # default to show first 5 records
 rsv flatten -n 50 data.csv                 # show 50 records
 rsv flatten --delimiter \"--\" data.csv    # change line delimiter to anything
@@ -137,7 +137,7 @@ rsv flatten --help                         # help info on all flags
 
 - **rsv slice**
 
-```
+```shell
 rsv slice -s 100 -e 150 data.csv           # set start and end index
 rsv slice -s 100 -l 50 data.csv            # set start index and the length
 rsv slice -s 100 -l 50 --export data.csv   # export to data-slice.csv
