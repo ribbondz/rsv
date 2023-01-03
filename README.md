@@ -17,17 +17,17 @@ download **rsv.exe** from release tab, and append the file directory to system p
 - **header** - Show header of CSV file.
 - **count** - Count the number of lines of CSV file :running:.
 - **estimate** - Fast estimate the number of lines.
-- **clean** - Clean file with escape char (e.g. ") or other strings `:running:`.
-- **frequency** - Show frequency table for column(s) `:running:` `:star:`.
-- **partition** - Split CSV file into separate files based on a column value ` :running:` `:star:`.
-- **select** - Select rows and columns by filter `:running:`.
+- **clean** - Clean file with escape char (e.g. ") or other strings :running:.
+- **frequency** - Show frequency table for column(s) :running: :star:.
+- **partition** - Split CSV file into separate files based on a column value :running: :star:.
+- **select** - Select rows and columns by filter :running:.
 - **flatten** - Prints flattened records to view records one by one.
 - **slice** - Prints a slice of rows from CSV file.
 
 Tips 1:
 
-- `:running:` means the command is supported with a real-time progress bar.
-- `:star:` means the command is supported with parallel data processing.
+- :running: means the command is supported with a real-time progress bar.
+- :star: means the command is supported with parallel data processing.
 
 Tips 2:
 
