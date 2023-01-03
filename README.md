@@ -1,6 +1,6 @@
 # csv toolkit written in Rust
 
-**rsv** is a command line program to deal with small and big CSV or TXT files (especially >10G). **rsv** has following features:
+**rsv** is a command line tool to deal with small and big CSV or TXT files (especially >10G). **rsv** has following features:
 
 - written in Rust
 - fast and parallel data processing
