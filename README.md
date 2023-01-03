@@ -15,7 +15,7 @@ download **rsv.exe** from release tab, and append the file directory to system p
 
 - **head** - Show head n lines of CSV file.
 - **header** - Show header of CSV file.
-- **count** - Count the number of lines of CSV file `:running:`.
+- **count** - Count the number of lines of CSV file :running:.
 - **estimate** - Fast estimate the number of lines.
 - **clean** - Clean file with escape char (e.g. ") or other strings `:running:`.
 - **frequency** - Show frequency table for column(s) `:running:` `:star:`.
