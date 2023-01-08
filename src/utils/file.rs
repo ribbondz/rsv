@@ -8,7 +8,7 @@ use std::{
 
 use super::constants::MB_USIZE;
 
-pub fn estimate_row_bytes(filename: &str) -> Result<f64, Box<dyn std::error::Error>> {
+pub fn estimate_row_bytes(filename: &str) -> Result<f64, Box<dyn Error>> {
     // current file
     let mut path = std::env::current_dir()?;
     path.push(Path::new(filename));
@@ -30,7 +30,7 @@ pub fn estimate_row_bytes(filename: &str) -> Result<f64, Box<dyn std::error::Err
     Ok((bytes as f64) / (n as f64))
 }
 
-pub fn column_n(filename: &str, sep: &str) -> Result<usize, Box<dyn std::error::Error>> {
+pub fn column_n(filename: &str, sep: &str) -> Result<usize, Box<dyn Error>> {
     // current file
     let mut path = std::env::current_dir()?;
     path.push(Path::new(filename));
@@ -69,4 +69,14 @@ pub fn file_or_stdout_wtr(export: bool, path: &Path) -> Result<Box<dyn Write>, B
         true => Ok(Box::new(File::create(path)?) as Box<dyn Write>),
         false => Ok(Box::new(stdout()) as Box<dyn Write>),
     }
+}
+
+pub fn first_row(filename: &str) -> Result<String, Box<dyn Error>> {
+    // file
+    let mut path = std::env::current_dir()?;
+    path.push(Path::new(filename));
+
+    let mut rdr = BufReader::new(File::open(path)?).lines();
+
+    Ok(rdr.next().unwrap()?)
 }

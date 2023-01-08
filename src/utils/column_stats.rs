@@ -76,13 +76,13 @@ impl ColumnStats {
 
         let v = self.cols.iter().map(|&i| v[i]).collect::<Vec<_>>();
         for (i, f) in v.iter().enumerate() {
-            self.update_col_stat(i, f)
+            self.parse_col(i, f)
         }
 
         self.rows += 1;
     }
 
-    fn update_col_stat(&mut self, i: usize, f: &str) {
+    fn parse_col(&mut self, i: usize, f: &str) {
         let c = &mut self.stat[i];
 
         if util::is_null(f) {
@@ -117,29 +117,31 @@ impl ColumnStats {
                     if v < c.min {
                         c.min = v
                     }
+                    c.total += v
                 }
                 // fallback to string
-                Err(_) => c.col_type = ColumnType::String,
+                Err(_) => match f.parse::<f64>() {
+                    Ok(v) => {
+                        c.total += v;
+                        c.col_type = ColumnType::Float
+                    }
+                    Err(_) => c.col_type = ColumnType::String,
+                },
             },
             _ => {}
         }
     }
 
-    pub fn finalize(&mut self) {
+    pub fn finalize_stats(&mut self) {
         self.stat.iter_mut().for_each(|s| {
             s.unique = s.unique_hashset.len();
 
             match s.col_type {
-                ColumnType::Float => {
-                    s.mean = s.total / self.rows as f64;
-                }
-                ColumnType::Int => {
-                    let sum: f64 = s
-                        .unique_hashset
-                        .iter()
-                        .map(|i| i.parse::<f64>().unwrap())
-                        .sum();
-                    s.mean = sum / (s.unique as f64);
+                ColumnType::Float | ColumnType::Int => {
+                    let n = self.rows - s.null;
+                    if n != 0 {
+                        s.mean = s.total / n as f64;
+                    }
                 }
                 _ => {}
             }
@@ -154,6 +156,10 @@ impl ColumnStats {
         self.rows += other.rows;
 
         other.iter().zip(&mut self.stat).for_each(|(o, c)| {
+            if c.col_type != o.col_type {
+                c.col_type = o.col_type
+            }
+
             if o.min < c.min {
                 c.min = o.min;
             }

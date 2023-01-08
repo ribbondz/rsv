@@ -26,7 +26,7 @@ pub fn run(
 
     // Column
     let cols = Columns::new(cols);
-    let col_type = ColumnTypes::guess(&path, sep, no_header, &cols)?;
+    let col_type = ColumnTypes::guess(&path, filename, sep, no_header, &cols)?;
 
     // open file
     let mut rdr = ChunkReader::new(&path)?;
@@ -89,7 +89,7 @@ pub fn run(
     });
 
     // refine result
-    stat.finalize();
+    stat.finalize_stats();
 
     // print
     if export {

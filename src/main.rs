@@ -16,6 +16,24 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     #[command(
+        about = "Show head n lines of CSV file.",
+        override_help = HEAD_DESC
+    )]
+    Head(Head),
+
+    #[command(
+        about = "Show file headers", 
+        override_help = HEADER_DESC
+    )]
+    Headers(Headers),
+
+    #[command(
+        about = "Prints flattened records to view records one by one",
+        override_help = FLATTEN_DESC 
+    )]
+    Flatten(Flatten),
+    
+    #[command(
         about = "Count the number of lines of CSV file, or number of files in directory",
         override_help = COUNT_DESC
     )]
@@ -28,13 +46,7 @@ enum Commands {
     Estimate(Filename),
 
     #[command(
-        about = "Show head n lines of CSV file.",
-        override_help = HEAD_DESC
-    )]
-    Head(Head),
-
-    #[command(
-        about = "Clean file with escape chars (e.g. \")", 
+        about = "Clean file with escape chars, default to \"", 
         override_help = CLEAN_DESC
     )]
     Clean(Clean),
@@ -46,7 +58,7 @@ enum Commands {
     Frequency(Frequency),
 
     #[command(
-        about = "Partition file into separate files according to column value",
+        about = "Split file into separate files according to column value",
         override_help=PARTITION_DESC
     )]
     Partition(Partition),
@@ -58,25 +70,13 @@ enum Commands {
     Select(Select),
 
     #[command(
-        about = "Prints flattened records to view records one by one",
-        override_help = FLATTEN_DESC 
-    )]
-    Flatten(Flatten),
-
-    #[command(
-        about = "Show file headers", 
-        override_help = HEADER_DESC
-    )]
-    Headers(Headers),
-
-    #[command(
-        about = "Prints a slice of rows from CSV file.",
+        about = "Extract a slice of rows from CSV file.",
         override_help = SLICE_DESC
     )]
     Slice(Slice),
 
     #[command(
-        about = "Statistics for every column, including min, max, mean, unique, null.",
+        about = "Statistics for column(s), including min, max, mean, unique, null.",
         override_help = STATS_DESC
     )]
     Stats(Stats),

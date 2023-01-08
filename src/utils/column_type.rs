@@ -7,6 +7,8 @@ use std::{
     path::Path,
 };
 
+use super::{file::first_row, util::is_null};
+
 pub struct ColumnTypes(Vec<CType>);
 
 #[derive(Debug)]
@@ -45,6 +47,7 @@ impl ColumnTypes {
 
     pub fn guess(
         path: &Path,
+        filename: &str,
         sep: &str,
         no_header: bool,
         cols: &column::Columns,
@@ -57,7 +60,7 @@ impl ColumnTypes {
 
         // take another line to analyze the number of column
         let mut guess = ColumnTypes(vec![]);
-        let another_line = rdr.next().unwrap()?;
+        let another_line = first_row(filename)?;
         let another_line = another_line.split(sep).collect::<Vec<_>>();
         if cols.is_empty() {
             for (i, _) in another_line.iter().enumerate() {
@@ -92,6 +95,10 @@ impl ColumnTypes {
     }
 
     fn parse(&mut self, n: usize, v: &str) {
+        if is_null(v) {
+            return;
+        }
+
         match self.col_type_at(n) {
             ColumnType::Null => {
                 if v.parse::<i64>().is_ok() {
