@@ -23,6 +23,7 @@ download **rsv.exe** from release tab, and append the file directory to system p
 - **select** - Select rows and columns by filter :running:.
 - **flatten** - Prints flattened records to view records one by one.
 - **slice** - Prints a slice of rows from CSV file.
+- **stats** - Statistics for every column, including min, max, mean, unique, null.
 
 Tips 1:
 
@@ -144,6 +145,15 @@ rsv slice -s 100 -l 50 --export data.csv   # export to data-slice.csv
 rsv slice -e 10 --export data.csv          # set end index and export data
 rsv slice -i 9 data.csv                    # the 10th line sliced only
 rsv slice --help                           # help info on all flags
+```
+
+- **rsv stats**
+
+```shell
+  rsv stats data.csv                       # all columns, statistics include: min, max, mean, unique, null
+  rsv stats -c 0,1 data.csv                # first two columns
+  rsv stats -c 0,1 --export data.csv       # export to data-stats.csv
+  rsv slice --help                         # help info on all flags
 ```
 
 # Next
