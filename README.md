@@ -23,7 +23,7 @@ download **rsv.exe** from release tab, and append the file directory to system p
 - **select** - Select rows and columns by filter :running:.
 - **flatten** - Prints flattened records to view records one by one.
 - **slice** - Prints a slice of rows from CSV file.
-- **stats** - Statistics for every column, including min, max, mean, unique, null.
+- **stats** - Statistics for every column, including min, max, mean, unique, null :running: :star:.
 
 Tips 1:
 
