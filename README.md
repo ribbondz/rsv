@@ -82,16 +82,16 @@ rsv clean --help                                 # help info on all flags
 
 ```shell
 rsv frequency -c 0 data.csv              # default to the first column, descending order
-rsv frequency -c 0,1,2 data.csv          # columns 0, 1, and 2
-rsv frequency -c 0-2 data.csv            # same as above
+rsv frequency -c 0,1,2,5 data.csv          # columns 0, 1, 2, and 5
+rsv frequency -c 0-2,5 data.csv            # same as above
 rsv frequency -c 0-2 --export data.csv   # export result to data-frequency.csv
 rsv frequency -n 10 data.csv             # keep top 10 frequent items
 rsv frequency -a 10 data.csv             # in ascending order
 rsv frequency --help                     # help info on all flags
 
 column selection syntax:
--c 0,1,2   -->    cols [0,1,2]
--c 0-2     -->    same as cols [0,1,2]
+-c 0,1,2,5   -->    cols [0,1,2,5]
+-c 0-2,5     -->    same as cols [0,1,2,5]
 ```
 
 - **rsv partition**
@@ -122,8 +122,8 @@ NOTE: 1. filters are all treated as strings.
       3. The filter option can be omitted to select all rows.
 
 column selection syntax:
--c 0,1,2   -->    cols [0,1,2]
--c 0-2     -->    same as cols [0,1,2]
+-c 0,1,2,5   -->    cols [0,1,2,5]
+-c 0-2,5     -->    same as cols [0,1,2,5]
 ```
 
 - **rsv flatten**

@@ -21,7 +21,7 @@ impl Progress {
         }
     }
 
-    pub fn add_chuncks(&mut self, n: usize) {
+    pub fn add_chunks(&mut self, n: usize) {
         self.chunks += n;
     }
 
@@ -62,10 +62,20 @@ impl Progress {
         self.print_count += 1;
     }
 
+    pub fn clear(&mut self) {
+        // must have the suffix space, otherwise current line cannot be cleaned completely
+        print!("\r");
+        print!("{}", " ".repeat(60));
+        print!("\r");
+        io::stdout().flush().unwrap();
+
+        self.print_count += 1;
+    }
+
     pub fn _print_multiple_lines(&mut self) {
         // must have the suffix space, otherwise current line cannot be cleaned completely
-        print!(
-            "chunk: {}, total processed: {}, elapsed time: {}           \n",
+        println!(
+            "chunk: {}, total processed: {}, elapsed time: {}           ",
             self.chunks,
             self.info(),
             self.elapsed_time_as_string()
@@ -76,7 +86,7 @@ impl Progress {
     }
 
     pub fn print_elapsed_time(&mut self) {
-        print!("elapsed time: {}     \n", self.elapsed_time_as_string());
+        println!("elapsed time: {}     ", self.elapsed_time_as_string());
         io::stdout().flush().unwrap();
 
         self.print_count += 1;

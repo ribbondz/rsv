@@ -1,3 +1,5 @@
+use std::error::Error;
+use std::io::stdout;
 use std::{
     fs::File,
     io::{BufRead, BufReader, BufWriter, Write},
@@ -25,9 +27,7 @@ pub fn estimate_row_bytes(filename: &str) -> Result<f64, Box<dyn std::error::Err
     }
 
     // estimate line count
-    let row_bytes = (bytes as f64) / (n as f64);
-
-    Ok(row_bytes)
+    Ok((bytes as f64) / (n as f64))
 }
 
 pub fn column_n(filename: &str, sep: &str) -> Result<usize, Box<dyn std::error::Error>> {
@@ -43,8 +43,8 @@ pub fn column_n(filename: &str, sep: &str) -> Result<usize, Box<dyn std::error::
 }
 
 pub fn estimate_line_count_by_mb(filename: &str, mb: Option<usize>) -> usize {
-    match estimate_row_bytes(&filename) {
-        // default chunksize to 200mb or 10_0000 lines
+    match estimate_row_bytes(filename) {
+        // default chunk-size to 200mb or 10_0000 lines
         Ok(v) => ((mb.unwrap_or(200) * MB_USIZE) as f64 / v) as usize,
         Err(_) => 10_0000,
     }
@@ -54,12 +54,19 @@ pub fn write_to_csv(path: &PathBuf, names: &Vec<String>, freq: Vec<(String, i32)
     let mut f = BufWriter::new(File::create(path).unwrap());
 
     // header
-    if names.len() > 0 {
-        write!(f, "{}\n", names.join(",")).unwrap();
+    if !names.is_empty() {
+        writeln!(f, "{}", names.join(",")).unwrap();
     }
 
     // content
     for (k, v) in freq {
-        write!(f, "{},{}\n", k, v).unwrap();
+        writeln!(f, "{},{}", k, v).unwrap();
+    }
+}
+
+pub fn file_or_stdout_wtr(export: bool, path: &Path) -> Result<Box<dyn Write>, Box<dyn Error>> {
+    match export {
+        true => Ok(Box::new(File::create(path)?) as Box<dyn Write>),
+        false => Ok(Box::new(stdout()) as Box<dyn Write>),
     }
 }

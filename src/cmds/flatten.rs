@@ -1,8 +1,8 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use std::path::Path;
 
 use crate::utils::file;
+use crate::utils::filename::full_path;
 
 pub fn run(
     filename: &str,
@@ -12,11 +12,10 @@ pub fn run(
     n: i32,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // current file
-    let mut path = std::env::current_dir()?;
-    path.push(Path::new(filename));
+    let path = full_path(filename)?;
 
     // open file and header
-    let mut rdr = BufReader::new(File::open(&path)?).lines();
+    let mut rdr = BufReader::new(File::open(path)?).lines();
     let columns: Vec<String> = if no_header {
         let column_n = file::column_n(filename, sep)?;
         (1..=column_n)
@@ -43,10 +42,10 @@ pub fn run(
             .zip(&columns)
             .for_each(|(v, k)| println!("{k:width$}    {v}", width = column_width));
 
-        if !rdr.peek().is_none() {
+        if rdr.peek().is_some() {
             println!("{delimiter}");
         } else {
-            println!("");
+            println!();
         }
     }
 

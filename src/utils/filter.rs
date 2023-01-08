@@ -19,22 +19,22 @@ impl Filter {
             return f;
         }
 
-        raw.split("&").for_each(|one| Filter::parse(&mut f, one));
+        raw.split('&').for_each(|one| Filter::parse(&mut f, one));
 
         f
     }
 
     fn parse(f: &mut Filter, one: &str) {
-        let segs = one.split("=").collect::<Vec<_>>();
+        let v = one.split('=').collect::<Vec<_>>();
 
-        if segs.len() != 2 {
+        if v.len() != 2 {
             panic!("Filter syntax error, can only be 0=a,b,c or 0=a,b&2=c.");
         }
 
-        let col: usize = segs[0]
+        let col: usize = v[0]
             .parse()
-            .unwrap_or_else(|_| panic!("Column should be an interger bigger than or equal to 0."));
-        let values = segs[1].split(",").map(|i| i.to_owned()).collect::<Vec<_>>();
+            .unwrap_or_else(|_| panic!("Column should be an integer bigger than or equal to 0."));
+        let values = v[1].split(',').map(|i| i.to_owned()).collect::<Vec<_>>();
 
         f.append(col, values);
     }
@@ -43,7 +43,7 @@ impl Filter {
         self.items.push(FilterItem { col, values })
     }
 
-    pub fn record_is_valid(&self, row: &Vec<&str>) -> bool {
+    pub fn record_is_valid(&self, row: &[&str]) -> bool {
         if self.is_empty() {
             return true;
         }
@@ -53,7 +53,7 @@ impl Filter {
             .all(|item| item.values.iter().any(|i| i.as_str() == row[item.col]))
     }
 
-    pub fn record_valid_map<'a, 'b>(&'b self, row: &'a String, sep: &str) -> Option<Vec<&'a str>> {
+    pub fn record_valid_map<'a>(&self, row: &'a str, sep: &str) -> Option<Vec<&'a str>> {
         let row = row.split(sep).collect::<Vec<_>>();
         if self.record_is_valid(&row) {
             Some(row)

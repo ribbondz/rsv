@@ -1,6 +1,6 @@
+use crate::utils::filename::full_path;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use std::path::Path;
 use tabled::builder::Builder;
 use tabled::Style;
 
@@ -12,8 +12,7 @@ pub fn run(
     tabled: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // current file
-    let mut path = std::env::current_dir()?;
-    path.push(Path::new(filename));
+    let path = full_path(filename)?;
 
     // show head n
     let r = BufReader::new(File::open(path)?)
@@ -45,7 +44,7 @@ fn print_as_table(records: Vec<String>, sep: &str, no_header: bool) {
     }
 
     // content
-    while let Some(row) = rdr.next() {
+    for row in rdr {
         let r = row.split(sep).collect::<Vec<_>>();
         builder.add_record(r);
     }

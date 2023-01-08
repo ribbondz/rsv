@@ -1,7 +1,7 @@
 use crate::utils::chunk_reader::{ChunkReader, Task};
 use crate::utils::constants::TERMINATOR;
 use crate::utils::file::estimate_line_count_by_mb;
-use crate::utils::filename::generate_filename;
+use crate::utils::filename::{full_path, str_clean_as_filename};
 use crate::utils::progress::Progress;
 use crate::utils::util::datetime_str;
 
@@ -12,22 +12,20 @@ use rayon::prelude::*;
 use std::error::Error;
 use std::fs::{create_dir, OpenOptions};
 use std::io::{BufWriter, Write};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::thread;
 
 pub fn run(filename: &str, no_header: bool, sep: &str, col: usize) -> Result<(), Box<dyn Error>> {
     // current file
-    let mut path = std::env::current_dir()?;
-    path.push(Path::new(filename));
+    let path = full_path(filename)?;
 
     // new directory
-    let mut filename_only = Path::new(filename).file_name().unwrap().to_str().unwrap();
-    if filename_only.contains(".") {
-        filename_only = filename_only.split(".").collect::<Vec<_>>()[0];
-    }
-    let mut dir = path.clone();
-    dir.pop();
-    dir.push(format!("{}-partition-{}", filename_only, datetime_str()));
+    let stem = Path::new(filename).file_stem().unwrap();
+    let dir = path.with_file_name(format!(
+        "{}-partition-{}",
+        stem.to_string_lossy(),
+        datetime_str()
+    ));
     create_dir(&dir)?;
 
     // open file and header
@@ -69,18 +67,19 @@ pub fn run(filename: &str, no_header: bool, sep: &str, col: usize) -> Result<(),
     Ok(())
 }
 
+#[allow(clippy::too_many_arguments)]
 fn task_handle(
     task: Task,
     prog: &mut Progress,
     sep: &str,
     no_header: bool,
     col: usize,
-    dir: &PathBuf,
-    first_row: &String,
+    dir: &Path,
+    first_row: &str,
     header_inserted: &mut AHashMap<String, bool>,
 ) -> Result<(), Box<dyn Error>> {
     // progress
-    prog.add_chuncks(1);
+    prog.add_chunks(1);
     prog.add_bytes(task.bytes);
 
     // process
@@ -90,7 +89,7 @@ fn task_handle(
         if col >= r.len() {
             println!("ignore a bad line, content is: {:?}!", r);
         } else {
-            batch_work.entry(seg[col]).or_insert(Vec::new()).push(r);
+            batch_work.entry(seg[col]).or_insert_with(Vec::new).push(r);
         }
     });
 
@@ -105,16 +104,16 @@ fn task_handle(
 }
 
 fn save_to_disk(
-    dir: &PathBuf,
+    dir: &Path,
     field: &str,
-    rows: &Vec<&String>,
+    rows: &[&String],
     no_header: bool,
     header_inserted: &mut AHashMap<String, bool>,
-    first_row: &String,
+    first_row: &str,
 ) -> Result<(), Box<dyn Error>> {
     // file path
-    let filename = generate_filename(field, None);
-    let mut path = dir.clone();
+    let filename = str_clean_as_filename(field, None);
+    let mut path = dir.to_path_buf();
     path.push(&filename);
 
     // open file
@@ -128,14 +127,14 @@ fn save_to_disk(
     // header
     if !no_header && !header_inserted.contains_key(&filename) {
         header_inserted.insert(filename, true);
-        wtr.write(first_row.as_bytes())?;
-        wtr.write(TERMINATOR)?;
+        wtr.write_all(first_row.as_bytes())?;
+        wtr.write_all(TERMINATOR)?;
     }
 
     // content
     rows.iter().for_each(|&r| {
-        wtr.write(r.as_bytes()).unwrap();
-        wtr.write(TERMINATOR).unwrap();
+        wtr.write_all(r.as_bytes()).unwrap();
+        wtr.write_all(TERMINATOR).unwrap();
     });
 
     Ok(())

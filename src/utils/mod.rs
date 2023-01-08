@@ -1,6 +1,8 @@
 pub mod chunk_reader;
 pub mod cmd_desc;
 pub mod column;
+pub mod column_stats;
+pub mod column_type;
 pub mod constants;
 pub mod file;
 pub mod filename;

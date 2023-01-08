@@ -3,38 +3,28 @@ use std::{
     path::{Path, PathBuf},
 };
 
-const BAD_FILENAME_CHARACTERS: [&'static str; 9] = ["<", ">", ":", "\"", "/", "\\", "|", "?", "*"];
+const BAD_FILENAME_CHARACTERS: [char; 9] = ['<', '>', ':', '\\', '/', '\\', '"', '?', '*'];
 
-pub fn clean_filename(name: &str) -> String {
-    let mut new_name = name.to_owned();
+pub fn str_clean_as_filename(name: &str, extension: Option<&str>) -> String {
+    let f = name.to_owned().replace(BAD_FILENAME_CHARACTERS, "");
 
-    for s in BAD_FILENAME_CHARACTERS {
-        new_name = new_name.replace(s, "");
+    match extension {
+        Some(e) => f + "." + e,
+        None => f + ".csv",
     }
-
-    new_name
 }
 
-pub fn generate_filename(name: &str, extension: Option<&str>) -> String {
-    let new_name = clean_filename(name);
-    let extension = extension.unwrap_or("csv");
-
-    new_name + "." + extension
-}
-
-pub fn new_path(path: &PathBuf, suffix: &str) -> PathBuf {
+pub fn new_path(path: &Path, suffix: &str) -> PathBuf {
     // new file
-    let mut new_path = path.clone();
-    new_path.set_file_name(path.file_stem().unwrap().to_str().unwrap().to_owned() + suffix);
-
-    if let Some(e) = path.extension() {
-        new_path.set_extension(e);
-    };
-
-    new_path
+    path.with_file_name(format!(
+        "{}{}",
+        path.file_stem().unwrap().to_str().unwrap(),
+        suffix
+    ))
+    .with_extension(path.extension().unwrap())
 }
 
-pub fn full_path_file(f: &str) -> Result<PathBuf, Box<dyn Error>> {
+pub fn full_path(f: &str) -> Result<PathBuf, Box<dyn Error>> {
     // current file
     let mut path = std::env::current_dir()?;
     path.push(Path::new(f));

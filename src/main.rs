@@ -1,5 +1,5 @@
 use clap::{Args, Parser, Subcommand};
-use utils::cmd_desc::{COUNT_DESC, ESTIMATE_DESC, HEAD_DESC, SLICE_DESC, FLATTEN_DESC, CLEAN_DESC, HEADER_DESC, FREQUENCY_DESC, PARTITION_DESC,SELECT_DESC};
+use utils::cmd_desc::{COUNT_DESC, ESTIMATE_DESC, HEAD_DESC, SLICE_DESC, FLATTEN_DESC, CLEAN_DESC, HEADER_DESC, FREQUENCY_DESC, PARTITION_DESC,STATS_DESC, SELECT_DESC};
 mod cmds;
 mod utils;
 
@@ -16,7 +16,7 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     #[command(
-        about = "Count the number of lines",
+        about = "Count the number of lines of CSV file, or number of files in directory",
         override_help = COUNT_DESC
     )]
     Count(Count),
@@ -74,6 +74,12 @@ enum Commands {
         override_help = SLICE_DESC
     )]
     Slice(Slice),
+
+    #[command(
+        about = "Statistics for every column, including min, max, mean, unique, null.",
+        override_help = STATS_DESC
+    )]
+    Stats(Stats),
 }
 
 #[derive(Debug, Args)]
@@ -120,7 +126,7 @@ struct Slice {
     #[arg(long, default_value_t = false)]
     no_header: bool,
     /// Export data to a current-file-slice.csv?
-    #[arg(long, default_value_t = false)]
+    #[arg(short='E', long, default_value_t = false)]
     export: bool,
 }
 
@@ -232,6 +238,24 @@ struct Select {
     export: bool,
 }
 
+#[derive(Debug, Args)]
+struct Stats {
+    /// File to open
+    filename: String,
+    /// Separator
+    #[arg(short, long, default_value_t = String::from(","))]
+    sep: String,
+    /// Whether the file has a header
+    #[arg(long, default_value_t = false)]
+    no_header: bool,
+    /// Columns to generate statistics, support syntax 0,1,3 or 0-4, including 4; Default to select all columns
+    #[arg(short, long, default_value_t = String::from(""))]
+    cols: String,
+    /// Export results to a file named current-file-selected.csv?
+    #[arg(short, long, default_value_t = false)]
+    export: bool,
+}
+
 fn main() {
     let cli = Cli::parse();
 
@@ -240,7 +264,7 @@ fn main() {
     match &cli.command {
         Commands::Count(option) => {
             cmds::count::run(&option.filename, option.no_header).unwrap();
-        }
+        },
         Commands::Headers(option) => {
             cmds::headers::run(&option.filename, &option.sep).unwrap();
         }
@@ -308,6 +332,14 @@ fn main() {
                 option.export,
             )
             .unwrap();
+        },
+        Commands::Stats(option)=>{
+            cmds::stats::run(
+                &option.filename,
+                &option.sep,
+                option.no_header,
+                &option.cols,
+                option.export).unwrap();
         }
     }
 }

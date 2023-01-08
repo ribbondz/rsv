@@ -6,7 +6,6 @@ use std::path::Path;
 use crate::utils;
 use crate::utils::file::estimate_line_count_by_mb;
 use crate::utils::progress::Progress;
-extern crate bytecount;
 
 pub fn run(
     filename: &str,
@@ -19,7 +18,7 @@ pub fn run(
 
     // new file
     let new_path = if new_filename.is_empty() {
-        utils::filename::new_path(&path, "-cleaned").to_owned()
+        utils::filename::new_path(&path, "-cleaned")
     } else {
         Path::new(new_filename).into()
     };
@@ -35,6 +34,7 @@ pub fn run(
     // copy
     let re = Regex::new(escape)?;
     let empty_bytes = &b""[..];
+
     let mut buf = vec![];
     let mut i = 0;
     while let Ok(bytes_read) = rdr.read_until(b'\n', &mut buf) {
@@ -43,13 +43,13 @@ pub fn run(
         }
 
         let str = re.replace_all(&buf[..bytes_read], empty_bytes);
-        wtr.write(&str)?;
+        wtr.write_all(&str)?;
         buf.clear();
 
         // progress print
         prog.add_bytes(bytes_read);
         if i % prog_check_every_n == 0 {
-            prog.add_chuncks(1);
+            prog.add_chunks(1);
             prog.print();
         }
 

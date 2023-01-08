@@ -1,7 +1,8 @@
-use crate::utils::filename::{full_path_file, new_path};
+use crate::utils::filename::{full_path, new_path};
 
+use crate::utils::file::file_or_stdout_wtr;
 use std::fs::File;
-use std::io::{stdout, BufRead, BufWriter, Write};
+use std::io::{BufRead, BufWriter, Write};
 use std::{error::Error, io::BufReader};
 
 pub fn run(
@@ -14,15 +15,11 @@ pub fn run(
     export: bool,
 ) -> Result<(), Box<dyn Error>> {
     // current file
-    let path = full_path_file(filename)?;
+    let path = full_path(filename)?;
     let out_path = new_path(&path, "-slice");
 
     // open file
-    let f = if export {
-        Box::new(File::create(&out_path)?) as Box<dyn Write>
-    } else {
-        Box::new(stdout()) as Box<dyn Write>
-    };
+    let f = file_or_stdout_wtr(export, &out_path)?;
 
     let mut wtr = BufWriter::new(f);
     let mut rdr = BufReader::new(File::open(&path)?);
@@ -31,7 +28,7 @@ pub fn run(
     if !no_header {
         let mut buf = vec![];
         rdr.read_until(b'\n', &mut buf)?;
-        wtr.write(&buf)?;
+        wtr.write_all(&buf)?;
     }
 
     // slice
@@ -39,7 +36,7 @@ pub fn run(
         Some(index) => write_by_index(&mut rdr, &mut wtr, index)?,
         None => {
             let e = end
-                .or(length.and_then(|l| Some(start + l)).or(Some(usize::MAX)))
+                .or_else(|| length.map(|l| start + l).or(Some(usize::MAX)))
                 .unwrap();
             write_by_range(&mut rdr, &mut wtr, start, e)?;
         }
@@ -66,7 +63,7 @@ fn write_by_index(
         }
 
         if n == index {
-            wtr.write(&buf[..bytes])?;
+            wtr.write_all(&buf[..bytes])?;
             break;
         }
 
@@ -92,7 +89,7 @@ fn write_by_range(
         }
 
         if n >= start && n < end {
-            wtr.write(&buf[..bytes])?;
+            wtr.write_all(&buf[..bytes])?;
         }
 
         buf.clear();

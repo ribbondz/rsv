@@ -1,7 +1,6 @@
 use crossbeam_channel::bounded;
 use dashmap::DashMap;
 use rayon::prelude::*;
-use std::path::Path;
 use std::thread;
 use tabled::builder::Builder;
 use tabled::Style;
@@ -10,6 +9,7 @@ use crate::utils::chunk_reader::ChunkReader;
 use crate::utils::column::Columns;
 use crate::utils::file::{self, estimate_line_count_by_mb};
 use crate::utils::filename;
+use crate::utils::filename::full_path;
 use crate::utils::progress::Progress;
 
 pub fn run(
@@ -22,22 +22,22 @@ pub fn run(
     export: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // current file
-    let mut path = std::env::current_dir()?;
-    path.push(Path::new(filename));
+    let path = full_path(filename)?;
 
     // cols
     let col = Columns::new(cols);
+    println!("{:?}", col);
 
     // open file and header
     let mut rdr = ChunkReader::new(&path)?;
     let names: Vec<String> = if no_header {
-        col.artificial_cols()
+        col.artificial_cols_with_appended_n()
     } else {
         let first_row = rdr.next()?;
         let r = first_row.split(sep).collect::<Vec<_>>();
         if col.max() >= r.len() {
             println!("read a bad line # {:?}!", r);
-            col.artificial_cols()
+            col.artificial_cols_with_appended_n()
         } else {
             col.select_owned_vector_and_append_n(&r)
         }
@@ -62,7 +62,7 @@ pub fn run(
             }
         });
 
-        prog.add_chuncks(1);
+        prog.add_chunks(1);
         prog.add_bytes(task.bytes);
         prog.print();
     }
@@ -80,7 +80,7 @@ pub fn run(
     }
 
     // export or print
-    println!("");
+    println!();
     if export {
         let new_path = filename::new_path(&path, "-frequency");
         file::write_to_csv(&new_path, &names, freq);
@@ -96,14 +96,14 @@ fn print_table(names: &Vec<String>, freq: Vec<(String, i32)>) {
     let mut builder = Builder::default();
 
     // header
-    if names.len() > 0 {
+    if !names.is_empty() {
         builder.set_columns(names);
     }
 
     // content
     for (key, n) in freq {
         let r = key
-            .split(",")
+            .split(',')
             .map(|i| i.to_owned())
             .chain(std::iter::once(n.to_string()))
             .collect::<Vec<_>>();

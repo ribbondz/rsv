@@ -1,13 +1,12 @@
 use crossbeam_channel::Sender;
-
+use std::path::Path;
 use std::{
     fs::File,
     io::{BufRead, BufReader, Lines},
-    path::PathBuf,
 };
 
 pub struct ChunkReader {
-    rdr: Lines<BufReader<File>>,
+    pub rdr: Lines<BufReader<File>>,
 }
 
 pub struct Task {
@@ -16,8 +15,8 @@ pub struct Task {
 }
 
 impl ChunkReader {
-    pub fn new(path: &PathBuf) -> Result<Self, std::io::Error> {
-        let rdr = BufReader::new(File::open(&path)?).lines();
+    pub fn new(path: &Path) -> Result<Self, std::io::Error> {
+        let rdr = BufReader::new(File::open(path)?).lines();
         Ok(ChunkReader { rdr })
     }
 
@@ -46,8 +45,10 @@ impl ChunkReader {
             }
         }
 
-        if lines.len() > 0 {
+        if !lines.is_empty() {
             tx.send(Task { lines, bytes }).unwrap();
         }
+
+        drop(tx)
     }
 }

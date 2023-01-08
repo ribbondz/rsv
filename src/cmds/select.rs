@@ -4,14 +4,13 @@ use rayon::prelude::*;
 use crate::utils::chunk_reader::{ChunkReader, Task};
 use crate::utils::column::Columns;
 use crate::utils::constants::TERMINATOR;
-use crate::utils::file::estimate_line_count_by_mb;
-use crate::utils::filename::{full_path_file, new_path};
+use crate::utils::file::{estimate_line_count_by_mb, file_or_stdout_wtr};
+use crate::utils::filename::{full_path, new_path};
 use crate::utils::filter::Filter;
 use crate::utils::progress::Progress;
 
 use std::error::Error;
-use std::fs::File;
-use std::io::{stdout, BufWriter, Write};
+use std::io::{BufWriter, Write};
 use std::thread;
 
 pub fn run(
@@ -23,7 +22,7 @@ pub fn run(
     export: bool,
 ) -> Result<(), Box<dyn Error>> {
     // current file
-    let path = full_path_file(filename)?;
+    let path = full_path(filename)?;
     let out_path = new_path(&path, "-selected");
 
     // filters and cols
@@ -31,10 +30,7 @@ pub fn run(
     let cols = Columns::new(cols);
 
     // open file
-    let f = match export {
-        true => Box::new(File::create(&out_path)?) as Box<dyn Write>,
-        false => Box::new(stdout()) as Box<dyn Write>,
-    };
+    let f = file_or_stdout_wtr(export, &out_path)?;
     let mut wtr = BufWriter::new(f);
     let mut rdr = ChunkReader::new(&path)?;
 
@@ -73,12 +69,13 @@ pub fn run(
     Ok(())
 }
 
+#[allow(clippy::too_many_arguments)]
 fn handle_task(
     task: Task,
     filter: &Filter,
     sep: &str,
     cols: &Columns,
-    mut wtr: &mut BufWriter<Box<dyn Write>>,
+    wtr: &mut BufWriter<Box<dyn Write>>,
     sep_bytes: &[u8],
     export: bool,
     prog: &mut Progress,
@@ -93,15 +90,15 @@ fn handle_task(
     // write
     filtered.iter().for_each(|row| {
         if cols.all {
-            print_record(&mut wtr, row, sep_bytes, TERMINATOR).unwrap()
+            print_record(wtr, row, sep_bytes, TERMINATOR).unwrap()
         } else {
             let record = cols.iter().map(|&i| row[i]).collect::<Vec<_>>();
-            print_record(&mut wtr, &record, sep_bytes, TERMINATOR).unwrap()
+            print_record(wtr, &record, sep_bytes, TERMINATOR).unwrap()
         }
     });
 
     if export {
-        prog.add_chuncks(1);
+        prog.add_chunks(1);
         prog.add_bytes(task.bytes);
         prog.print();
     }
@@ -109,19 +106,19 @@ fn handle_task(
 
 fn print_record(
     wtr: &mut BufWriter<Box<dyn Write>>,
-    record: &Vec<&str>,
+    record: &[&str],
     sep_bytes: &[u8],
     terminator: &[u8],
 ) -> std::io::Result<()> {
     let mut it = record.iter().peekable();
 
     while let Some(&field) = it.next() {
-        wtr.write(field.as_bytes())?;
+        wtr.write_all(field.as_bytes())?;
 
         if it.peek().is_none() {
-            wtr.write(terminator)?;
+            wtr.write_all(terminator)?;
         } else {
-            wtr.write(sep_bytes)?;
+            wtr.write_all(sep_bytes)?;
         }
     }
 
