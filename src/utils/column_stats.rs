@@ -7,6 +7,7 @@ use super::{
     column_type::{ColumnType, ColumnTypes},
     util,
 };
+use rayon::prelude::*;
 
 #[derive(Debug)]
 pub struct ColumnStats {
@@ -152,31 +153,34 @@ impl ColumnStats {
         self.stat.iter()
     }
 
-    fn into_iter(self) -> impl Iterator<Item = CStat> {
-        self.stat.into_iter()
-    }
-
     pub fn merge(&mut self, other: ColumnStats) {
         self.rows += other.rows;
 
-        other.into_iter().zip(&mut self.stat).for_each(|(o, c)| {
-            if c.col_type != o.col_type {
-                c.col_type = o.col_type
-            }
+        // parallel update
+        other
+            .stat
+            .par_iter()
+            .zip(&mut self.stat)
+            .for_each(|(o, c)| {
+                if c.col_type != o.col_type {
+                    c.col_type = o.col_type
+                }
 
-            if o.min < c.min {
-                c.min = o.min;
-            }
+                if o.min < c.min {
+                    c.min = o.min;
+                }
 
-            if o.max > c.max {
-                c.max = o.max
-            }
+                if o.max > c.max {
+                    c.max = o.max
+                }
 
-            c.null += o.null;
-            c.total += o.total;
+                c.null += o.null;
+                c.total += o.total;
 
-            o.unique_hashset.iter().for_each(|i| c.insert_unique(i));
-        })
+                o.unique_hashset.iter().for_each(|i| {
+                    c.insert_unique(i);
+                });
+            })
     }
 
     fn print_table_vertical(&self) -> Table {

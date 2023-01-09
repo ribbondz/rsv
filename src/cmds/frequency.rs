@@ -26,7 +26,6 @@ pub fn run(
 
     // cols
     let col = Columns::new(cols);
-    println!("{:?}", col);
 
     // open file and header
     let mut rdr = ChunkReader::new(&path)?;
@@ -45,7 +44,7 @@ pub fn run(
 
     // read file
     let (tx, rx) = bounded(1);
-    let line_buffer_n: usize = estimate_line_count_by_mb(filename, None);
+    let line_buffer_n: usize = estimate_line_count_by_mb(filename, Some(10));
     thread::spawn(move || rdr.send_to_channel_in_line_chunks(tx, line_buffer_n));
 
     // process

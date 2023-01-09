@@ -44,8 +44,8 @@ pub fn run(
     let empty_stat = stat.clone();
 
     // parallel channels
-    let (tx_chunk, rx_chunk) = bounded(1);
-    let (tx_chunk_n_control, rx_chunk_n_control) = bounded(20);
+    let (tx_chunk, rx_chunk) = bounded(2);
+    let (tx_chunk_n_control, rx_chunk_n_control) = bounded(200);
     let (tx_result, rx_result) = unbounded();
 
     let mut prog = Progress::new();
@@ -54,7 +54,7 @@ pub fn run(
     let pool = ThreadPoolBuilder::new().build().unwrap();
 
     // read
-    let n = estimate_line_count_by_mb(filename, Some(40));
+    let n = estimate_line_count_by_mb(filename, Some(5));
     pool.spawn(move || rdr.send_to_channel_in_line_chunks(tx_chunk, n));
 
     // parallel process

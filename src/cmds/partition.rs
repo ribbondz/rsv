@@ -5,7 +5,6 @@ use crate::utils::filename::{full_path, str_clean_as_filename};
 use crate::utils::progress::Progress;
 use crate::utils::util::datetime_str;
 
-use ahash::AHashMap;
 use crossbeam_channel::bounded;
 use dashmap::DashMap;
 use rayon::prelude::*;
@@ -43,11 +42,11 @@ pub fn run(filename: &str, no_header: bool, sep: &str, col: usize) -> Result<(),
 
     let (tx, rx) = bounded(1);
     // read
-    let line_buffer_n = estimate_line_count_by_mb(filename, Some(512));
+    let line_buffer_n = estimate_line_count_by_mb(filename, Some(50));
     thread::spawn(move || rdr.send_to_channel_in_line_chunks(tx, line_buffer_n));
 
     // process batch work
-    let mut header_inserted: AHashMap<String, bool> = AHashMap::new();
+    let header_inserted: DashMap<String, bool> = DashMap::new();
     let mut prog = Progress::new();
     for task in rx {
         task_handle(
@@ -58,7 +57,7 @@ pub fn run(filename: &str, no_header: bool, sep: &str, col: usize) -> Result<(),
             col,
             &dir,
             &first_row,
-            &mut header_inserted,
+            &header_inserted,
         )?
     }
 
@@ -76,13 +75,13 @@ fn task_handle(
     col: usize,
     dir: &Path,
     first_row: &str,
-    header_inserted: &mut AHashMap<String, bool>,
+    header_inserted: &DashMap<String, bool>,
 ) -> Result<(), Box<dyn Error>> {
     // progress
     prog.add_chunks(1);
     prog.add_bytes(task.bytes);
 
-    // process
+    // parallel process
     let batch_work = DashMap::new();
     task.lines.par_iter().for_each(|r| {
         let seg = r.split(sep).collect::<Vec<_>>();
@@ -93,10 +92,14 @@ fn task_handle(
         }
     });
 
-    // save to disk
-    for (field, rows) in batch_work {
-        save_to_disk(dir, field, &rows, no_header, header_inserted, first_row)?
-    }
+    // parallel save to disk
+    batch_work
+        .into_iter()
+        .collect::<Vec<(_, _)>>()
+        .par_iter()
+        .for_each(|(a, b)| {
+            save_to_disk(dir, a, b, no_header, header_inserted, first_row).unwrap();
+        });
 
     prog.print();
 
@@ -108,7 +111,7 @@ fn save_to_disk(
     field: &str,
     rows: &[&String],
     no_header: bool,
-    header_inserted: &mut AHashMap<String, bool>,
+    header_inserted: &DashMap<String, bool>,
     first_row: &str,
 ) -> Result<(), Box<dyn Error>> {
     // file path
