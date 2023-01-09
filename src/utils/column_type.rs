@@ -7,7 +7,7 @@ use std::{
     path::Path,
 };
 
-use super::{file::first_row, util::is_null};
+use super::{file, util::is_null};
 
 pub struct ColumnTypes(Vec<CType>);
 
@@ -52,18 +52,22 @@ impl ColumnTypes {
         no_header: bool,
         cols: &column::Columns,
     ) -> Result<Self, Box<dyn Error>> {
-        // read and handle header
-        let mut rdr = BufReader::new(File::open(path)?).lines();
-        if !no_header {
-            _ = rdr.next();
-        }
-
-        // take another line to analyze the number of column
         let mut guess = ColumnTypes(vec![]);
-        let another_line = first_row(filename)?;
-        let another_line = another_line.split(sep).collect::<Vec<_>>();
+
+        // reader
+        let mut rdr = BufReader::new(File::open(path)?).lines();
+
+        // take first column to analyze the number of column
+        let first_row = if no_header {
+            file::first_row(filename)?
+        } else {
+            rdr.next().unwrap()?
+        };
+        let first_row = first_row.split(sep).collect::<Vec<_>>();
+
+        // init guess according to column number
         if cols.is_empty() {
-            for (i, _) in another_line.iter().enumerate() {
+            for (i, _) in first_row.iter().enumerate() {
                 guess.push(i, ColumnType::Null)
             }
         } else {

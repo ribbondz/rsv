@@ -32,7 +32,7 @@ pub fn run(
     let mut rdr = ChunkReader::new(&path)?;
 
     // header
-    let first_row = if no_header {
+    let name = if no_header {
         cols.artificial_n_cols(column_n(filename, sep)?)
     } else {
         let r = rdr.next()?;
@@ -40,7 +40,7 @@ pub fn run(
     };
 
     // stats holder
-    let mut stat = ColumnStats::new(&col_type, &first_row);
+    let mut stat = ColumnStats::new(&col_type, &name);
     let empty_stat = stat.clone();
 
     // parallel channels
@@ -50,24 +50,25 @@ pub fn run(
 
     let mut prog = Progress::new();
 
-    //  threadpool
-    let pool = ThreadPoolBuilder::new().build()?;
+    // threadpool
+    let pool = ThreadPoolBuilder::new().build().unwrap();
 
     // read
-    let n = estimate_line_count_by_mb(filename, Some(50));
+    let n = estimate_line_count_by_mb(filename, Some(40));
     pool.spawn(move || rdr.send_to_channel_in_line_chunks(tx_chunk, n));
 
     // parallel process
     pool.scope(|s| {
         // add chunk to threadpool for process
-        s.spawn(|s2| {
+        s.spawn(|_| {
             for task in rx_chunk {
                 tx_chunk_n_control.send(0).unwrap();
 
                 let tx = tx_result.clone();
                 let st = empty_stat.clone();
                 let sep_inner = sep.to_owned();
-                s2.spawn(move |_| parse_chunk(task, tx, st, &sep_inner));
+                // println!("dispatch........");
+                pool.spawn(move || parse_chunk(task, tx, st, &sep_inner));
             }
 
             drop(tx_result);
@@ -77,7 +78,8 @@ pub fn run(
         // receive result
         for ChunkResult { bytes, stat: o } in rx_result {
             rx_chunk_n_control.recv().unwrap();
-
+            // println!("result-----------");
+            // this is bottleneck, merge two hashset is very slow.
             stat.merge(o);
 
             prog.add_bytes(bytes);

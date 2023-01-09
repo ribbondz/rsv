@@ -31,7 +31,7 @@ struct CStat {
 }
 
 impl ColumnStats {
-    pub fn new(col_type: &ColumnTypes, first_row: &[String]) -> Self {
+    pub fn new(col_type: &ColumnTypes, col_name: &[String]) -> Self {
         let mut s = ColumnStats {
             max_col: 0,
             cols: vec![],
@@ -40,7 +40,7 @@ impl ColumnStats {
         };
         col_type
             .iter()
-            .for_each(|c| s.push(c.col_index, c.col_type, &first_row[c.col_index]));
+            .for_each(|c| s.push(c.col_index, c.col_type, &col_name[c.col_index]));
 
         s
     }
@@ -50,8 +50,8 @@ impl ColumnStats {
             col_index,
             col_type,
             name: name.to_owned(),
-            min: 0.0,
-            max: 0.0,
+            min: f64::MAX,
+            max: f64::MIN,
             mean: 0.0,
             total: 0.0,
             unique: 0,
@@ -91,7 +91,7 @@ impl ColumnStats {
         }
 
         if c.col_type != ColumnType::Float {
-            c.unique_hashset.insert(f.to_owned());
+            c.insert_unique(f);
         }
 
         match c.col_type {
@@ -152,10 +152,14 @@ impl ColumnStats {
         self.stat.iter()
     }
 
+    fn into_iter(self) -> impl Iterator<Item = CStat> {
+        self.stat.into_iter()
+    }
+
     pub fn merge(&mut self, other: ColumnStats) {
         self.rows += other.rows;
 
-        other.iter().zip(&mut self.stat).for_each(|(o, c)| {
+        other.into_iter().zip(&mut self.stat).for_each(|(o, c)| {
             if c.col_type != o.col_type {
                 c.col_type = o.col_type
             }
@@ -171,13 +175,40 @@ impl ColumnStats {
             c.null += o.null;
             c.total += o.total;
 
-            o.unique_hashset.iter().for_each(|i| {
-                c.unique_hashset.insert(i.to_owned());
-            });
+            o.unique_hashset.iter().for_each(|i| c.insert_unique(i));
         })
     }
 
-    fn print_table(&self) -> Table {
+    fn print_table_vertical(&self) -> Table {
+        let mut builder = Builder::default();
+
+        // header
+        let r = vec!["col", "type", "min", "max", "mean", "unique", "null"];
+        builder.set_columns(r);
+
+        // columns
+        self.iter().for_each(|c| {
+            let mut r = vec![];
+            r.push(c.name.to_owned());
+            r.push(format!("{}", c.col_type));
+            r.push(c.min_fmt());
+            r.push(c.max_fmt());
+            r.push(c.mean_fmt());
+            r.push(c.unique_fmt());
+            r.push(c.null.to_string());
+            builder.add_record(r);
+        });
+
+        // build
+        let mut table = builder.build();
+
+        // style
+        table.with(Style::sharp());
+
+        table
+    }
+
+    fn _print_table_horizontal(&self) -> Table {
         let mut builder = Builder::default();
 
         // header
@@ -253,7 +284,7 @@ impl ColumnStats {
     }
 
     pub fn print(&self) {
-        let table = self.print_table();
+        let table = self.print_table_vertical();
         println!("{table}");
     }
 }
@@ -276,9 +307,66 @@ impl Clone for ColumnStats {
 
 impl Display for ColumnStats {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let t = self.print_table().to_string();
+        let t = self.print_table_vertical().to_string();
         f.write_str(&t)?;
 
         Ok(())
+    }
+}
+
+impl CStat {
+    fn insert_unique(&mut self, v: &str) {
+        // quicker compared with no check
+        if !self.unique_hashset.contains(v) {
+            self.unique_hashset.insert(v.to_owned());
+        }
+    }
+
+    fn is_string(&self) -> bool {
+        self.col_type == ColumnType::String
+    }
+
+    fn is_float(&self) -> bool {
+        self.col_type == ColumnType::Float
+    }
+
+    fn is_int(&self) -> bool {
+        self.col_type == ColumnType::Int
+    }
+
+    fn mean_fmt(&self) -> String {
+        if self.is_string() {
+            "-".to_owned()
+        } else {
+            format!("{:.2}", self.mean)
+        }
+    }
+
+    fn min_fmt(&self) -> String {
+        if self.is_string() {
+            "-".to_owned()
+        } else if self.is_int() {
+            format!("{:.0}", if self.min == f64::MAX { 0.0 } else { self.min })
+        } else {
+            format!("{:.2}", if self.min == f64::MAX { 0.0 } else { self.min })
+        }
+    }
+
+    fn max_fmt(&self) -> String {
+        if self.is_string() {
+            "-".to_owned()
+        } else if self.is_int() {
+            format!("{:.0}", if self.max == f64::MIN { 0.0 } else { self.max })
+        } else {
+            format!("{:.2}", if self.max == f64::MIN { 0.0 } else { self.max })
+        }
+    }
+
+    fn unique_fmt(&self) -> String {
+        if self.is_float() {
+            "-".to_owned()
+        } else {
+            self.unique.to_string()
+        }
     }
 }
