@@ -3,7 +3,7 @@
 **rsv** is a command line tool to deal with small and big CSV, TXT files (especially >10G). **rsv** has following features:
 
 - written in Rust
-- fast and parallel data processing
+- fast and parallel data processing (based on Rayon)
 - real-time progress bar
 - simple usage
 
