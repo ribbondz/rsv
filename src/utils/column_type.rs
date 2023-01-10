@@ -57,7 +57,7 @@ impl ColumnTypes {
         // reader
         let mut rdr = BufReader::new(File::open(path)?).lines();
 
-        // take first column to analyze the number of column
+        // take first row to analyze the number of column
         let first_row = if no_header {
             file::first_row(filename)?
         } else {
