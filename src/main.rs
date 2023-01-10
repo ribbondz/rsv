@@ -195,7 +195,7 @@ struct Frequency {
     #[arg(short, long, default_value_t = false)]
     ascending: bool,
     /// Export result to a frequency.csv?
-    #[arg(short, long, default_value_t = false)]
+    #[arg(short, long, default_value_t = false, short_alias='E')]
     export: bool,
     /// Top N to keep in frequency table
     #[arg(short, long, default_value_t = -1)]
@@ -234,7 +234,7 @@ struct Select {
     #[arg(short, long, default_value_t = String::from(""))]
     filter: String,
     /// Export results to a file named current-file-selected.csv?
-    #[arg(short, long, default_value_t = false)]
+    #[arg(short, long, default_value_t = false, short_alias='E')]
     export: bool,
 }
 
@@ -252,7 +252,7 @@ struct Stats {
     #[arg(short, long, default_value_t = String::from(""))]
     cols: String,
     /// Export results to a file named current-file-selected.csv?
-    #[arg(short, long, default_value_t = false)]
+    #[arg(short, long, default_value_t = false, short_alias='E')]
     export: bool,
 }
 

@@ -24,6 +24,8 @@ struct CStat {
     name: String,
     min: f64,
     max: f64,
+    min_string: String,
+    max_string: String,
     mean: f64,
     unique: usize,
     null: usize,
@@ -53,6 +55,8 @@ impl ColumnStats {
             name: name.to_owned(),
             min: f64::MAX,
             max: f64::MIN,
+            min_string: "".to_owned(),
+            max_string: "".to_owned(),
             mean: 0.0,
             total: 0.0,
             unique: 0,
@@ -91,7 +95,7 @@ impl ColumnStats {
             return;
         }
 
-        if c.col_type != ColumnType::Float {
+        if !c.is_float() {
             c.insert_unique(f);
         }
 
@@ -129,6 +133,15 @@ impl ColumnStats {
                     Err(_) => c.col_type = ColumnType::String,
                 },
             },
+            ColumnType::String => {
+                if c.min_string.is_empty() || f < &c.min_string {
+                    c.min_string = f.to_owned();
+                }
+
+                if f > &c.max_string {
+                    c.max_string = f.to_owned();
+                }
+            }
             _ => {}
         }
     }
@@ -159,7 +172,7 @@ impl ColumnStats {
         // parallel update
         other
             .stat
-            .par_iter()
+            .into_par_iter()
             .zip(&mut self.stat)
             .for_each(|(o, c)| {
                 if c.col_type != o.col_type {
@@ -174,11 +187,19 @@ impl ColumnStats {
                     c.max = o.max
                 }
 
+                if c.min_string.is_empty() || o.min_string < c.min_string {
+                    c.min_string = o.min_string
+                }
+
+                if o.max_string > c.max_string {
+                    c.max_string = o.max_string
+                }
+
                 c.null += o.null;
                 c.total += o.total;
 
-                o.unique_hashset.iter().for_each(|i| {
-                    c.insert_unique(i);
+                o.unique_hashset.into_iter().for_each(|i| {
+                    c.insert_owned_unique(i);
                 });
             })
     }
@@ -326,6 +347,13 @@ impl CStat {
         }
     }
 
+    fn insert_owned_unique(&mut self, v: String) {
+        // quicker compared with no check
+        if !self.unique_hashset.contains(&v) {
+            self.unique_hashset.insert(v);
+        }
+    }
+
     fn is_string(&self) -> bool {
         self.col_type == ColumnType::String
     }
@@ -348,7 +376,7 @@ impl CStat {
 
     fn min_fmt(&self) -> String {
         if self.is_string() {
-            "-".to_owned()
+            self.min_string.to_owned()
         } else if self.is_int() {
             format!("{:.0}", if self.min == f64::MAX { 0.0 } else { self.min })
         } else {
@@ -358,7 +386,7 @@ impl CStat {
 
     fn max_fmt(&self) -> String {
         if self.is_string() {
-            "-".to_owned()
+            self.max_string.to_owned()
         } else if self.is_int() {
             format!("{:.0}", if self.max == f64::MIN { 0.0 } else { self.max })
         } else {

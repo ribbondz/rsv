@@ -96,14 +96,15 @@ pub fn run(
     // print
     if export {
         let out = new_path(&path, "-stats");
-        let mut wtr = BufWriter::new(File::create(out)?);
+        let mut wtr = BufWriter::new(File::create(&out)?);
         wtr.write_all(stat.to_string().as_bytes())?;
+        println!("Saved to file: {}", out.display());
     } else {
         stat.print();
     }
 
-    prog.print_elapsed_time();
     println!("Total rows: {}", stat.rows);
+    prog.print_elapsed_time();
 
     Ok(())
 }
