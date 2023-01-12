@@ -12,7 +12,7 @@ pub fn run(
     tabled: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // current file
-    let path = full_path(filename)?;
+    let path = full_path(filename);
 
     // show head n
     let r = BufReader::new(File::open(path)?)

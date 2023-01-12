@@ -15,7 +15,7 @@ pub fn run(
     export: bool,
 ) -> Result<(), Box<dyn Error>> {
     // current file
-    let path = full_path(filename)?;
+    let path = full_path(filename);
     let out_path = new_path(&path, "-slice");
 
     // open file

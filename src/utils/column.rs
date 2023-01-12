@@ -1,3 +1,5 @@
+use calamine::DataType;
+
 #[derive(Debug)]
 pub struct Columns {
     pub cols: Vec<usize>,
@@ -88,6 +90,13 @@ impl Columns {
         self.iter().map(|&i| all[i]).collect::<Vec<_>>().join(",")
     }
 
+    pub fn select_owned_string_from_excel_datatype(&self, all: &[DataType]) -> String {
+        self.iter()
+            .map(|&i| all[i].to_string())
+            .collect::<Vec<_>>()
+            .join(",")
+    }
+
     #[allow(dead_code)]
     pub fn select_owned_vector(&self, all: &[&str]) -> Vec<String> {
         self.cols.iter().map(|&i| all[i].to_owned()).collect()
@@ -97,6 +106,20 @@ impl Columns {
         self.cols
             .iter()
             .map(|&i| all[i].to_owned())
+            .chain(std::iter::once("n".to_owned()))
+            .collect::<Vec<_>>()
+    }
+
+    pub fn select_owned_vector_and_append_n2(&self, all: Vec<String>) -> Vec<String> {
+        all.into_iter()
+            .enumerate()
+            .filter_map(|(u, i)| {
+                if self.cols.contains(&u) {
+                    Some(i)
+                } else {
+                    None
+                }
+            })
             .chain(std::iter::once("n".to_owned()))
             .collect::<Vec<_>>()
     }

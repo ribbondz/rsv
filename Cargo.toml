@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 ahash = "0.8.2"
 bytecount = "0.6.3"
+calamine = "0.19.1"
 chrono = "0.4.23"
 clap = { version = "4.0.32", features = ["derive"] }
 crossbeam-channel = "0.5.6"

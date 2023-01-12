@@ -12,7 +12,7 @@ pub fn run(
     n: i32,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // current file
-    let path = full_path(filename)?;
+    let path = full_path(filename);
 
     // open file and header
     let mut rdr = BufReader::new(File::open(path)?).lines();

@@ -5,7 +5,7 @@ use std::io::{BufRead, BufReader};
 
 pub fn run(filename: &str, sep: &str) -> Result<(), Box<dyn Error>> {
     // current file
-    let path = full_path(filename)?;
+    let path = full_path(filename);
 
     // open file and header
     let mut rdr = BufReader::new(File::open(path)?).lines();

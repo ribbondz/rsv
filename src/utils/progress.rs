@@ -7,6 +7,7 @@ use super::constants::{GB_F64, KB_F64, MB_F64};
 pub struct Progress {
     pub chunks: usize,
     pub bytes: usize,
+    pub lines: usize,
     pub print_count: usize,
     start_time: Instant,
 }
@@ -16,6 +17,7 @@ impl Progress {
         Progress {
             chunks: 0,
             bytes: 0,
+            lines: 0,
             print_count: 0,
             start_time: Instant::now(),
         }
@@ -27,6 +29,10 @@ impl Progress {
 
     pub fn add_bytes(&mut self, n: usize) {
         self.bytes += n;
+    }
+
+    pub fn add_lines(&mut self, n: usize) {
+        self.lines += n;
     }
 
     pub fn info(&self) -> String {
@@ -55,6 +61,19 @@ impl Progress {
             "\rchunk: {}, total processed: {}, elapsed time: {}         ",
             self.chunks,
             self.info(),
+            self.elapsed_time_as_string()
+        );
+        io::stdout().flush().unwrap();
+
+        self.print_count += 1;
+    }
+
+    pub fn print_lines(&mut self) {
+        // must have the suffix space, otherwise current line cannot be cleaned completely
+        print!(
+            "\rchunk: {}, total processed rows: {}, elapsed time: {}         ",
+            self.chunks,
+            self.lines,
             self.elapsed_time_as_string()
         );
         io::stdout().flush().unwrap();

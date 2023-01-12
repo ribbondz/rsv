@@ -16,7 +16,7 @@ use std::thread;
 
 pub fn run(filename: &str, no_header: bool, sep: &str, col: usize) -> Result<(), Box<dyn Error>> {
     // current file
-    let path = full_path(filename)?;
+    let path = full_path(filename);
 
     // new directory
     let stem = Path::new(filename).file_stem().unwrap();

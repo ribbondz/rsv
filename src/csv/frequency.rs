@@ -2,8 +2,6 @@ use crossbeam_channel::bounded;
 use dashmap::DashMap;
 use rayon::prelude::*;
 use std::thread;
-use tabled::builder::Builder;
-use tabled::Style;
 
 use crate::utils::chunk_reader::ChunkReader;
 use crate::utils::column::Columns;
@@ -11,6 +9,7 @@ use crate::utils::file::{self, estimate_line_count_by_mb};
 use crate::utils::filename;
 use crate::utils::filename::full_path;
 use crate::utils::progress::Progress;
+use crate::utils::table::print_frequency_table;
 
 pub fn run(
     filename: &str,
@@ -22,7 +21,7 @@ pub fn run(
     export: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // current file
-    let path = full_path(filename)?;
+    let path = full_path(filename);
 
     // cols
     let col = Columns::new(cols);
@@ -79,41 +78,15 @@ pub fn run(
     }
 
     // export or print
-    println!();
     if export {
+        println!();
         let new_path = filename::new_path(&path, "-frequency");
         file::write_to_csv(&new_path, &names, freq);
         println!("Saved to file: {}", new_path.display());
     } else {
-        print_table(&names, freq)
+        prog.clear();
+        print_frequency_table(&names, freq)
     }
 
     Ok(())
-}
-
-fn print_table(names: &Vec<String>, freq: Vec<(String, i32)>) {
-    let mut builder = Builder::default();
-
-    // header
-    if !names.is_empty() {
-        builder.set_columns(names);
-    }
-
-    // content
-    for (key, n) in freq {
-        let r = key
-            .split(',')
-            .map(|i| i.to_owned())
-            .chain(std::iter::once(n.to_string()))
-            .collect::<Vec<_>>();
-        builder.add_record(r);
-    }
-
-    // build
-    let mut table = builder.build();
-
-    // style
-    table.with(Style::blank());
-
-    println!("{table}");
 }

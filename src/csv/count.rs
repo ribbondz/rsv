@@ -9,7 +9,7 @@ extern crate bytecount;
 
 pub fn run(filename: &str, no_header: bool) -> Result<(), Box<dyn Error>> {
     // current file
-    let path = full_path(filename)?;
+    let path = full_path(filename);
     match path.is_dir() {
         true => count_dir_files(&path)?,
         false => count_file_lines(&path, no_header)?,

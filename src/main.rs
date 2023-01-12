@@ -1,6 +1,15 @@
 use clap::{Args, Parser, Subcommand};
-use utils::cmd_desc::{COUNT_DESC, ESTIMATE_DESC, HEAD_DESC, SLICE_DESC, FLATTEN_DESC, CLEAN_DESC, HEADER_DESC, FREQUENCY_DESC, PARTITION_DESC,STATS_DESC, SELECT_DESC};
-mod cmds;
+use utils::{
+    cmd_desc::{
+        CLEAN_DESC, COUNT_DESC, ESTIMATE_DESC, FLATTEN_DESC, FREQUENCY_DESC, HEADER_DESC,
+        HEAD_DESC, PARTITION_DESC, SELECT_DESC, SLICE_DESC, STATS_DESC,
+    },
+    file::is_excel,
+    filename::full_path,
+};
+
+mod csv;
+mod excel;
 mod utils;
 
 #[derive(Parser)]
@@ -20,61 +29,51 @@ enum Commands {
         override_help = HEAD_DESC
     )]
     Head(Head),
-
     #[command(
         about = "Show file headers", 
         override_help = HEADER_DESC
     )]
     Headers(Headers),
-
     #[command(
-        about = "Prints flattened records to view records one by one",
-        override_help = FLATTEN_DESC 
+        about="Prints flattened records to view records one by one",
+        override_help=FLATTEN_DESC
     )]
     Flatten(Flatten),
-    
     #[command(
-        about = "Count the number of lines of CSV file, or number of files in directory",
-        override_help = COUNT_DESC
+        about="Count the number of lines of CSV file, or number of files in directory",
+        override_help=COUNT_DESC
     )]
     Count(Count),
-
     #[command(
         about = "Fast estimate the number of lines.",
         override_help = ESTIMATE_DESC
     )]
-    Estimate(Filename),
-
+    Estimate(Estimate),
     #[command(
         about = "Clean file with escape chars, default to \"", 
         override_help = CLEAN_DESC
     )]
     Clean(Clean),
-
     #[command(
         about = "Frequency table for column(s)",
         override_help=FREQUENCY_DESC
     )]
     Frequency(Frequency),
-
     #[command(
         about = "Split file into separate files according to column value",
         override_help=PARTITION_DESC
     )]
     Partition(Partition),
-
     #[command(
         about = "Select rows and columns by filter",
         override_help=SELECT_DESC
     )]
     Select(Select),
-
     #[command(
         about = "Extract a slice of rows from CSV file.",
         override_help = SLICE_DESC
     )]
     Slice(Slice),
-
     #[command(
         about = "Statistics for column(s), including min, max, mean, unique, null.",
         override_help = STATS_DESC
@@ -89,12 +88,18 @@ struct Count {
     /// Whether the file has a header
     #[arg(long, default_value_t = false)]
     no_header: bool,
+    /// Get the nth worksheet from Excel file
+    #[arg(short, long, default_value_t = 0)]
+    sheet: usize,
 }
 
 #[derive(Debug, Args)]
-struct Filename {
+struct Estimate {
     /// File to open
     filename: String,
+    /// Get the nth worksheet for an Excel file
+    #[arg(short, long, default_value_t = 0)]
+    sheet: usize,
 }
 
 #[derive(Debug, Args)]
@@ -104,6 +109,9 @@ struct Headers {
     /// Field separator
     #[arg(short, long, default_value_t = String::from(","))]
     sep: String,
+    /// Get the nth worksheet
+    #[arg(short, long, default_value_t = 0)]
+    sheet: usize,
 }
 
 #[derive(Debug, Args)]
@@ -126,7 +134,7 @@ struct Slice {
     #[arg(long, default_value_t = false)]
     no_header: bool,
     /// Export data to a current-file-slice.csv?
-    #[arg(short='E', long, default_value_t = false)]
+    #[arg(short = 'E', long, default_value_t = false)]
     export: bool,
 }
 
@@ -146,6 +154,9 @@ struct Head {
     /// print as a table
     #[arg(short, long, default_value_t = false)]
     tabled: bool,
+    /// Get the nth worksheet
+    #[arg(short, long, default_value_t = 0)]
+    sheet: usize,
 }
 
 #[derive(Debug, Args)]
@@ -195,11 +206,14 @@ struct Frequency {
     #[arg(short, long, default_value_t = false)]
     ascending: bool,
     /// Export result to a frequency.csv?
-    #[arg(short, long, default_value_t = false, short_alias='E')]
+    #[arg(short, long, default_value_t = false, short_alias = 'E')]
     export: bool,
     /// Top N to keep in frequency table
     #[arg(short, long, default_value_t = -1)]
     n: i32,
+    /// Get the nth worksheet
+    #[arg(short, long, default_value_t = 0)]
+    sheet: usize,
 }
 
 #[derive(Debug, Args)]
@@ -234,7 +248,7 @@ struct Select {
     #[arg(short, long, default_value_t = String::from(""))]
     filter: String,
     /// Export results to a file named current-file-selected.csv?
-    #[arg(short, long, default_value_t = false, short_alias='E')]
+    #[arg(short, long, default_value_t = false, short_alias = 'E')]
     export: bool,
 }
 
@@ -252,7 +266,7 @@ struct Stats {
     #[arg(short, long, default_value_t = String::from(""))]
     cols: String,
     /// Export results to a file named current-file-selected.csv?
-    #[arg(short, long, default_value_t = false, short_alias='E')]
+    #[arg(short, long, default_value_t = false, short_alias = 'E')]
     export: bool,
 }
 
@@ -263,45 +277,89 @@ fn main() {
     // matches just as you would the top level cmd
     match &cli.command {
         Commands::Count(option) => {
-            cmds::count::run(&option.filename, option.no_header).unwrap();
-        },
-        Commands::Headers(option) => {
-            cmds::headers::run(&option.filename, &option.sep).unwrap();
-        }
-        Commands::Estimate(option) => {
-            cmds::estimate::run(&option.filename).unwrap();
+            let path = full_path(&option.filename);
+            if is_excel(&path) {
+                excel::count::run(&path, option.sheet, option.no_header).unwrap();
+            } else {
+                csv::count::run(&option.filename, option.no_header).unwrap();
+            }
         }
         Commands::Head(option) => {
-            cmds::head::run(
-                &option.filename,
-                option.no_header,
-                &option.sep,
-                option.n,
-                option.tabled,
-            )
-            .unwrap();
+            let path = full_path(&option.filename);
+            if is_excel(&path) {
+                excel::head::run(&path, option.sheet, option.no_header, option.n).unwrap();
+            } else {
+                csv::head::run(
+                    &option.filename,
+                    option.no_header,
+                    &option.sep,
+                    option.n,
+                    option.tabled,
+                )
+                .unwrap();
+            }
+        }
+        Commands::Headers(option) => {
+            let path = full_path(&option.filename);
+            if is_excel(&path) {
+                excel::headers::run(&path, option.sheet).unwrap();
+            } else {
+                csv::headers::run(&option.filename, &option.sep).unwrap();
+            }
+        }
+        Commands::Estimate(option) => {
+            let path = full_path(&option.filename);
+            if is_excel(&path) {
+                excel::count::run(&path, option.sheet, true).unwrap();
+            } else {
+                csv::estimate::run(&option.filename).unwrap();
+            }
         }
         Commands::Clean(option) => {
-            cmds::clean::run(&option.filename, &option.escape, &option.output).unwrap();
+            let path = full_path(&option.filename);
+            if is_excel(&path) {
+                panic!("rsv clean is not workable for Excel file.")
+            } else {
+                csv::clean::run(&option.filename, &option.escape, &option.output).unwrap();
+            }
         }
         Commands::Frequency(option) => {
-            cmds::frequency::run(
-                &option.filename,
-                option.no_header,
-                &option.sep,
-                &option.cols,
-                option.ascending,
-                option.n,
-                option.export,
-            )
-            .unwrap();
+            let path = full_path(&option.filename);
+            if is_excel(&path) {
+                excel::frequency::run(
+                    &option.filename,
+                    option.no_header,
+                    option.sheet,
+                    &option.cols,
+                    option.ascending,
+                    option.n,
+                    option.export,
+                )
+                .unwrap();
+            } else {
+                csv::frequency::run(
+                    &option.filename,
+                    option.no_header,
+                    &option.sep,
+                    &option.cols,
+                    option.ascending,
+                    option.n,
+                    option.export,
+                )
+                .unwrap();
+            }
         }
         Commands::Partition(option) => {
-            cmds::partition::run(&option.filename, option.no_header, &option.sep, option.col)
-                .unwrap();
+            let path = full_path(&option.filename);
+            if is_excel(&path) {
+                panic!("rsv partition is not workable for Excel file.")
+            } else {
+                csv::partition::run(&option.filename, option.no_header, &option.sep, option.col)
+                    .unwrap();
+            }
         }
         Commands::Select(option) => {
-            cmds::select::run(
+            csv::select::run(
                 &option.filename,
                 option.no_header,
                 &option.sep,
@@ -312,7 +370,7 @@ fn main() {
             .unwrap();
         }
         Commands::Flatten(option) => {
-            cmds::flatten::run(
+            csv::flatten::run(
                 &option.filename,
                 option.no_header,
                 &option.sep,
@@ -322,7 +380,7 @@ fn main() {
             .unwrap();
         }
         Commands::Slice(option) => {
-            cmds::slice::run(
+            csv::slice::run(
                 &option.filename,
                 option.no_header,
                 option.start,
@@ -332,14 +390,16 @@ fn main() {
                 option.export,
             )
             .unwrap();
-        },
-        Commands::Stats(option)=>{
-            cmds::stats::run(
+        }
+        Commands::Stats(option) => {
+            csv::stats::run(
                 &option.filename,
                 &option.sep,
                 option.no_header,
                 &option.cols,
-                option.export).unwrap();
+                option.export,
+            )
+            .unwrap();
         }
     }
 }

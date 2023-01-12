@@ -80,3 +80,8 @@ pub fn first_row(filename: &str) -> Result<String, Box<dyn Error>> {
 
     Ok(rdr.next().unwrap()?)
 }
+
+pub fn is_excel(p: &Path) -> bool {
+    let e = p.extension().unwrap();
+    e == "xlsx" || e == "xls"
+}
