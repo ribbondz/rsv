@@ -9,7 +9,7 @@ use crate::utils::file::{self, estimate_line_count_by_mb};
 use crate::utils::filename;
 use crate::utils::filename::full_path;
 use crate::utils::progress::Progress;
-use crate::utils::table::print_frequency_table;
+use crate::utils::util::print_frequency_table;
 
 pub fn run(
     filename: &str,
