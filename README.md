@@ -80,8 +80,8 @@ rsv estimate --help                 # help info on all flags
 
 ```shell
 rsv clean data.csv                               # default to clean escape char "
-rsv clean -e \"content-to-delete\" data.csv      # clean str to empty
-rsv clean -o new-file.csv data.csv               # save to new-file.csv
+rsv clean -e \"content-to-delete\" data.csv      # escape is a str, clean str to empty
+rsv clean -o new-file.csv data.csv               # save to new-file.csv, the default is data-cleaned.csv
 rsv clean --help                                 # help info on all flags
 ```
 
