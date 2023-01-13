@@ -1,6 +1,6 @@
-# csv toolkit written in Rust
+# csv, excel toolkit written in Rust
 
-**rsv** is a command line tool to deal with small and big CSV, TXT files (especially >10G). **rsv** has following features:
+**rsv** is a command line tool to deal with small and big CSV, TXT, EXCEL files (especially >10G). **rsv** has following features:
 
 - written in Rust
 - fast and parallel data processing (based on Rayon)
@@ -13,16 +13,16 @@ download **rsv.exe** from release tab, and append the file directory to system p
 
 ## Available commands
 
-- **head** - Show head n lines of CSV file.
-- **header** - Show header of CSV file.
-- **count** - Count the number of lines of CSV file :running:.
+- **head** - Show head n lines of CSV, TXT or EXCEL file.
+- **header** - Show file headers.
+- **count** - Count the number of lines of file :running:.
 - **estimate** - Fast estimate the number of lines.
 - **clean** - Clean file with escape char (e.g. ") or other strings :running:.
 - **frequency** - Show frequency table for column(s) :running: :star:.
-- **partition** - Split CSV file into separate files based on a column value :running: :star:.
+- **partition** - Split CSV or EXCEL file into separate files based on a column value :running: :star:.
 - **select** - Select rows and columns by filter :running:.
 - **flatten** - Prints flattened records to view records one by one.
-- **slice** - Prints a slice of rows from CSV file.
+- **slice** - Prints a slice of rows from file.
 - **stats** - Statistics for column(s), including min, max, mean, unique, null :running: :star:.
 - **excel2csv** - Convert excel to csv.
 - **table** - Format data as an aligned table.
@@ -46,6 +46,7 @@ rsv head data.csv                   # print as the file is
 rsv head --tabled data.csv          # tabled
 rsv head -t data.csv                # tabled too
 rsv head -s \\t -t data.csv         # CSV file with a tab separator
+rsv head data.xlsx                  # EXCEL file
 rsv head --help                     # help info on all flags
 ```
 
@@ -54,13 +55,15 @@ rsv head --help                     # help info on all flags
 ```shell
 rsv headers data.csv                # separator "," (default)
 rsv headers -s \t data.csv          # separator tab
+rsv headers data.xlsx               # EXCEL file
 rsv headers --help                  # help info on all flags
 ```
 
 - **rsv count**
 
 ```shell
-rsv count data.csv
+rsv count data.csv                  # plain-text file
+rsv count data.xlsx                 # EXCEL file
 rsv count --no-header data.csv
 rsv count --help                    # help info on all flags
 ```
@@ -69,6 +72,7 @@ rsv count --help                    # help info on all flags
 
 ```shell
 rsv estimate data.csv
+rsv estimate data.xlsx
 rsv estimate --help                 # help info on all flags
 ```
 
@@ -85,8 +89,9 @@ rsv clean --help                                 # help info on all flags
 
 ```shell
 rsv frequency -c 0 data.csv              # default to the first column, descending order
-rsv frequency -c 0,1,2,5 data.csv          # columns 0, 1, 2, and 5
-rsv frequency -c 0-2,5 data.csv            # same as above
+rsv frequency -c 0 data.xlsx             # EXCEL file
+rsv frequency -c 0,1,2,5 data.csv        # columns 0, 1, 2, and 5
+rsv frequency -c 0-2,5 data.csv          # same as above
 rsv frequency -c 0-2 --export data.csv   # export result to data-frequency.csv
 rsv frequency -n 10 data.csv             # keep top 10 frequent items
 rsv frequency -a 10 data.csv             # in ascending order
@@ -101,6 +106,7 @@ column selection syntax:
 
 ```shell
 rsv partition data.csv              # default to first column and field separator of ,
+rsv partition data.xlsx             # EXCEL file
 rsv partition -s \\t data.csv       # tab separator
 rsv partition -c 1 data.csv         # partition based on second column
 rsv partition -c 0 -s \\t data.csv  # first column, \t separator
@@ -111,6 +117,7 @@ rsv partition --help                # help info on all flags
 
 ```shell
 rsv select -f 0=a,b,c data.csv             # first column has values of a, b, or c
+rsv select -f 0=a,b,c data.xlsx            # EXCEL file, sheet can be specified with the --sheet flag
 rsv select -f 0=a,b&1=c data.csv           # first column is a or b, AND the second column equals c
 rsv select -f 0=a,b&1=c --export data.csv  # export result
 rsv select -s \\t -f 0=a,b data.csv        # tab separator
@@ -134,6 +141,7 @@ column selection syntax:
 ```shell
 rsv flatten data.csv                       # default to show first 5 records
 rsv flatten -n 50 data.csv                 # show 50 records
+rsv flatten data.xls                       # EXCEL file
 rsv flatten --delimiter \"--\" data.csv    # change line delimiter to anything
 rsv flatten --help                         # help info on all flags
 ```
@@ -143,6 +151,7 @@ rsv flatten --help                         # help info on all flags
 ```shell
 rsv slice -s 100 -e 150 data.csv           # set start and end index
 rsv slice -s 100 -l 50 data.csv            # set start index and the length
+rsv slice -s 100 -l 50 data.xlsx           # EXCEL FILE
 rsv slice -s 100 -l 50 --export data.csv   # export to data-slice.csv
 rsv slice -e 10 --export data.csv          # set end index and export data
 rsv slice -i 9 data.csv                    # the 10th line sliced only
@@ -153,6 +162,7 @@ rsv slice --help                           # help info on all flags
 
 ```shell
 rsv stats data.csv                       # all columns, statistics include: min, max, mean, unique, null
+rsv stats data.xlsx                      # EXCEL FILE
 rsv stats -c 0,1 data.csv                # first two columns
 rsv stats -c 0,1 --export data.csv       # export to data-stats.csv
 rsv slice --help                         # help info on all flags
@@ -163,7 +173,7 @@ rsv slice --help                         # help info on all flags
 ```shell
 rsv excel2csv data.xlsx                 # apply to xlsx file, default to first sheet (or sheet1)
 rsv excel2csv data.xls                  # apply also to xls file
-rsv excel2csv --sheet 1 data.xls        # second sheet or sheet2
+rsv excel2csv --sheet 1 data.xls        # second sheet, e.g., sheet 2
 rsv excel2csv -S 1 data.xls             # same as above
 ```
 

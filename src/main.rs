@@ -1,8 +1,8 @@
 use clap::{Args, Parser, Subcommand};
 use utils::{
     cmd_desc::{
-        CLEAN_DESC, COUNT_DESC, ESTIMATE_DESC, FLATTEN_DESC, FREQUENCY_DESC, HEADER_DESC,
-        HEAD_DESC, PARTITION_DESC, SELECT_DESC, SLICE_DESC, STATS_DESC,
+        CLEAN_DESC, COUNT_DESC, ESTIMATE_DESC, EXCEL2CSV_DESC, FLATTEN_DESC, FREQUENCY_DESC,
+        HEADER_DESC, HEAD_DESC, PARTITION_DESC, SELECT_DESC, SLICE_DESC, STATS_DESC, TABLE_DESC,
     },
     file::is_excel,
     filename::full_path,
@@ -17,7 +17,7 @@ mod utils;
 #[command(name = "rsv")]
 #[command(author = "ribbondz@163.com")]
 #[command(version = "0.1")]
-#[command(about = "A Rust command line tool to parse small and large (>10G) csv and txt files", long_about = None)]
+#[command(about = "A Rust command line tool to parse small and large (>10G) CSV, TXT, and EXCEL files", long_about = None)]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -26,7 +26,7 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     #[command(
-        about = "Show head n lines of CSV file.",
+        about = "Show head n lines",
         override_help = HEAD_DESC
     )]
     Head(Head),
@@ -41,7 +41,7 @@ enum Commands {
     )]
     Flatten(Flatten),
     #[command(
-        about="Count the number of lines of CSV file, or number of files in directory",
+        about="Count the number of lines in a file, or number of files in a directory",
         override_help=COUNT_DESC
     )]
     Count(Count),
@@ -71,7 +71,7 @@ enum Commands {
     )]
     Select(Select),
     #[command(
-        about = "Extract a slice of rows from CSV file.",
+        about = "Extract a slice of rows from file.",
         override_help = SLICE_DESC
     )]
     Slice(Slice),
@@ -80,9 +80,15 @@ enum Commands {
         override_help = STATS_DESC
     )]
     Stats(Stats),
-    #[command(about = "Convert excel to csv")]
+    #[command(
+        about = "Convert EXCEL to CSV", 
+        override_help = EXCEL2CSV_DESC
+    )]
     Excel2csv(Excel2csv),
-    #[command(about = "Show data in an aligned table")]
+    #[command(
+        about = "Show data in an aligned table",
+        override_help = TABLE_DESC
+    )]
     Table(Table),
 }
 
@@ -93,7 +99,7 @@ struct Count {
     /// Whether the file has a header
     #[arg(long, default_value_t = false)]
     no_header: bool,
-    /// Get the nth worksheet from Excel file
+    /// Get the nth worksheet of Excel file
     #[arg(short = 'S', long, default_value_t = 0)]
     sheet: usize,
 }
@@ -114,7 +120,7 @@ struct Headers {
     /// Field separator
     #[arg(short, long, default_value_t = String::from(","))]
     sep: String,
-    /// Get the nth worksheet
+    /// Get the nth worksheet of EXCEL file
     #[arg(short = 'S', long, default_value_t = 0)]
     sheet: usize,
 }
@@ -141,7 +147,7 @@ struct Slice {
     /// Export data to a current-file-slice.csv?
     #[arg(short = 'E', long, default_value_t = false)]
     export: bool,
-    /// Get the nth worksheet
+    /// Get the nth worksheet of EXCEL file
     #[arg(short = 'S', long, default_value_t = 0)]
     sheet: usize,
 }
@@ -162,7 +168,7 @@ struct Head {
     /// print as a table
     #[arg(short, long, default_value_t = false)]
     tabled: bool,
-    /// Get the nth worksheet
+    /// Get the nth worksheet of EXCEL file
     #[arg(short = 'S', long, default_value_t = 0)]
     sheet: usize,
 }
@@ -183,7 +189,7 @@ struct Flatten {
     /// Number of records to show, n=-1 to show all
     #[arg(short, long, default_value_t = 5)]
     n: i32,
-    /// Get the nth worksheet
+    /// Get the nth worksheet of EXCEL file
     #[arg(short = 'S', long, default_value_t = 0)]
     sheet: usize,
 }
@@ -222,7 +228,7 @@ struct Frequency {
     /// Top N to keep in frequency table
     #[arg(short, long, default_value_t = -1)]
     n: i32,
-    /// Get the nth worksheet
+    /// Get the nth worksheet of EXCEL file
     #[arg(short = 'S', long, default_value_t = 0)]
     sheet: usize,
 }
@@ -240,7 +246,7 @@ struct Partition {
     /// Columns to generate frequency table
     #[arg(short, long, default_value_t = 0)]
     col: usize,
-    /// Get the nth worksheet
+    /// Get the nth worksheet of EXCEL file
     #[arg(short = 'S', long, default_value_t = 0)]
     sheet: usize,
 }
@@ -264,7 +270,7 @@ struct Select {
     /// Export results to a file named current-file-selected.csv?
     #[arg(short = 'E', long, default_value_t = false)]
     export: bool,
-    /// Get the nth worksheet
+    /// Get the nth worksheet of EXCEL file
     #[arg(short = 'S', long, default_value_t = 0)]
     sheet: usize,
 }
@@ -285,7 +291,7 @@ struct Stats {
     /// Export results to a file named current-file-selected.csv?
     #[arg(short = 'E', long, default_value_t = false)]
     export: bool,
-    /// Get the nth worksheet
+    /// Get the nth worksheet of EXCEL file
     #[arg(short = 'S', long, default_value_t = 0)]
     sheet: usize,
 }
@@ -294,7 +300,7 @@ struct Stats {
 struct Excel2csv {
     /// File to open
     filename: String,
-    /// Get the nth worksheet
+    /// Get the nth worksheet of EXCEL file
     #[arg(short = 'S', long, default_value_t = 0)]
     sheet: usize,
     /// Separator
