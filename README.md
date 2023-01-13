@@ -24,6 +24,8 @@ download **rsv.exe** from release tab, and append the file directory to system p
 - **flatten** - Prints flattened records to view records one by one.
 - **slice** - Prints a slice of rows from CSV file.
 - **stats** - Statistics for column(s), including min, max, mean, unique, null :running: :star:.
+- **excel2csv** - Convert excel to csv.
+- **table** - Format data as an aligned table.
 
 Tips 1:
 
@@ -154,6 +156,22 @@ rsv stats data.csv                       # all columns, statistics include: min,
 rsv stats -c 0,1 data.csv                # first two columns
 rsv stats -c 0,1 --export data.csv       # export to data-stats.csv
 rsv slice --help                         # help info on all flags
+```
+
+- **rsv excel2csv**
+
+```shell
+rsv excel2csv data.xlsx                 # apply to xlsx file, default to first sheet (or sheet1)
+rsv excel2csv data.xls                  # apply also to xls file
+rsv excel2csv --sheet 1 data.xls        # second sheet or sheet2
+rsv excel2csv -S 1 data.xls             # same as above
+```
+
+- **rsv table**
+
+```shell
+rsv head data.csv | rsv table                   # convert result to an aligned table
+rsv slice -s 10 -e 15 data.csv | rsv table      # convert result to an aligned table
 ```
 
 # Next

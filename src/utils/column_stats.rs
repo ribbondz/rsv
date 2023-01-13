@@ -1,13 +1,12 @@
-use std::fmt::Display;
-
-use ahash::HashSet;
-use tabled::{builder::Builder, Style, Table};
-
 use super::{
     column_type::{ColumnType, ColumnTypes},
     util,
 };
+use ahash::HashSet;
+use calamine::DataType;
 use rayon::prelude::*;
+use std::fmt::Display;
+use tabled::{builder::Builder, Style, Table};
 
 #[derive(Debug)]
 pub struct ColumnStats {
@@ -80,70 +79,25 @@ impl ColumnStats {
         }
 
         let v = self.cols.iter().map(|&i| v[i]).collect::<Vec<_>>();
-        for (i, f) in v.iter().enumerate() {
-            self.parse_col(i, f)
-        }
+        v.iter().zip(&mut self.stat).for_each(|(&i, c)| c.parse(i));
 
         self.rows += 1;
     }
 
-    fn parse_col(&mut self, i: usize, f: &str) {
-        let c = &mut self.stat[i];
-
-        if util::is_null(f) {
-            c.null += 1;
+    pub fn parse_excel_row(&mut self, v: Vec<DataType>) {
+        if self.max_col >= v.len() {
+            println!("ignore a bad line: {:?}", v);
             return;
         }
 
-        if !c.is_float() {
-            c.insert_unique(f);
-        }
+        let v = self
+            .cols
+            .iter()
+            .map(|&i| v[i].to_string())
+            .collect::<Vec<_>>();
+        v.iter().zip(&mut self.stat).for_each(|(i, c)| c.parse(i));
 
-        match c.col_type {
-            ColumnType::Float => match f.parse::<f64>() {
-                Ok(v) => {
-                    if v > c.max {
-                        c.max = v
-                    }
-                    if v < c.min {
-                        c.min = v
-                    }
-                    c.total += v;
-                }
-                // fallback to string
-                Err(_) => c.col_type = ColumnType::String,
-            },
-            ColumnType::Int => match f.parse::<i64>() {
-                Ok(v) => {
-                    let v = v as f64;
-                    if v > c.max {
-                        c.max = v
-                    }
-                    if v < c.min {
-                        c.min = v
-                    }
-                    c.total += v
-                }
-                // fallback to string
-                Err(_) => match f.parse::<f64>() {
-                    Ok(v) => {
-                        c.total += v;
-                        c.col_type = ColumnType::Float
-                    }
-                    Err(_) => c.col_type = ColumnType::String,
-                },
-            },
-            ColumnType::String => {
-                if c.min_string.is_empty() || f < &c.min_string {
-                    c.min_string = f.to_owned();
-                }
-
-                if f > &c.max_string {
-                    c.max_string = f.to_owned();
-                }
-            }
-            _ => {}
-        }
+        self.rows += 1;
     }
 
     pub fn finalize_stats(&mut self) {
@@ -174,34 +128,7 @@ impl ColumnStats {
             .stat
             .into_par_iter()
             .zip(&mut self.stat)
-            .for_each(|(o, c)| {
-                if c.col_type != o.col_type {
-                    c.col_type = o.col_type
-                }
-
-                if o.min < c.min {
-                    c.min = o.min;
-                }
-
-                if o.max > c.max {
-                    c.max = o.max
-                }
-
-                if c.min_string.is_empty() || o.min_string < c.min_string {
-                    c.min_string = o.min_string
-                }
-
-                if o.max_string > c.max_string {
-                    c.max_string = o.max_string
-                }
-
-                c.null += o.null;
-                c.total += o.total;
-
-                o.unique_hashset.into_iter().for_each(|i| {
-                    c.insert_owned_unique(i);
-                });
-            })
+            .for_each(|(o, c)| c.merge(o))
     }
 
     fn print_table_vertical(&self) -> Table {
@@ -223,81 +150,6 @@ impl ColumnStats {
             r.push(c.null.to_string());
             builder.add_record(r);
         });
-
-        // build
-        let mut table = builder.build();
-
-        // style
-        table.with(Style::sharp());
-
-        table
-    }
-
-    fn _print_table_horizontal(&self) -> Table {
-        let mut builder = Builder::default();
-
-        // header
-        let mut r = vec!["".to_owned()];
-        self.iter().for_each(|c| r.push(c.name.to_owned()));
-        builder.set_columns(r);
-
-        // type
-        let mut r = vec!["type".to_owned()];
-        self.iter().for_each(|c| r.push(c.col_type.to_string()));
-        builder.add_record(r);
-
-        // min
-        let mut r = vec!["min".to_owned()];
-        self.iter().for_each(|c| {
-            let v = if c.col_type == ColumnType::String {
-                "-".to_owned()
-            } else {
-                c.min.to_string()
-            };
-            r.push(v)
-        });
-        builder.add_record(r);
-
-        // max
-        let mut r = vec!["max".to_owned()];
-        self.iter().for_each(|c| {
-            let v = if c.col_type == ColumnType::String {
-                "-".to_owned()
-            } else {
-                c.max.to_string()
-            };
-            r.push(v)
-        });
-        builder.add_record(r);
-
-        // mean
-        let mut r = vec!["mean".to_owned()];
-        self.iter().for_each(|c| {
-            let v = if c.col_type == ColumnType::String {
-                "-".to_owned()
-            } else {
-                format!("{:.2}", c.mean)
-            };
-            r.push(v)
-        });
-        builder.add_record(r);
-
-        // unique
-        let mut r = vec!["unique".to_owned()];
-        self.iter().for_each(|c| {
-            let v = if c.col_type == ColumnType::Float {
-                "-".to_owned()
-            } else {
-                c.unique.to_string()
-            };
-            r.push(v)
-        });
-        builder.add_record(r);
-
-        // null
-        let mut r = vec!["null".to_owned()];
-        self.iter().for_each(|c| r.push(c.null.to_string()));
-        builder.add_record(r);
 
         // build
         let mut table = builder.build();
@@ -340,6 +192,40 @@ impl Display for ColumnStats {
 }
 
 impl CStat {
+    fn parse(&mut self, f: &str) {
+        if util::is_null(f) {
+            self.null += 1;
+            return;
+        }
+        match self.col_type {
+            ColumnType::Int => {
+                if let Ok(v) = f.parse::<i64>() {
+                    self.update_int_and_float_stat(v as f64)
+                } else if let Ok(v) = f.parse::<f64>() {
+                    self.set_as_float();
+                    self.update_int_and_float_stat(v)
+                } else {
+                    self.set_as_string();
+                    self.update_string_stat(f)
+                }
+            }
+            ColumnType::Float => {
+                if let Ok(v) = f.parse::<f64>() {
+                    self.update_int_and_float_stat(v)
+                } else {
+                    self.set_as_string();
+                    self.update_string_stat(f)
+                }
+            }
+            ColumnType::String => self.update_string_stat(f),
+            ColumnType::Null => {}
+        }
+        // ignore unique for FLOAT type
+        if !self.is_float() {
+            self.insert_unique(f);
+        }
+    }
+
     fn insert_unique(&mut self, v: &str) {
         // quicker compared with no check
         if !self.unique_hashset.contains(v) {
@@ -347,23 +233,64 @@ impl CStat {
         }
     }
 
-    fn insert_owned_unique(&mut self, v: String) {
-        // quicker compared with no check
-        if !self.unique_hashset.contains(&v) {
-            self.unique_hashset.insert(v);
-        }
+    fn set_as_float(&mut self) {
+        self.col_type = ColumnType::Float
     }
 
-    fn is_string(&self) -> bool {
-        self.col_type == ColumnType::String
+    fn set_as_string(&mut self) {
+        self.col_type = ColumnType::String
+    }
+
+    fn is_int(&self) -> bool {
+        self.col_type == ColumnType::Int
     }
 
     fn is_float(&self) -> bool {
         self.col_type == ColumnType::Float
     }
 
-    fn is_int(&self) -> bool {
-        self.col_type == ColumnType::Int
+    fn is_string(&self) -> bool {
+        self.col_type == ColumnType::String
+    }
+
+    fn update_int_and_float_stat(&mut self, v: f64) {
+        if v > self.max {
+            self.max = v
+        }
+        if v < self.min {
+            self.min = v
+        }
+        self.total += v;
+    }
+
+    fn update_string_stat(&mut self, v: &str) {
+        if self.min_string.is_empty() || v < &self.min_string {
+            self.min_string = v.to_owned();
+        }
+        if v > &self.max_string {
+            self.max_string = v.to_owned();
+        }
+    }
+
+    fn merge(&mut self, o: CStat) {
+        if self.col_type != o.col_type {
+            self.col_type = o.col_type
+        }
+        if o.min < self.min {
+            self.min = o.min;
+        }
+        if o.max > self.max {
+            self.max = o.max
+        }
+        if self.min_string.is_empty() || o.min_string < self.min_string {
+            self.min_string = o.min_string
+        }
+        if o.max_string > self.max_string {
+            self.max_string = o.max_string
+        }
+        self.null += o.null;
+        self.total += o.total;
+        self.unique_hashset.extend(o.unique_hashset)
     }
 
     fn mean_fmt(&self) -> String {

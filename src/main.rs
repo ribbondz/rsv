@@ -82,6 +82,8 @@ enum Commands {
     Stats(Stats),
     #[command(about = "Convert excel to csv")]
     Excel2csv(Excel2csv),
+    #[command(about = "Show data in an aligned table")]
+    Table(Table),
 }
 
 #[derive(Debug, Args)]
@@ -283,6 +285,9 @@ struct Stats {
     /// Export results to a file named current-file-selected.csv?
     #[arg(short = 'E', long, default_value_t = false)]
     export: bool,
+    /// Get the nth worksheet
+    #[arg(short = 'S', long, default_value_t = 0)]
+    sheet: usize,
 }
 
 #[derive(Debug, Args)]
@@ -292,6 +297,13 @@ struct Excel2csv {
     /// Get the nth worksheet
     #[arg(short = 'S', long, default_value_t = 0)]
     sheet: usize,
+    /// Separator
+    #[arg(short, long, default_value_t = String::from(","))]
+    sep: String,
+}
+
+#[derive(Debug, Args)]
+struct Table {
     /// Separator
     #[arg(short, long, default_value_t = String::from(","))]
     sep: String,
@@ -511,16 +523,30 @@ fn main() {
             }
         }
         Commands::Stats(option) => {
-            match csv::stats::run(
-                &option.filename,
-                &option.sep,
-                option.no_header,
-                &option.cols,
-                option.export,
-            ) {
-                Ok(()) => {}
-                Err(msg) => werr!("Error: {}", msg),
-            };
+            let path = full_path(&option.filename);
+            if is_excel(&path) {
+                match excel::stats::run(
+                    &path,
+                    option.sheet,
+                    option.no_header,
+                    &option.cols,
+                    option.export,
+                ) {
+                    Ok(()) => {}
+                    Err(msg) => werr!("Error: {}", msg),
+                };
+            } else {
+                match csv::stats::run(
+                    &option.filename,
+                    &option.sep,
+                    option.no_header,
+                    &option.cols,
+                    option.export,
+                ) {
+                    Ok(()) => {}
+                    Err(msg) => werr!("Error: {}", msg),
+                };
+            }
         }
         Commands::Excel2csv(option) => {
             let path = full_path(&option.filename);
@@ -533,5 +559,9 @@ fn main() {
                 werr!("Error: File <{}> is not an excel file.", path.display())
             }
         }
+        Commands::Table(option) => match csv::table::run(&option.sep) {
+            Ok(()) => {}
+            Err(msg) => werr!("Error: {}", msg),
+        },
     }
 }
