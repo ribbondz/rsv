@@ -27,22 +27,23 @@ pub fn run(path: &Path, sheet: usize, no_header: bool, col: usize) -> Result<(),
     // open file and header
     let mut range = ExcelReader::new(path, sheet)?;
     let first_row = if no_header {
-        "".to_owned()
+        Ok("".to_owned())
     } else {
         let first_row = match range.next() {
             Some(v) => v,
             None => return Ok(()),
         };
         if col >= first_row.len() {
-            panic!("Column index out of its range!");
+            Err("column index out of range!")
         } else {
-            first_row
+            let v = first_row
                 .iter()
                 .map(|i| i.to_string())
                 .collect::<Vec<_>>()
-                .join(",")
+                .join(",");
+            Ok(v)
         }
-    };
+    }?;
 
     let (tx, rx) = bounded(1);
     // read

@@ -1,4 +1,8 @@
+use std::process;
+
 use calamine::DataType;
+
+use crate::utils::util::werr;
 
 struct FilterItem {
     col: usize,
@@ -30,12 +34,14 @@ impl Filter {
         let v = one.split('=').collect::<Vec<_>>();
 
         if v.len() != 2 {
-            panic!("Filter syntax error, can only be 0=a,b,c or 0=a,b&2=c.");
+            werr!("Error: Filter syntax can only be 0=a,b,c or 0=a,b&2=c.");
+            process::exit(1);
         }
 
-        let col: usize = v[0]
-            .parse()
-            .unwrap_or_else(|_| panic!("Column should be an integer bigger than or equal to 0."));
+        let col: usize = v[0].parse().unwrap_or_else(|_| {
+            werr!("Error: column should be an integer bigger than or equal to 0.");
+            process::exit(1)
+        });
         let values = v[1].split(',').map(|i| i.to_owned()).collect::<Vec<_>>();
 
         f.append(col, values);

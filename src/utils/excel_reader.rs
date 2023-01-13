@@ -1,7 +1,9 @@
-use std::{error::Error, path::Path};
+use std::{error::Error, path::Path, process};
 
 use calamine::{open_workbook_auto, DataType, Range, Reader, Rows};
 use crossbeam_channel::Sender;
+
+use super::util::werr;
 
 pub struct ExcelReader {
     range: Range<DataType>,
@@ -17,9 +19,10 @@ impl<'a> ExcelReader {
     pub fn new(path: &Path, sheet: usize) -> Result<Self, Box<dyn Error>> {
         let mut workbook = open_workbook_auto(path)?;
 
-        let range = workbook
-            .worksheet_range_at(sheet)
-            .unwrap_or_else(|| panic!("{}-th sheet is not exist.", sheet))?;
+        let range = workbook.worksheet_range_at(sheet).unwrap_or_else(|| {
+            werr!("{}-th sheet is not exist.", sheet);
+            process::exit(1)
+        })?;
 
         Ok(ExcelReader {
             range,

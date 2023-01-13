@@ -30,15 +30,15 @@ pub fn run(filename: &str, no_header: bool, sep: &str, col: usize) -> Result<(),
     // open file and header
     let mut rdr = ChunkReader::new(&path)?;
     let first_row = if no_header {
-        "".to_owned()
+        Ok("".to_owned())
     } else {
         let first_row = rdr.next()?;
         if col >= first_row.split(sep).count() {
-            panic!("Column index out of its range!");
+            Err("column index out of range!")
         } else {
-            first_row
+            Ok(first_row)
         }
-    };
+    }?;
 
     let (tx, rx) = bounded(1);
     // read

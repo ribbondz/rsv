@@ -6,6 +6,7 @@ use utils::{
     },
     file::is_excel,
     filename::full_path,
+    util::werr,
 };
 
 mod csv;
@@ -293,13 +294,6 @@ struct Excel2csv {
     sep: String,
 }
 
-macro_rules! werr {
-    ($($arg:tt)*) => ({
-        use std::io::Write;
-        (writeln!(&mut ::std::io::stderr(), $($arg)*)).unwrap();
-    });
-}
-
 fn main() {
     let cli = Cli::parse();
 
@@ -311,12 +305,12 @@ fn main() {
             if is_excel(&path) {
                 match excel::count::run(&path, option.sheet, option.no_header) {
                     Ok(()) => {}
-                    Err(msg) => werr!("{}", msg),
+                    Err(msg) => werr!("Error: {}", msg),
                 };
             } else {
                 match csv::count::run(&option.filename, option.no_header) {
                     Ok(()) => {}
-                    Err(msg) => werr!("{}", msg),
+                    Err(msg) => werr!("Error: {}", msg),
                 };
             }
         }
@@ -325,7 +319,7 @@ fn main() {
             if is_excel(&path) {
                 match excel::head::run(&path, option.sheet, option.no_header, option.n) {
                     Ok(()) => {}
-                    Err(msg) => werr!("{}", msg),
+                    Err(msg) => werr!("Error: {}", msg),
                 };
             } else {
                 match csv::head::run(
@@ -336,7 +330,7 @@ fn main() {
                     option.tabled,
                 ) {
                     Ok(()) => {}
-                    Err(msg) => werr!("{}", msg),
+                    Err(msg) => werr!("Error: {}", msg),
                 };
             }
         }
@@ -345,12 +339,12 @@ fn main() {
             if is_excel(&path) {
                 match excel::headers::run(&path, option.sheet) {
                     Ok(()) => {}
-                    Err(msg) => werr!("{}", msg),
+                    Err(msg) => werr!("Error: {}", msg),
                 };
             } else {
                 match csv::headers::run(&option.filename, &option.sep) {
                     Ok(()) => {}
-                    Err(msg) => werr!("{}", msg),
+                    Err(msg) => werr!("Error: {}", msg),
                 };
             }
         }
@@ -359,12 +353,12 @@ fn main() {
             if is_excel(&path) {
                 match excel::count::run(&path, option.sheet, true) {
                     Ok(()) => {}
-                    Err(msg) => werr!("{}", msg),
+                    Err(msg) => werr!("Error: {}", msg),
                 };
             } else {
                 match csv::estimate::run(&option.filename) {
                     Ok(()) => {}
-                    Err(msg) => werr!("{}", msg),
+                    Err(msg) => werr!("Error: {}", msg),
                 };
             }
         }
@@ -375,7 +369,7 @@ fn main() {
             } else {
                 match csv::clean::run(&option.filename, &option.escape, &option.output) {
                     Ok(()) => {}
-                    Err(msg) => werr!("{}", msg),
+                    Err(msg) => werr!("Error: {}", msg),
                 };
             }
         }
@@ -392,7 +386,7 @@ fn main() {
                     option.export,
                 ) {
                     Ok(()) => {}
-                    Err(msg) => werr!("{}", msg),
+                    Err(msg) => werr!("Error: {}", msg),
                 };
             } else {
                 match csv::frequency::run(
@@ -405,7 +399,7 @@ fn main() {
                     option.export,
                 ) {
                     Ok(()) => {}
-                    Err(msg) => werr!("{}", msg),
+                    Err(msg) => werr!("Error: {}", msg),
                 };
             }
         }
@@ -414,7 +408,7 @@ fn main() {
             if is_excel(&path) {
                 match excel::partition::run(&path, option.sheet, option.no_header, option.col) {
                     Ok(()) => {}
-                    Err(msg) => werr!("{}", msg),
+                    Err(msg) => werr!("Error: {}", msg),
                 };
             } else {
                 match csv::partition::run(
@@ -424,7 +418,7 @@ fn main() {
                     option.col,
                 ) {
                     Ok(()) => {}
-                    Err(msg) => werr!("{}", msg),
+                    Err(msg) => werr!("Error: {}", msg),
                 };
             }
         }
@@ -440,7 +434,7 @@ fn main() {
                     option.export,
                 ) {
                     Ok(()) => {}
-                    Err(msg) => werr!("{}", msg),
+                    Err(msg) => werr!("Error: {}", msg),
                 };
             } else {
                 match csv::select::run(
@@ -452,7 +446,7 @@ fn main() {
                     option.export,
                 ) {
                     Ok(()) => {}
-                    Err(msg) => werr!("{}", msg),
+                    Err(msg) => werr!("Error: {}", msg),
                 };
             }
         }
@@ -467,7 +461,7 @@ fn main() {
                     option.n,
                 ) {
                     Ok(()) => {}
-                    Err(msg) => werr!("{}", msg),
+                    Err(msg) => werr!("Error: {}", msg),
                 };
             } else {
                 match csv::flatten::run(
@@ -478,7 +472,7 @@ fn main() {
                     option.n,
                 ) {
                     Ok(()) => {}
-                    Err(msg) => werr!("{}", msg),
+                    Err(msg) => werr!("Error: {}", msg),
                 };
             }
         }
@@ -493,7 +487,7 @@ fn main() {
                 option.export,
             ) {
                 Ok(()) => {}
-                Err(msg) => werr!("{}", msg),
+                Err(msg) => werr!("Error: {}", msg),
             };
         }
         Commands::Stats(option) => {
@@ -505,7 +499,7 @@ fn main() {
                 option.export,
             ) {
                 Ok(()) => {}
-                Err(msg) => werr!("{}", msg),
+                Err(msg) => werr!("Error: {}", msg),
             };
         }
         Commands::Excel2csv(option) => {
@@ -513,10 +507,10 @@ fn main() {
             if is_excel(&path) {
                 match excel::excel2csv::run(&path, option.sheet, &option.sep) {
                     Ok(()) => {}
-                    Err(msg) => werr!("{}", msg),
+                    Err(msg) => werr!("Error: {}", msg),
                 }
             } else {
-                werr!("File <{}> is not an excel file.", path.display())
+                werr!("Error: File <{}> is not an excel file.", path.display())
             }
         }
     }

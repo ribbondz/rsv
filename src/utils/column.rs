@@ -1,4 +1,8 @@
+use std::process;
+
 use calamine::DataType;
+
+use super::util::werr;
 
 #[derive(Debug)]
 pub struct Columns {
@@ -9,8 +13,10 @@ pub struct Columns {
 }
 
 fn parse_col_usize(col: &str) -> usize {
-    col.parse()
-        .unwrap_or_else(|_| panic!("{}", "Column syntax error, can only be 0,1,2,5 or 0-2,5"))
+    col.parse().unwrap_or_else(|_| {
+        werr!("{}", "Column syntax error: can only be 0,1,2,5 or 0-2,5");
+        process::exit(1);
+    })
 }
 
 impl Columns {

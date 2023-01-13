@@ -53,3 +53,12 @@ pub fn print_frequency_table(names: &Vec<String>, freq: Vec<(String, i32)>) {
 
     println!("{table}");
 }
+
+macro_rules! werr {
+    ($($arg:tt)*) => ({
+        use std::io::Write;
+        (writeln!(&mut ::std::io::stderr(), $($arg)*)).unwrap();
+    });
+}
+
+pub(crate) use werr;
