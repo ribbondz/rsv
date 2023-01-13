@@ -2,7 +2,7 @@ use clap::{Args, Parser, Subcommand};
 use utils::{
     cmd_desc::{
         CLEAN_DESC, COUNT_DESC, ESTIMATE_DESC, EXCEL2CSV_DESC, FLATTEN_DESC, FREQUENCY_DESC,
-        HEADER_DESC, HEAD_DESC, PARTITION_DESC, SELECT_DESC, SLICE_DESC, STATS_DESC, TABLE_DESC,
+        HEADER_DESC, HEAD_DESC, SELECT_DESC, SLICE_DESC, SPLIT_DESC, STATS_DESC, TABLE_DESC,
     },
     file::is_excel,
     filename::full_path,
@@ -16,8 +16,10 @@ mod utils;
 #[derive(Parser)]
 #[command(name = "rsv")]
 #[command(author = "ribbondz@163.com")]
-#[command(version = "0.1")]
-#[command(about = "A Rust command line tool to parse small and large (>10G) CSV, TXT, and EXCEL files", long_about = None)]
+#[command(version = "0.2")]
+#[command(
+    about = "A Rust command line tool to parse small and large (>10G) CSV, TXT, and EXCEL files."
+)]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -62,9 +64,9 @@ enum Commands {
     Frequency(Frequency),
     #[command(
         about = "Split file into separate files according to column value",
-        override_help=PARTITION_DESC
+        override_help = SPLIT_DESC
     )]
-    Partition(Partition),
+    Split(Split),
     #[command(
         about = "Select rows and columns by filter",
         override_help=SELECT_DESC
@@ -234,7 +236,7 @@ struct Frequency {
 }
 
 #[derive(Debug, Args)]
-struct Partition {
+struct Split {
     /// File to open
     filename: String,
     /// Separator
@@ -424,20 +426,15 @@ fn main() {
                 };
             }
         }
-        Commands::Partition(option) => {
+        Commands::Split(option) => {
             let path = full_path(&option.filename);
             if is_excel(&path) {
-                match excel::partition::run(&path, option.sheet, option.no_header, option.col) {
+                match excel::split::run(&path, option.sheet, option.no_header, option.col) {
                     Ok(()) => {}
                     Err(msg) => werr!("Error: {}", msg),
                 };
             } else {
-                match csv::partition::run(
-                    &option.filename,
-                    option.no_header,
-                    &option.sep,
-                    option.col,
-                ) {
+                match csv::split::run(&option.filename, option.no_header, &option.sep, option.col) {
                     Ok(()) => {}
                     Err(msg) => werr!("Error: {}", msg),
                 };

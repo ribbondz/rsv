@@ -203,7 +203,7 @@ Column selection syntax:
 -c 0-2,5     -->    same as cols [0,1,2,5]
 ";
 
-pub const PARTITION_DESC: &str = "Split a big and unordered file into separate files
+pub const SPLIT_DESC: &str = "Split a big and unordered file into separate files
 based on a column value. Only one column can be specified at a time,
 with the --col or -c flag. 
 
@@ -216,11 +216,11 @@ continuously opening and closing small files; (2) rows of CSV or EXCEL
 are analyzed in parallel (based on Rayon) after their read in.
 
 Usage: 
-  rsv.exe partition [OPTIONS] <FILENAME>
-  rsv partition data.csv               # default to first column and field separator of \",\" 
-  rsv partition -c 1 data.csv          # second column to partition
-  rsv partition -c 0 -s \\t data.csv    # first column, \\t separator
-  rsv partition data.xlsx              # EXCEL file
+  rsv.exe split [OPTIONS] <FILENAME>
+  rsv split data.csv               # default to first column and field separator of \",\" 
+  rsv split -c 1 data.csv          # second column to split
+  rsv split -c 0 -s \\t data.csv    # first column, \\t separator
+  rsv split data.xlsx              # EXCEL file
 
 Arguments:
   <FILENAME>  File to open

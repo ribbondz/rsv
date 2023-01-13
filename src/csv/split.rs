@@ -21,7 +21,7 @@ pub fn run(filename: &str, no_header: bool, sep: &str, col: usize) -> Result<(),
     // new directory
     let stem = Path::new(filename).file_stem().unwrap();
     let dir = path.with_file_name(format!(
-        "{}-partition-{}",
+        "{}-split-{}",
         stem.to_string_lossy(),
         datetime_str()
     ));

@@ -18,7 +18,7 @@ pub fn run(path: &Path, sheet: usize, no_header: bool, col: usize) -> Result<(),
     // new directory
     let stem = path.file_stem().unwrap();
     let dir = path.with_file_name(format!(
-        "{}-partition-{}",
+        "{}-split-{}",
         stem.to_string_lossy(),
         datetime_str()
     ));
