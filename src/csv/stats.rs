@@ -26,7 +26,7 @@ pub fn run(
 
     // Column
     let cols = Columns::new(cols);
-    let col_type = ColumnTypes::guess(&path, filename, sep, no_header, &cols)?;
+    let col_type = ColumnTypes::guess_from_csv(&path, filename, sep, no_header, &cols)?;
 
     // open file
     let mut rdr = ChunkReader::new(&path)?;
@@ -48,6 +48,7 @@ pub fn run(
     let (tx_chunk_n_control, rx_chunk_n_control) = bounded(200);
     let (tx_result, rx_result) = unbounded();
 
+    // progress bar
     let mut prog = Progress::new();
 
     // threadpool
