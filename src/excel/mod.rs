@@ -1,4 +1,5 @@
 pub mod count;
+pub mod excel2csv;
 pub mod flatten;
 pub mod frequency;
 pub mod head;
