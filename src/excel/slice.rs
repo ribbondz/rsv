@@ -45,10 +45,10 @@ pub fn run(
         Some(index) => write_by_index(&mut rdr, &mut wtr, index)?,
         None => {
             let end = end
-                .or_else(|| length.map(|l| start + l).or(Some(usize::MAX)))
+                .or_else(|| length.map(|l| start + l - 1).or(Some(usize::MAX)))
                 .unwrap();
             if start > end {
-                werr!("Error: end index should be equal to or bigger than start index");
+                werr!("Error: end index should be equal to or bigger than start index.");
                 process::exit(1)
             }
             write_by_range(&mut rdr, &mut wtr, start, end)?;
@@ -82,6 +82,7 @@ fn write_by_range(
     start: usize,
     end: usize,
 ) -> std::io::Result<()> {
+    println!("{},{}", start, end);
     for r in rdr
         .iter()
         .skip(rdr.next_called + start)
