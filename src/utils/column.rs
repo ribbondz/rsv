@@ -14,7 +14,7 @@ pub struct Columns {
 
 fn parse_col_usize(col: &str) -> usize {
     col.parse().unwrap_or_else(|_| {
-        werr!("{}", "Column syntax error: can only be 0,1,2,5 or 0-2,5");
+        werr!("{}", "Column syntax error: can only be 0,1,2,5 or 0-2,5.");
         process::exit(1);
     })
 }
