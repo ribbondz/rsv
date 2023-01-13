@@ -91,7 +91,7 @@ struct Count {
     #[arg(long, default_value_t = false)]
     no_header: bool,
     /// Get the nth worksheet from Excel file
-    #[arg(short, long, default_value_t = 0, short_alias = 'S')]
+    #[arg(short = 'S', long, default_value_t = 0)]
     sheet: usize,
 }
 
@@ -100,7 +100,7 @@ struct Estimate {
     /// File to open
     filename: String,
     /// Get the nth worksheet for an Excel file
-    #[arg(short, long, default_value_t = 0, short_alias = 'S')]
+    #[arg(short = 'S', long, default_value_t = 0)]
     sheet: usize,
 }
 
@@ -112,7 +112,7 @@ struct Headers {
     #[arg(short, long, default_value_t = String::from(","))]
     sep: String,
     /// Get the nth worksheet
-    #[arg(short, long, default_value_t = 0, short_alias = 'S')]
+    #[arg(short = 'S', long, default_value_t = 0)]
     sheet: usize,
 }
 
@@ -157,7 +157,7 @@ struct Head {
     #[arg(short, long, default_value_t = false)]
     tabled: bool,
     /// Get the nth worksheet
-    #[arg(short, long, default_value_t = 0, short_alias = 'S')]
+    #[arg(short = 'S', long, default_value_t = 0)]
     sheet: usize,
 }
 
@@ -178,7 +178,7 @@ struct Flatten {
     #[arg(short, long, default_value_t = 5)]
     n: i32,
     /// Get the nth worksheet
-    #[arg(short, long, default_value_t = 0, short_alias = 'S')]
+    #[arg(short = 'S', long, default_value_t = 0)]
     sheet: usize,
 }
 
@@ -217,7 +217,7 @@ struct Frequency {
     #[arg(short, long, default_value_t = -1)]
     n: i32,
     /// Get the nth worksheet
-    #[arg(short, long, default_value_t = 0, short_alias = 'S')]
+    #[arg(short = 'S', long, default_value_t = 0)]
     sheet: usize,
 }
 
@@ -235,7 +235,7 @@ struct Partition {
     #[arg(short, long, default_value_t = 0)]
     col: usize,
     /// Get the nth worksheet
-    #[arg(short, long, default_value_t = 0, short_alias = 'S')]
+    #[arg(short = 'S', long, default_value_t = 0)]
     sheet: usize,
 }
 
@@ -259,7 +259,7 @@ struct Select {
     #[arg(short, long, default_value_t = false, short_alias = 'E')]
     export: bool,
     /// Get the nth worksheet
-    #[arg(short, long, default_value_t = 0, short_alias = 'S')]
+    #[arg(short = 'S', long, default_value_t = 0)]
     sheet: usize,
 }
 
