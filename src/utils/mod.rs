@@ -10,5 +10,4 @@ pub mod file;
 pub mod filename;
 pub mod filter;
 pub mod progress;
-pub mod table;
 pub mod util;

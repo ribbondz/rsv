@@ -5,7 +5,7 @@ use crossbeam_channel::Sender;
 
 pub struct ExcelReader {
     range: Range<DataType>,
-    next_called: usize,
+    pub next_called: usize,
 }
 
 pub struct ExcelChunkTask {
@@ -29,6 +29,10 @@ impl<'a> ExcelReader {
 
     pub fn len(&self) -> usize {
         self.range.get_size().0
+    }
+
+    pub fn column_n(&self) -> usize {
+        self.range.get_size().1
     }
 
     pub fn next(&mut self) -> Option<&[DataType]> {

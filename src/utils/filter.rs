@@ -1,3 +1,5 @@
+use calamine::DataType;
+
 struct FilterItem {
     col: usize,
     values: Vec<String>,
@@ -56,6 +58,25 @@ impl Filter {
     pub fn record_valid_map<'a>(&self, row: &'a str, sep: &str) -> Option<Vec<&'a str>> {
         let row = row.split(sep).collect::<Vec<_>>();
         if self.record_is_valid(&row) {
+            Some(row)
+        } else {
+            None
+        }
+    }
+
+    pub fn excel_record_is_valid(&self, row: &[String]) -> bool {
+        if self.is_empty() {
+            return true;
+        }
+
+        self.items
+            .iter()
+            .all(|item| item.values.iter().any(|i| i.as_str() == row[item.col]))
+    }
+
+    pub fn excel_record_valid_map(&self, row: &[DataType]) -> Option<Vec<String>> {
+        let row = row.iter().map(|i| i.to_string()).collect::<Vec<_>>();
+        if self.excel_record_is_valid(&row) {
             Some(row)
         } else {
             None

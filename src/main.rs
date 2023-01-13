@@ -89,7 +89,7 @@ struct Count {
     #[arg(long, default_value_t = false)]
     no_header: bool,
     /// Get the nth worksheet from Excel file
-    #[arg(short, long, default_value_t = 0)]
+    #[arg(short, long, default_value_t = 0, short_alias = 'S')]
     sheet: usize,
 }
 
@@ -98,7 +98,7 @@ struct Estimate {
     /// File to open
     filename: String,
     /// Get the nth worksheet for an Excel file
-    #[arg(short, long, default_value_t = 0)]
+    #[arg(short, long, default_value_t = 0, short_alias = 'S')]
     sheet: usize,
 }
 
@@ -110,7 +110,7 @@ struct Headers {
     #[arg(short, long, default_value_t = String::from(","))]
     sep: String,
     /// Get the nth worksheet
-    #[arg(short, long, default_value_t = 0)]
+    #[arg(short, long, default_value_t = 0, short_alias = 'S')]
     sheet: usize,
 }
 
@@ -155,7 +155,7 @@ struct Head {
     #[arg(short, long, default_value_t = false)]
     tabled: bool,
     /// Get the nth worksheet
-    #[arg(short, long, default_value_t = 0)]
+    #[arg(short, long, default_value_t = 0, short_alias = 'S')]
     sheet: usize,
 }
 
@@ -175,6 +175,9 @@ struct Flatten {
     /// Number of records to show, n=-1 to show all
     #[arg(short, long, default_value_t = 5)]
     n: i32,
+    /// Get the nth worksheet
+    #[arg(short, long, default_value_t = 0, short_alias = 'S')]
+    sheet: usize,
 }
 
 #[derive(Debug, Args)]
@@ -212,7 +215,7 @@ struct Frequency {
     #[arg(short, long, default_value_t = -1)]
     n: i32,
     /// Get the nth worksheet
-    #[arg(short, long, default_value_t = 0)]
+    #[arg(short, long, default_value_t = 0, short_alias = 'S')]
     sheet: usize,
 }
 
@@ -229,6 +232,9 @@ struct Partition {
     /// Columns to generate frequency table
     #[arg(short, long, default_value_t = 0)]
     col: usize,
+    /// Get the nth worksheet
+    #[arg(short, long, default_value_t = 0, short_alias = 'S')]
+    sheet: usize,
 }
 
 #[derive(Debug, Args)]
@@ -250,6 +256,9 @@ struct Select {
     /// Export results to a file named current-file-selected.csv?
     #[arg(short, long, default_value_t = false, short_alias = 'E')]
     export: bool,
+    /// Get the nth worksheet
+    #[arg(short, long, default_value_t = 0, short_alias = 'S')]
+    sheet: usize,
 }
 
 #[derive(Debug, Args)]
@@ -352,32 +361,57 @@ fn main() {
         Commands::Partition(option) => {
             let path = full_path(&option.filename);
             if is_excel(&path) {
-                panic!("rsv partition is not workable for Excel file.")
+                excel::partition::run(&path, option.sheet, option.no_header, option.col).unwrap();
             } else {
                 csv::partition::run(&option.filename, option.no_header, &option.sep, option.col)
                     .unwrap();
             }
         }
         Commands::Select(option) => {
-            csv::select::run(
-                &option.filename,
-                option.no_header,
-                &option.sep,
-                &option.cols,
-                &option.filter,
-                option.export,
-            )
-            .unwrap();
+            let path = full_path(&option.filename);
+            if is_excel(&path) {
+                excel::select::run(
+                    &path,
+                    option.no_header,
+                    option.sheet,
+                    &option.cols,
+                    &option.filter,
+                    option.export,
+                )
+                .unwrap();
+            } else {
+                csv::select::run(
+                    &option.filename,
+                    option.no_header,
+                    &option.sep,
+                    &option.cols,
+                    &option.filter,
+                    option.export,
+                )
+                .unwrap();
+            }
         }
         Commands::Flatten(option) => {
-            csv::flatten::run(
-                &option.filename,
-                option.no_header,
-                &option.sep,
-                &option.delimiter,
-                option.n,
-            )
-            .unwrap();
+            let path = full_path(&option.filename);
+            if is_excel(&path) {
+                excel::flatten::run(
+                    &path,
+                    option.no_header,
+                    option.sheet,
+                    &option.delimiter,
+                    option.n,
+                )
+                .unwrap();
+            } else {
+                csv::flatten::run(
+                    &option.filename,
+                    option.no_header,
+                    &option.sep,
+                    &option.delimiter,
+                    option.n,
+                )
+                .unwrap();
+            }
         }
         Commands::Slice(option) => {
             csv::slice::run(

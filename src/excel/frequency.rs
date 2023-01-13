@@ -1,15 +1,14 @@
-use crossbeam_channel::bounded;
-use dashmap::DashMap;
-use rayon::prelude::*;
-use std::thread;
-
 use crate::utils::column::Columns;
 use crate::utils::excel_reader::ExcelReader;
 use crate::utils::file::{self};
 use crate::utils::filename;
 use crate::utils::filename::full_path;
 use crate::utils::progress::Progress;
-use crate::utils::table::print_frequency_table;
+use crate::utils::util::print_frequency_table;
+use crossbeam_channel::bounded;
+use dashmap::DashMap;
+use rayon::prelude::*;
+use std::thread;
 
 pub fn run(
     filename: &str,
