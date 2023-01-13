@@ -6,3 +6,4 @@ pub mod head;
 pub mod headers;
 pub mod partition;
 pub mod select;
+pub mod slice;
