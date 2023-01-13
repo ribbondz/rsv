@@ -79,6 +79,8 @@ enum Commands {
         override_help = STATS_DESC
     )]
     Stats(Stats),
+    #[command(about = "Convert excel to csv")]
+    Excel2csv(Excel2csv),
 }
 
 #[derive(Debug, Args)]
@@ -279,6 +281,25 @@ struct Stats {
     export: bool,
 }
 
+#[derive(Debug, Args)]
+struct Excel2csv {
+    /// File to open
+    filename: String,
+    /// Get the nth worksheet
+    #[arg(short = 'S', long, default_value_t = 0)]
+    sheet: usize,
+    /// Separator
+    #[arg(short, long, default_value_t = String::from(","))]
+    sep: String,
+}
+
+macro_rules! werr {
+    ($($arg:tt)*) => ({
+        use std::io::Write;
+        (writeln!(&mut ::std::io::stderr(), $($arg)*)).unwrap();
+    });
+}
+
 fn main() {
     let cli = Cli::parse();
 
@@ -288,54 +309,80 @@ fn main() {
         Commands::Count(option) => {
             let path = full_path(&option.filename);
             if is_excel(&path) {
-                excel::count::run(&path, option.sheet, option.no_header).unwrap();
+                match excel::count::run(&path, option.sheet, option.no_header) {
+                    Ok(()) => {}
+                    Err(msg) => werr!("{}", msg),
+                };
             } else {
-                csv::count::run(&option.filename, option.no_header).unwrap();
+                match csv::count::run(&option.filename, option.no_header) {
+                    Ok(()) => {}
+                    Err(msg) => werr!("{}", msg),
+                };
             }
         }
         Commands::Head(option) => {
             let path = full_path(&option.filename);
             if is_excel(&path) {
-                excel::head::run(&path, option.sheet, option.no_header, option.n).unwrap();
+                match excel::head::run(&path, option.sheet, option.no_header, option.n) {
+                    Ok(()) => {}
+                    Err(msg) => werr!("{}", msg),
+                };
             } else {
-                csv::head::run(
+                match csv::head::run(
                     &option.filename,
                     option.no_header,
                     &option.sep,
                     option.n,
                     option.tabled,
-                )
-                .unwrap();
+                ) {
+                    Ok(()) => {}
+                    Err(msg) => werr!("{}", msg),
+                };
             }
         }
         Commands::Headers(option) => {
             let path = full_path(&option.filename);
             if is_excel(&path) {
-                excel::headers::run(&path, option.sheet).unwrap();
+                match excel::headers::run(&path, option.sheet) {
+                    Ok(()) => {}
+                    Err(msg) => werr!("{}", msg),
+                };
             } else {
-                csv::headers::run(&option.filename, &option.sep).unwrap();
+                match csv::headers::run(&option.filename, &option.sep) {
+                    Ok(()) => {}
+                    Err(msg) => werr!("{}", msg),
+                };
             }
         }
         Commands::Estimate(option) => {
             let path = full_path(&option.filename);
             if is_excel(&path) {
-                excel::count::run(&path, option.sheet, true).unwrap();
+                match excel::count::run(&path, option.sheet, true) {
+                    Ok(()) => {}
+                    Err(msg) => werr!("{}", msg),
+                };
             } else {
-                csv::estimate::run(&option.filename).unwrap();
+                match csv::estimate::run(&option.filename) {
+                    Ok(()) => {}
+                    Err(msg) => werr!("{}", msg),
+                };
             }
         }
         Commands::Clean(option) => {
             let path = full_path(&option.filename);
             if is_excel(&path) {
-                panic!("rsv clean is not workable for Excel file.")
+                werr!("rsv clean is not workable for Excel file.")
             } else {
-                csv::clean::run(&option.filename, &option.escape, &option.output).unwrap();
+                match csv::clean::run(&option.filename, &option.escape, &option.output) {
+                    Ok(()) => {}
+                    Err(msg) => werr!("{}", msg),
+                };
             }
         }
         Commands::Frequency(option) => {
             let path = full_path(&option.filename);
             if is_excel(&path) {
-                excel::frequency::run(
+                match excel::frequency::run(
                     &option.filename,
                     option.no_header,
                     option.sheet,
@@ -343,10 +390,12 @@ fn main() {
                     option.ascending,
                     option.n,
                     option.export,
-                )
-                .unwrap();
+                ) {
+                    Ok(()) => {}
+                    Err(msg) => werr!("{}", msg),
+                };
             } else {
-                csv::frequency::run(
+                match csv::frequency::run(
                     &option.filename,
                     option.no_header,
                     &option.sep,
@@ -354,67 +403,87 @@ fn main() {
                     option.ascending,
                     option.n,
                     option.export,
-                )
-                .unwrap();
+                ) {
+                    Ok(()) => {}
+                    Err(msg) => werr!("{}", msg),
+                };
             }
         }
         Commands::Partition(option) => {
             let path = full_path(&option.filename);
             if is_excel(&path) {
-                excel::partition::run(&path, option.sheet, option.no_header, option.col).unwrap();
+                match excel::partition::run(&path, option.sheet, option.no_header, option.col) {
+                    Ok(()) => {}
+                    Err(msg) => werr!("{}", msg),
+                };
             } else {
-                csv::partition::run(&option.filename, option.no_header, &option.sep, option.col)
-                    .unwrap();
+                match csv::partition::run(
+                    &option.filename,
+                    option.no_header,
+                    &option.sep,
+                    option.col,
+                ) {
+                    Ok(()) => {}
+                    Err(msg) => werr!("{}", msg),
+                };
             }
         }
         Commands::Select(option) => {
             let path = full_path(&option.filename);
             if is_excel(&path) {
-                excel::select::run(
+                match excel::select::run(
                     &path,
                     option.no_header,
                     option.sheet,
                     &option.cols,
                     &option.filter,
                     option.export,
-                )
-                .unwrap();
+                ) {
+                    Ok(()) => {}
+                    Err(msg) => werr!("{}", msg),
+                };
             } else {
-                csv::select::run(
+                match csv::select::run(
                     &option.filename,
                     option.no_header,
                     &option.sep,
                     &option.cols,
                     &option.filter,
                     option.export,
-                )
-                .unwrap();
+                ) {
+                    Ok(()) => {}
+                    Err(msg) => werr!("{}", msg),
+                };
             }
         }
         Commands::Flatten(option) => {
             let path = full_path(&option.filename);
             if is_excel(&path) {
-                excel::flatten::run(
+                match excel::flatten::run(
                     &path,
                     option.no_header,
                     option.sheet,
                     &option.delimiter,
                     option.n,
-                )
-                .unwrap();
+                ) {
+                    Ok(()) => {}
+                    Err(msg) => werr!("{}", msg),
+                };
             } else {
-                csv::flatten::run(
+                match csv::flatten::run(
                     &option.filename,
                     option.no_header,
                     &option.sep,
                     &option.delimiter,
                     option.n,
-                )
-                .unwrap();
+                ) {
+                    Ok(()) => {}
+                    Err(msg) => werr!("{}", msg),
+                };
             }
         }
         Commands::Slice(option) => {
-            csv::slice::run(
+            match csv::slice::run(
                 &option.filename,
                 option.no_header,
                 option.start,
@@ -422,18 +491,33 @@ fn main() {
                 option.length,
                 option.index,
                 option.export,
-            )
-            .unwrap();
+            ) {
+                Ok(()) => {}
+                Err(msg) => werr!("{}", msg),
+            };
         }
         Commands::Stats(option) => {
-            csv::stats::run(
+            match csv::stats::run(
                 &option.filename,
                 &option.sep,
                 option.no_header,
                 &option.cols,
                 option.export,
-            )
-            .unwrap();
+            ) {
+                Ok(()) => {}
+                Err(msg) => werr!("{}", msg),
+            };
+        }
+        Commands::Excel2csv(option) => {
+            let path = full_path(&option.filename);
+            if is_excel(&path) {
+                match excel::excel2csv::run(&path, option.sheet, &option.sep) {
+                    Ok(()) => {}
+                    Err(msg) => werr!("{}", msg),
+                }
+            } else {
+                werr!("File <{}> is not an excel file.", path.display())
+            }
         }
     }
 }
