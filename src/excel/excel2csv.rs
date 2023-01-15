@@ -21,7 +21,7 @@ pub fn run(path: &Path, sheet: usize, sep: &str) -> Result<(), Box<dyn std::erro
         let mut r = r.iter().peekable();
 
         while let Some(v) = r.next() {
-            wtr.write_all(v.to_string().as_bytes())?;
+            wtr.write_all(v.to_string().trim().as_bytes())?;
 
             if r.peek().is_some() {
                 wtr.write_all(sep_bytes)?;
