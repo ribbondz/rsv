@@ -322,3 +322,24 @@ Options:
   -s, --sep <SEP>  Separator [default: ,]
   -h, --help       Print help information
 ";
+
+pub const SEARCH_DESC: &str = "Search with regexes. Regex syntax is to be found at: https://docs.rs/regex/latest/regex/#syntax. 
+The command reads file in chunks and processes a chunk in parallel based on Rayon.
+
+Usage: 
+  rsv.exe search [OPTIONS] <PATTERN> <FILENAME>
+  rsv search PATTERN data.csv                     # regex search a PATTERN
+  rsv search \"^\\d{4}-\\d{2}-\\d{2}$\" data.csv       # regex search dates
+  rsv search --export PATTERN data.csv            # export result
+  rsv search PATTERN data.xlsx                    # search EXCEL file
+
+Arguments:
+  <PATTERN>   Regex pattern to search
+  <FILENAME>  File to open
+
+Options:
+      --no-header      Whether the file has a header
+  -S, --sheet <SHEET>  Get the nth worksheet of EXCEL file [default: 0]
+  -E, --export         Export to a file named current-file-searched.csv?
+  -h, --help           Print help information
+";

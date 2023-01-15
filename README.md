@@ -19,10 +19,11 @@ download **rsv.exe** from release tab, and append the file directory to system p
 - **estimate** - Fast estimate the number of lines.
 - **clean** - Clean file with escape char (e.g. ") or other strings :running:.
 - **frequency** - Show frequency table for column(s) :running: :star:.
-- **split** - Split CSV or EXCEL file into separate files based on a column value :running: :star:.
+- **split** - Split file into separate files based on column value :running: :star:.
 - **select** - Select rows and columns by filter :running:.
 - **flatten** - Prints flattened records to view records one by one.
 - **slice** - Prints a slice of rows from file.
+- **search** - Search with regexes.
 - **stats** - Statistics for column(s), including min, max, mean, unique, null :running: :star:.
 - **excel2csv** - Convert excel to csv.
 - **table** - Format data as an aligned table.
@@ -155,6 +156,16 @@ rsv slice -s 100 -l 50 data.xlsx           # EXCEL FILE
 rsv slice -s 100 -l 50 --export data.csv   # export to data-slice.csv
 rsv slice -e 10 --export data.csv          # set end index and export data
 rsv slice -i 9 data.csv                    # the 10th line sliced only
+rsv slice --help                           # help info on all flags
+```
+
+- **rsv search**
+
+```shell
+rsv search PATTERN data.csv                # search PATTERN
+rsv search "^\d{4}-\d{2}-\d{2}$" data.csv  # search dates
+rsv search --export PATTERN data.csv       # export result
+rsv search PATTERN data.xlsx               # search EXCEL file
 rsv slice --help                           # help info on all flags
 ```
 

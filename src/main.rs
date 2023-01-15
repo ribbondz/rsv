@@ -2,7 +2,8 @@ use clap::{Args, Parser, Subcommand};
 use utils::{
     cmd_desc::{
         CLEAN_DESC, COUNT_DESC, ESTIMATE_DESC, EXCEL2CSV_DESC, FLATTEN_DESC, FREQUENCY_DESC,
-        HEADER_DESC, HEAD_DESC, SELECT_DESC, SLICE_DESC, SPLIT_DESC, STATS_DESC, TABLE_DESC,
+        HEADER_DESC, HEAD_DESC, SEARCH_DESC, SELECT_DESC, SLICE_DESC, SPLIT_DESC, STATS_DESC,
+        TABLE_DESC,
     },
     file::is_excel,
     filename::full_path,
@@ -77,6 +78,11 @@ enum Commands {
         override_help = SLICE_DESC
     )]
     Slice(Slice),
+    #[command(
+        about = "Search with regexes",
+        override_help = SEARCH_DESC
+    )]
+    Search(Search),
     #[command(
         about = "Statistics for column(s), including min, max, mean, unique, null.",
         override_help = STATS_DESC
@@ -315,6 +321,23 @@ struct Table {
     /// Separator
     #[arg(short, long, default_value_t = String::from(","))]
     sep: String,
+}
+
+#[derive(Debug, Args)]
+struct Search {
+    /// Regex pattern to search
+    pattern: String,
+    /// File to open
+    filename: String,
+    /// Whether the file has a header
+    #[arg(long, default_value_t = false)]
+    no_header: bool,
+    /// Get the nth worksheet of EXCEL file
+    #[arg(short = 'S', long, default_value_t = 0)]
+    sheet: usize,
+    /// Export to a file named current-file-searched.csv?
+    #[arg(short = 'E', long, default_value_t = false)]
+    export: bool,
 }
 
 fn main() {
@@ -566,5 +589,31 @@ fn main() {
             Ok(()) => {}
             Err(msg) => werr!("Error: {}", msg),
         },
+        Commands::Search(option) => {
+            let path = full_path(&option.filename);
+            if is_excel(&path) {
+                match excel::search::run(
+                    &path,
+                    option.sheet,
+                    &option.pattern,
+                    option.no_header,
+                    option.export,
+                ) {
+                    Ok(()) => {}
+                    Err(msg) => werr!("Error: {}", msg),
+                }
+            } else {
+                match csv::search::run(
+                    &option.filename,
+                    &path,
+                    &option.pattern,
+                    option.no_header,
+                    option.export,
+                ) {
+                    Ok(()) => {}
+                    Err(msg) => werr!("Error: {}", msg),
+                }
+            }
+        }
     }
 }
