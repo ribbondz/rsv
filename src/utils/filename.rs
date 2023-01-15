@@ -12,13 +12,17 @@ pub fn str_clean_as_filename(name: &str, extension: Option<&str>) -> String {
 }
 
 pub fn new_path(path: &Path, suffix: &str) -> PathBuf {
-    // new file
-    path.with_file_name(format!(
+    let p = path.with_file_name(format!(
         "{}{}",
         path.file_stem().unwrap().to_str().unwrap(),
         suffix
-    ))
-    .with_extension(path.extension().unwrap())
+    ));
+
+    // new file
+    match path.extension() {
+        Some(e) => p.with_extension(e),
+        None => p,
+    }
 }
 
 pub fn full_path(f: &str) -> PathBuf {
