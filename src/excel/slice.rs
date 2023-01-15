@@ -82,7 +82,6 @@ fn write_by_range(
     start: usize,
     end: usize,
 ) -> std::io::Result<()> {
-    println!("{},{}", start, end);
     for r in rdr
         .iter()
         .skip(rdr.next_called + start)
