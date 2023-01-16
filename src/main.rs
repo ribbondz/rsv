@@ -171,9 +171,9 @@ struct Head {
     #[arg(long, default_value_t = false)]
     no_header: bool,
     /// Number of records to show
-    #[arg(short, long, default_value_t = 20)]
+    #[arg(short, long, default_value_t = 10)]
     n: usize,
-    /// print as a table
+    /// Print as an aligned table
     #[arg(short, long, default_value_t = false)]
     tabled: bool,
     /// Get the nth worksheet of EXCEL file
@@ -318,6 +318,11 @@ struct Excel2csv {
 
 #[derive(Debug, Args)]
 struct Table {
+    /// File to open
+    filename: Option<String>,
+    /// Get the nth worksheet of EXCEL file
+    #[arg(short = 'S', long, default_value_t = 0)]
+    sheet: usize,
     /// Separator
     #[arg(short, long, default_value_t = String::from(","))]
     sep: String,
@@ -585,10 +590,12 @@ fn main() {
                 werr!("Error: File <{}> is not an excel file.", path.display())
             }
         }
-        Commands::Table(option) => match csv::table::run(&option.sep) {
-            Ok(()) => {}
-            Err(msg) => werr!("Error: {}", msg),
-        },
+        Commands::Table(option) => {
+            match csv::table::run(&option.filename, option.sheet, &option.sep) {
+                Ok(()) => {}
+                Err(msg) => werr!("Error: {}", msg),
+            }
+        }
         Commands::Search(option) => {
             let path = full_path(&option.filename);
             if is_excel(&path) {

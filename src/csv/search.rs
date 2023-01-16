@@ -5,7 +5,7 @@ use crate::utils::filename::new_path;
 use crate::utils::progress::Progress;
 use crossbeam_channel::bounded;
 use rayon::prelude::*;
-use regex::Regex;
+use regex::RegexBuilder;
 use std::io::{BufWriter, Write};
 use std::path::Path;
 use std::thread;
@@ -39,7 +39,7 @@ pub fn run(
     let mut prog = Progress::new();
 
     // regex search
-    let re = Regex::new(pattern)?;
+    let re = RegexBuilder::new(pattern).case_insensitive(true).build()?;
     for Task { lines, bytes } in rx {
         let lines = lines
             .into_par_iter()

@@ -36,8 +36,8 @@ Options:
   -h, --help           Print help information";
 
 pub const HEAD_DESC: &str =
-    "Show head n lines of CSV, TXT, EXCEL or OTHER file. When it is a CSV or TXT file, 
-the result could be formatted as an aligned table by setting the --tabled flag. 
+    "Show head n lines of file. When it is a CSV or TXT file, the result 
+could be formatted as an aligned table by setting the --tabled flag. 
 An EXCEL file is printed in default as an aligned table.
 
 Usage: 
@@ -55,8 +55,8 @@ Arguments:
 Options:
   -s, --sep <SEP>      Separator [default: ,]
       --no-header      Whether the file has a header
-  -n, --n <N>          Number of records to show [default: 20]
-  -t, --tabled         print as a table
+  -n, --n <N>          Number of records to show [default: 10]
+  -t, --tabled         Print as a table
   -S, --sheet <SHEET>  Get the nth worksheet of EXCEL file [default: 0]
   -h, --help           Print help information
 ";

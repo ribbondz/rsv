@@ -23,7 +23,7 @@ download **rsv.exe** from release tab, and append the file directory to system p
 - **select** - Select rows and columns by filter :running:.
 - **flatten** - Prints flattened records to view records one by one.
 - **slice** - Prints a slice of rows from file.
-- **search** - Search with regexes.
+- **search** - Search with regexes :running: :star:.
 - **stats** - Statistics for column(s), including min, max, mean, unique, null :running: :star:.
 - **excel2csv** - Convert excel to csv.
 - **table** - Format data as an aligned table.
@@ -195,6 +195,10 @@ rsv head data.csv | rsv table                   # convert result to an aligned t
 rsv slice -s 10 -e 15 data.csv | rsv table      # convert result to an aligned table
 ```
 
-# Next
+## Bug report and suggestion
+
+[219352261 QQ Chat Room](https://jq.qq.com/?_wv=1027&k=MyU6ynI1)
+
+## Next
 
 new features will be added in the future.
