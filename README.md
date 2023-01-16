@@ -124,8 +124,8 @@ rsv split --help                # help info on all flags
 ```shell
 rsv select -f 0=a,b,c data.csv             # first column has values of a, b, or c
 rsv select -f 0=a,b,c data.xlsx            # EXCEL file, sheet can be specified with the --sheet flag
-rsv select -f 0=a,b&1=c data.csv           # first column is a or b, AND the second column equals c
-rsv select -f 0=a,b&1=c --export data.csv  # export result
+rsv select -f "0=a,b&1=c" data.csv           # first column is a or b, AND the second column equals c
+rsv select -f "0=a,b&1=c" --export data.csv  # export result
 rsv select -s \\t -f 0=a,b data.csv        # tab separator
 rsv select --help                          # help info on other options
 
@@ -215,8 +215,8 @@ rsv select -f "0=a,b&2=c" data.csv | rsv stats            # filter and generate 
 
 ```shell
 rsv search pattern1 data.csv | rsv search pattern2 | rsv count    # two searches and count
-rsv select -f "0=a,b" data.csv | rsv search pattern | rsv stats   # select, search, and make statistics
-rsv select -f "0=a,b" data.csv | rsv search pattern | rsv table   # select, search, and print in a table
+rsv select -f 0=a,b data.csv | rsv search pattern | rsv stats   # select, search, and make statistics
+rsv select -f 0=a,b data.csv | rsv search pattern | rsv table   # select, search, and print in a table
 ```
 
 ## Bug report and suggestion
