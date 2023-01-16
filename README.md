@@ -6,6 +6,7 @@
 - fast and parallel data processing (based on Rayon)
 - real-time progress bar
 - simple usage
+- support command pipelines
 
 ## Usage
 
@@ -35,10 +36,14 @@ Tips 1:
 
 Tips 2:
 
+All commands, except "clean" and "excel2csv", are allowed to be chained.
+
+Tips 3:
+
 You can always check usage of each command by **rsv command --help** or **rsv command -h**,
 for example, rsv frequency --help.
 
-## Examples
+## Basic Usage
 
 - **rsv head**
 
@@ -193,6 +198,25 @@ rsv excel2csv -S 1 data.xls             # same as above
 ```shell
 rsv head data.csv | rsv table                   # convert result to an aligned table
 rsv slice -s 10 -e 15 data.csv | rsv table      # convert result to an aligned table
+```
+
+## Command pipeline
+
+- **two commands pipelined**
+
+```shell
+rsv search "^\d{4}-\d{2}-\d{2}$" data.csv | rsv table     # search date and print in an aligned table
+rsv select -f "0=a,b" data.csv | rsv frequency -c 0       # filter rows, and get its frequency table
+rsv select -f "0=a,b&2=c" data.csv | rsv head -n 5        # filter rows, and show head 5 records
+rsv select -f "0=a,b&2=c" data.csv | rsv stats            # filter and generate statistics
+```
+
+- **more commands pipelined**
+
+```shell
+rsv search pattern1 data.csv | rsv search pattern2 | rsv count    # two searches and count
+rsv select -f "0=a,b" data.csv | rsv search pattern | rsv stats   # select, search, and make statistics
+rsv select -f "0=a,b" data.csv | rsv search pattern | rsv table   # select, search, and print in a table
 ```
 
 ## Bug report and suggestion
