@@ -288,7 +288,7 @@ struct Select {
 #[derive(Debug, Args)]
 struct Stats {
     /// File to open
-    filename: String,
+    filename: Option<String>,
     /// Separator
     #[arg(short, long, default_value_t = String::from(","))]
     sep: String,
@@ -510,28 +510,31 @@ fn main() {
                 .handle_err()
             }
         }
-        Commands::Stats(option) => {
-            let path = full_path(&option.filename);
-            if is_excel(&path) {
-                excel::stats::run(
-                    &path,
-                    option.sheet,
-                    option.no_header,
-                    &option.cols,
-                    option.export,
-                )
-                .handle_err()
-            } else {
-                csv::stats::run(
-                    &path,
-                    &option.sep,
-                    option.no_header,
-                    &option.cols,
-                    option.export,
-                )
-                .handle_err()
+        Commands::Stats(option) => match &option.filename {
+            Some(f) => {
+                let path = full_path(f);
+                match is_excel(&path) {
+                    true => excel::stats::run(
+                        &path,
+                        option.sheet,
+                        option.no_header,
+                        &option.cols,
+                        option.export,
+                    )
+                    .handle_err(),
+                    false => csv::stats::run(
+                        &path,
+                        &option.sep,
+                        option.no_header,
+                        &option.cols,
+                        option.export,
+                    )
+                    .handle_err(),
+                }
             }
-        }
+            None => io::stats::run(&option.sep, option.no_header, &option.cols, option.export)
+                .handle_err(),
+        },
         Commands::Excel2csv(option) => {
             let path = full_path(&option.filename);
             if is_excel(&path) {
@@ -553,21 +556,22 @@ fn main() {
         Commands::Search(option) => match &option.filename {
             Some(f) => {
                 let path = full_path(f);
-                if is_excel(&path) {
-                    excel::search::run(
+                match is_excel(&path) {
+                    true => excel::search::run(
                         &path,
                         option.sheet,
                         &option.pattern,
                         option.no_header,
                         option.export,
                     )
-                    .handle_err()
-                } else {
-                    csv::search::run(&path, &option.pattern, option.no_header, option.export)
-                        .handle_err()
+                    .handle_err(),
+                    false => {
+                        csv::search::run(&path, &option.pattern, option.no_header, option.export)
+                            .handle_err()
+                    }
                 }
             }
-            None => {}
+            None => io::search::run(&option.pattern, option.no_header, option.export).handle_err(),
         },
     }
 }

@@ -43,6 +43,16 @@ impl ColumnTypes {
         Ok(guess)
     }
 
+    pub fn from(cols: Vec<ColumnType>) -> Result<Self, Box<dyn Error>> {
+        let mut guess = ColumnTypes(vec![]);
+
+        cols.into_iter()
+            .enumerate()
+            .for_each(|(i, t)| guess.push(i, t));
+
+        Ok(guess)
+    }
+
     fn push(&mut self, col_index: usize, col_type: ColumnType) {
         self.0.push(CType {
             col_index,
@@ -240,5 +250,11 @@ impl Display for ColumnType {
         }
 
         Ok(())
+    }
+}
+
+impl ColumnType {
+    pub fn is_string(&self) -> bool {
+        self == &ColumnType::String
     }
 }

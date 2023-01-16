@@ -25,6 +25,13 @@ pub fn new_path(path: &Path, suffix: &str) -> PathBuf {
     }
 }
 
+pub fn new_file(name: &str) -> PathBuf {
+    let mut path = std::env::current_dir().unwrap();
+    path.push(name);
+
+    path
+}
+
 pub fn full_path(f: &str) -> PathBuf {
     // current file
     let mut path = std::env::current_dir().unwrap();

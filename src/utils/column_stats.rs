@@ -12,12 +12,12 @@ use tabled::{builder::Builder, Style, Table};
 pub struct ColumnStats {
     max_col: usize,
     cols: Vec<usize>,
-    stat: Vec<CStat>,
+    pub stat: Vec<CStat>,
     pub rows: usize,
 }
 
 #[derive(Debug)]
-struct CStat {
+pub struct CStat {
     col_index: usize,
     col_type: ColumnType,
     name: String,
@@ -100,7 +100,7 @@ impl ColumnStats {
         self.rows += 1;
     }
 
-    pub fn finalize_stats(&mut self) {
+    pub fn cal_unique_and_mean(&mut self) {
         self.stat.iter_mut().for_each(|s| {
             s.unique = s.unique_hashset.len();
 
@@ -192,7 +192,7 @@ impl Display for ColumnStats {
 }
 
 impl CStat {
-    fn parse(&mut self, f: &str) {
+    pub fn parse(&mut self, f: &str) {
         if util::is_null(f) {
             self.null += 1;
             return;

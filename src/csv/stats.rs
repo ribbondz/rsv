@@ -81,7 +81,7 @@ pub fn run(path: &Path, sep: &str, no_header: bool, cols: &str, export: bool) ->
     });
 
     // refine result
-    stat.finalize_stats();
+    stat.cal_unique_and_mean();
 
     // print
     if export {
