@@ -2,8 +2,8 @@ use crate::utils::cli_result::CliResult;
 use crate::utils::constants::TERMINATOR;
 use crate::utils::excel::datatype_vec_to_string;
 use crate::utils::excel_reader::ExcelReader;
-use crate::utils::filename::new_path;
 use crate::utils::file::file_or_stdout_wtr;
+use crate::utils::filename::new_path;
 use crate::utils::util::werr;
 use std::io::{BufWriter, Write};
 use std::path::Path;
@@ -44,7 +44,7 @@ pub fn run(
         Some(index) => write_by_index(&mut rdr, &mut wtr, index)?,
         None => {
             let end = end
-                .or_else(|| length.map(|l| start + l - 1).or(Some(usize::MAX)))
+                .or_else(|| length.map(|l| start + l - 1).or(Some(usize::MAX - 10)))
                 .unwrap();
             if start > end {
                 werr!("Error: end index should be equal to or bigger than start index.");

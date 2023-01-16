@@ -2,7 +2,7 @@ use crate::utils::{cli_result::CliResult, util::print_table};
 use std::io::{stdin, BufRead};
 
 pub fn run(no_header: bool, sep: &str, delimiter: &str, n: i32) -> CliResult {
-    let n = if n <= 0 { usize::MAX } else { n as usize };
+    let n = if n <= 0 { usize::MAX - 10 } else { n as usize };
 
     // open file and header
     let lines = stdin()
