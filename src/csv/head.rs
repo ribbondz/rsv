@@ -1,14 +1,11 @@
 use crate::utils::cli_result::CliResult;
-use crate::utils::filename::full_path;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
+use std::path::Path;
 use tabled::builder::Builder;
 use tabled::Style;
 
-pub fn run(filename: &str, no_header: bool, sep: &str, n: usize, tabled: bool) -> CliResult {
-    // current file
-    let path = full_path(filename);
-
+pub fn run(path: &Path, no_header: bool, sep: &str, n: usize, tabled: bool) -> CliResult {
     // show head n
     let r = BufReader::new(File::open(path)?)
         .lines()
@@ -26,7 +23,7 @@ pub fn run(filename: &str, no_header: bool, sep: &str, n: usize, tabled: bool) -
     Ok(())
 }
 
-fn print_as_table(records: Vec<String>, sep: &str, no_header: bool) {
+pub fn print_as_table(records: Vec<String>, sep: &str, no_header: bool) {
     let mut rdr = records.iter();
     let mut builder = Builder::default();
 

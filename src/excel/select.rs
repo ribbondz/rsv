@@ -43,7 +43,7 @@ pub fn run(
                 return Ok(());
             }
         };
-        print_record(&mut wtr, &row, TERMINATOR)?;
+        print_record(&mut wtr, &row)?;
     }
 
     // parallel queue
@@ -83,10 +83,10 @@ fn handle_task(
     // write
     filtered.into_iter().for_each(|row| {
         if cols.all {
-            print_record(wtr, &row, TERMINATOR).unwrap()
+            print_record(wtr, &row).unwrap()
         } else {
             let record = cols.iter().map(|&i| row[i].to_owned()).collect::<Vec<_>>();
-            print_record(wtr, &record, TERMINATOR).unwrap()
+            print_record(wtr, &record).unwrap()
         }
     });
 
@@ -97,18 +97,14 @@ fn handle_task(
     }
 }
 
-fn print_record(
-    wtr: &mut BufWriter<Box<dyn Write>>,
-    record: &[String],
-    terminator: &[u8],
-) -> std::io::Result<()> {
+fn print_record(wtr: &mut BufWriter<Box<dyn Write>>, record: &[String]) -> std::io::Result<()> {
     let mut it = record.iter().peekable();
 
     while let Some(field) = it.next() {
         wtr.write_all(field.as_bytes())?;
 
         if it.peek().is_none() {
-            wtr.write_all(terminator)?;
+            wtr.write_all(TERMINATOR)?;
         } else {
             wtr.write_all(b",")?;
         }

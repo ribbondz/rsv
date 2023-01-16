@@ -1,14 +1,10 @@
 use crate::utils::cli_result::CliResult;
-use crate::utils::filename::new_path;
-
 use crate::utils::file::file_or_stdout_wtr;
-use std::fs::File;
-use std::io::BufReader;
+use crate::utils::filename::new_file;
+use std::io::{stdin, BufReader, Stdin};
 use std::io::{BufRead, BufWriter, Write};
-use std::path::Path;
 
 pub fn run(
-    path: &Path,
     no_header: bool,
     start: usize,
     end: Option<usize>,
@@ -17,13 +13,13 @@ pub fn run(
     export: bool,
 ) -> CliResult {
     // current file
-    let out_path = new_path(path, "-slice");
+    let out_path = new_file("sliced.csv");
 
     // open file
     let f = file_or_stdout_wtr(export, &out_path)?;
 
     let mut wtr = BufWriter::new(f);
-    let mut rdr = BufReader::new(File::open(path)?);
+    let mut rdr = BufReader::new(stdin());
 
     // header
     if !no_header {
@@ -51,7 +47,7 @@ pub fn run(
 }
 
 fn write_by_index(
-    rdr: &mut BufReader<File>,
+    rdr: &mut BufReader<Stdin>,
     wtr: &mut BufWriter<Box<dyn Write>>,
     index: usize,
 ) -> std::io::Result<()> {
@@ -76,7 +72,7 @@ fn write_by_index(
 }
 
 fn write_by_range(
-    rdr: &mut BufReader<File>,
+    rdr: &mut BufReader<Stdin>,
     wtr: &mut BufWriter<Box<dyn Write>>,
     start: usize,
     end: usize,

@@ -1,12 +1,9 @@
 use crate::utils::cli_result::CliResult;
-use crate::utils::filename::full_path;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
+use std::path::Path;
 
-pub fn run(filename: &str, sep: &str) -> CliResult {
-    // current file
-    let path = full_path(filename);
-
+pub fn run(path: &Path, sep: &str) -> CliResult {
     // open file and header
     let mut rdr = BufReader::new(File::open(path)?).lines();
     let first_row = rdr.next().unwrap()?;

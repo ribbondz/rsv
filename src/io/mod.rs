@@ -1,3 +1,11 @@
+pub mod count;
+pub mod flatten;
+pub mod frequency;
+pub mod head;
+pub mod headers;
 pub mod search;
+pub mod select;
+pub mod slice;
+pub mod split;
 pub mod stats;
 pub mod table;

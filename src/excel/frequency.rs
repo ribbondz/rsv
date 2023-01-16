@@ -64,7 +64,7 @@ pub fn run(
         prog.print_lines();
     }
 
-    let mut freq: Vec<(String, i32)> = freq.into_iter().collect::<Vec<(_, _)>>();
+    let mut freq: Vec<(String, usize)> = freq.into_iter().collect::<Vec<(_, _)>>();
     if ascending {
         freq.sort_by(|a, b| a.1.cmp(&b.1));
     } else {
@@ -80,7 +80,7 @@ pub fn run(
     if export {
         println!();
         let new_path = filename::new_path(path, "-frequency");
-        file::write_to_csv(&new_path, &names, freq);
+        file::write_frequency_to_csv(&new_path, &names, freq);
         println!("Saved to file: {}", new_path.display());
     } else {
         prog.clear();

@@ -5,9 +5,7 @@ use std::{
     io::{BufRead, BufReader, Lines},
 };
 
-pub struct ChunkReader {
-    pub rdr: Lines<BufReader<File>>,
-}
+pub struct ChunkReader(Lines<BufReader<File>>);
 
 pub struct Task {
     pub lines: Vec<String>,
@@ -17,11 +15,11 @@ pub struct Task {
 impl ChunkReader {
     pub fn new(path: &Path) -> Result<Self, std::io::Error> {
         let rdr = BufReader::new(File::open(path)?).lines();
-        Ok(ChunkReader { rdr })
+        Ok(ChunkReader(rdr))
     }
 
     pub fn next(&mut self) -> Result<String, std::io::Error> {
-        self.rdr.next().unwrap()
+        self.0.next().unwrap()
     }
 
     pub fn send_to_channel_in_line_chunks(&mut self, tx: Sender<Task>, line_buffer_n: usize) {
@@ -29,7 +27,7 @@ impl ChunkReader {
         let mut n = 0;
         let mut bytes = 0;
 
-        for l in self.rdr.by_ref() {
+        for l in self.0.by_ref() {
             let l = l.unwrap();
 
             n += 1;

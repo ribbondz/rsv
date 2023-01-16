@@ -1,4 +1,3 @@
-use crate::utils::filename::full_path;
 use crate::utils::progress::Progress;
 use std::error::Error;
 use std::fs::File;
@@ -7,12 +6,11 @@ use std::path::Path;
 
 extern crate bytecount;
 
-pub fn run(filename: &str, no_header: bool) -> Result<(), Box<dyn Error>> {
+pub fn run(path: &Path, no_header: bool) -> Result<(), Box<dyn Error>> {
     // current file
-    let path = full_path(filename);
     match path.is_dir() {
-        true => count_dir_files(&path)?,
-        false => count_file_lines(&path, no_header)?,
+        true => count_dir_files(path)?,
+        false => count_file_lines(path, no_header)?,
     };
 
     Ok(())

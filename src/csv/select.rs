@@ -43,7 +43,7 @@ pub fn run(
             true => row,
             false => cols.iter().map(|&i| row[i]).collect(),
         };
-        print_record(&mut wtr, &record, sep_bytes, TERMINATOR)?;
+        print_record(&mut wtr, &record, sep_bytes)?;
     }
 
     // parallel queue
@@ -88,10 +88,10 @@ fn handle_task(
     // write
     filtered.iter().for_each(|row| {
         if cols.all {
-            print_record(wtr, row, sep_bytes, TERMINATOR).unwrap()
+            print_record(wtr, row, sep_bytes).unwrap()
         } else {
             let record = cols.iter().map(|&i| row[i]).collect::<Vec<_>>();
-            print_record(wtr, &record, sep_bytes, TERMINATOR).unwrap()
+            print_record(wtr, &record, sep_bytes).unwrap()
         }
     });
 
@@ -106,7 +106,6 @@ fn print_record(
     wtr: &mut BufWriter<Box<dyn Write>>,
     record: &[&str],
     sep_bytes: &[u8],
-    terminator: &[u8],
 ) -> std::io::Result<()> {
     let mut it = record.iter().peekable();
 
@@ -114,7 +113,7 @@ fn print_record(
         wtr.write_all(field.as_bytes())?;
 
         if it.peek().is_none() {
-            wtr.write_all(terminator)?;
+            wtr.write_all(TERMINATOR)?;
         } else {
             wtr.write_all(sep_bytes)?;
         }

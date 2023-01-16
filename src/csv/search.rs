@@ -41,10 +41,16 @@ pub fn run(path: &Path, pattern: &str, no_header: bool, export: bool) -> CliResu
             .filter(|i| re.is_match(i))
             .collect::<Vec<_>>();
 
-        lines.iter().for_each(|i| {
-            wtr.write_all(i.as_bytes()).unwrap();
-            wtr.write_all(TERMINATOR).unwrap();
-        });
+        // pipeline could be closed,
+        // e.g., when rsv head take enough items
+        for l in &lines {
+            if let Err(_) = wtr.write_all(l.as_bytes()) {
+                return Ok(());
+            };
+            if let Err(_) = wtr.write_all(TERMINATOR) {
+                return Ok(());
+            };
+        }
 
         if export {
             prog.add_lines(lines.len());

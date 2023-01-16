@@ -3,11 +3,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 
-pub fn run(filename: &str) -> CliResult {
-    // current file
-    let mut path = std::env::current_dir()?;
-    path.push(Path::new(filename));
-
+pub fn run(path: &Path) -> CliResult {
     // read 20000 lines to estimate bytes per line
     let file = File::open(path)?;
     let filesize = file.metadata()?.len() as f64;
