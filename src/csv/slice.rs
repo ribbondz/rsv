@@ -1,9 +1,10 @@
+use crate::utils::cli_result::CliResult;
 use crate::utils::filename::{full_path, new_path};
 
 use crate::utils::file::file_or_stdout_wtr;
 use std::fs::File;
+use std::io::BufReader;
 use std::io::{BufRead, BufWriter, Write};
-use std::{error::Error, io::BufReader};
 
 pub fn run(
     filename: &str,
@@ -13,7 +14,7 @@ pub fn run(
     length: Option<usize>,
     index: Option<usize>,
     export: bool,
-) -> Result<(), Box<dyn Error>> {
+) -> CliResult {
     // current file
     let path = full_path(filename);
     let out_path = new_path(&path, "-slice");

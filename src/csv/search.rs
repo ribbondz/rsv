@@ -1,4 +1,5 @@
 use crate::utils::chunk_reader::{ChunkReader, Task};
+use crate::utils::cli_result::CliResult;
 use crate::utils::constants::TERMINATOR;
 use crate::utils::file::{estimate_line_count_by_mb, file_or_stdout_wtr};
 use crate::utils::filename::new_path;
@@ -10,13 +11,7 @@ use std::io::{BufWriter, Write};
 use std::path::Path;
 use std::thread;
 
-pub fn run(
-    filename: &str,
-    path: &Path,
-    pattern: &str,
-    no_header: bool,
-    export: bool,
-) -> Result<(), Box<dyn std::error::Error>> {
+pub fn run(path: &Path, pattern: &str, no_header: bool, export: bool) -> CliResult {
     // wtr and rdr
     let out_path = new_path(path, "-searched");
     let f = file_or_stdout_wtr(export, &out_path)?;
@@ -32,7 +27,7 @@ pub fn run(
 
     // read file
     let (tx, rx) = bounded(2);
-    let line_buffer_n: usize = estimate_line_count_by_mb(filename, Some(10));
+    let line_buffer_n: usize = estimate_line_count_by_mb(path, Some(10));
     thread::spawn(move || rdr.send_to_channel_in_line_chunks(tx, line_buffer_n));
 
     // progress for export option

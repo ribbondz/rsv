@@ -1,32 +1,30 @@
+use crate::utils::cli_result::CliResult;
 use crate::utils::column::Columns;
 use crate::utils::excel_reader::ExcelReader;
-use crate::utils::file::{self};
+use crate::utils::file;
 use crate::utils::filename;
-use crate::utils::filename::full_path;
 use crate::utils::progress::Progress;
 use crate::utils::util::print_frequency_table;
 use crossbeam_channel::bounded;
 use dashmap::DashMap;
 use rayon::prelude::*;
+use std::path::Path;
 use std::thread;
 
 pub fn run(
-    filename: &str,
+    path: &Path,
     no_header: bool,
     sheet: usize,
     cols: &str,
     ascending: bool,
     n: i32,
     export: bool,
-) -> Result<(), Box<dyn std::error::Error>> {
-    // current file
-    let path = full_path(filename);
-
+) -> CliResult {
     // cols
     let col = Columns::new(cols);
 
     // open file and header
-    let mut rdr = ExcelReader::new(&path, sheet)?;
+    let mut rdr = ExcelReader::new(path, sheet)?;
     let names: Vec<String> = if no_header {
         col.artificial_cols_with_appended_n()
     } else {
@@ -81,7 +79,7 @@ pub fn run(
     // export or print
     if export {
         println!();
-        let new_path = filename::new_path(&path, "-frequency");
+        let new_path = filename::new_path(path, "-frequency");
         file::write_to_csv(&new_path, &names, freq);
         println!("Saved to file: {}", new_path.display());
     } else {

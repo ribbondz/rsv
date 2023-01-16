@@ -1,8 +1,8 @@
+use crate::utils::cli_result::CliResult;
 use crate::utils::excel_reader::ExcelReader;
-use std::error::Error;
 use std::path::Path;
 
-pub fn run(path: &Path, sheet: usize) -> Result<(), Box<dyn Error>> {
+pub fn run(path: &Path, sheet: usize) -> CliResult {
     // open file and header
     let mut range = ExcelReader::new(path, sheet)?;
 

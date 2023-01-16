@@ -1,9 +1,9 @@
+use crate::utils::cli_result::CliResult;
 use crate::utils::excel_reader::ExcelReader;
 use crate::utils::progress::Progress;
-use std::error::Error;
 use std::path::Path;
 
-pub fn run(path: &Path, sheet: usize, no_header: bool) -> Result<(), Box<dyn Error>> {
+pub fn run(path: &Path, sheet: usize, no_header: bool) -> CliResult {
     // progress
     let mut prog = Progress::new();
 

@@ -1,39 +1,28 @@
-use std::fs::File;
-use std::io::{BufWriter, Write};
-use std::path::Path;
-
-use crossbeam_channel::{bounded, unbounded, Sender};
-use rayon::ThreadPoolBuilder;
-
 use crate::utils::chunk_reader::{ChunkReader, Task};
+use crate::utils::cli_result::CliResult;
 use crate::utils::column::Columns;
 use crate::utils::column_stats::ColumnStats;
 use crate::utils::column_type::ColumnTypes;
 use crate::utils::file::{column_n, estimate_line_count_by_mb};
 use crate::utils::filename::new_path;
 use crate::utils::progress::Progress;
+use crossbeam_channel::{bounded, unbounded, Sender};
+use rayon::ThreadPoolBuilder;
+use std::fs::File;
+use std::io::{BufWriter, Write};
+use std::path::Path;
 
-pub fn run(
-    filename: &str,
-    sep: &str,
-    no_header: bool,
-    cols: &str,
-    export: bool,
-) -> Result<(), Box<dyn std::error::Error>> {
-    // file
-    let mut path = std::env::current_dir()?;
-    path.push(Path::new(filename));
-
+pub fn run(path: &Path, sep: &str, no_header: bool, cols: &str, export: bool) -> CliResult {
     // Column
     let cols = Columns::new(cols);
-    let col_type = ColumnTypes::guess_from_csv(&path, filename, sep, no_header, &cols)?;
+    let col_type = ColumnTypes::guess_from_csv(path, sep, no_header, &cols)?;
 
     // open file
-    let mut rdr = ChunkReader::new(&path)?;
+    let mut rdr = ChunkReader::new(path)?;
 
     // header
     let name = if no_header {
-        cols.artificial_n_cols(column_n(filename, sep)?)
+        cols.artificial_n_cols(column_n(path, sep)?)
     } else {
         let r = rdr.next()?;
         r.split(sep).map(String::from).collect()
@@ -55,7 +44,7 @@ pub fn run(
     let pool = ThreadPoolBuilder::new().build().unwrap();
 
     // read
-    let n = estimate_line_count_by_mb(filename, Some(5));
+    let n = estimate_line_count_by_mb(path, Some(5));
     pool.spawn(move || rdr.send_to_channel_in_line_chunks(tx_chunk, n));
 
     // parallel process
@@ -96,7 +85,7 @@ pub fn run(
 
     // print
     if export {
-        let out = new_path(&path, "-stats");
+        let out = new_path(path, "-stats");
         let mut wtr = BufWriter::new(File::create(&out)?);
         wtr.write_all(stat.to_string().as_bytes())?;
         println!("Saved to file: {}", out.display());

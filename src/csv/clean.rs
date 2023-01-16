@@ -1,35 +1,27 @@
+use crate::utils;
+use crate::utils::cli_result::CliResult;
+use crate::utils::file::estimate_line_count_by_mb;
+use crate::utils::progress::Progress;
 use regex::bytes::Regex;
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Write};
 use std::path::Path;
 
-use crate::utils;
-use crate::utils::file::estimate_line_count_by_mb;
-use crate::utils::progress::Progress;
-
-pub fn run(
-    filename: &str,
-    escape: &str,
-    new_filename: &str,
-) -> Result<(), Box<dyn std::error::Error>> {
-    // current file
-    let mut path = std::env::current_dir()?;
-    path.push(Path::new(filename));
-
+pub fn run(path: &Path, escape: &str, new_filename: &str) -> CliResult {
     // new file
     let new_path = if new_filename.is_empty() {
-        utils::filename::new_path(&path, "-cleaned")
+        utils::filename::new_path(path, "-cleaned")
     } else {
         Path::new(new_filename).into()
     };
 
     // open files
-    let mut rdr = BufReader::new(File::open(&path)?);
+    let mut rdr = BufReader::new(File::open(path)?);
     let mut wtr = BufWriter::new(File::create(&new_path)?);
 
     // progress
     let mut prog = Progress::new();
-    let prog_check_every_n = estimate_line_count_by_mb(filename, None);
+    let prog_check_every_n = estimate_line_count_by_mb(path, None);
 
     // copy
     let re = Regex::new(escape)?;

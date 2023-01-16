@@ -1,4 +1,5 @@
 pub mod chunk_reader;
+pub mod cli_result;
 pub mod cmd_desc;
 pub mod column;
 pub mod column_stats;

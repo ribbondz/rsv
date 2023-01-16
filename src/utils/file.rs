@@ -8,11 +8,7 @@ use std::{
 
 use super::constants::MB_USIZE;
 
-pub fn estimate_row_bytes(filename: &str) -> Result<f64, Box<dyn Error>> {
-    // current file
-    let mut path = std::env::current_dir()?;
-    path.push(Path::new(filename));
-
+pub fn estimate_row_bytes(path: &Path) -> Result<f64, Box<dyn Error>> {
     // read 20000 lines to estimate bytes per line
     let mut n = 0;
     let mut bytes = 0;
@@ -30,11 +26,7 @@ pub fn estimate_row_bytes(filename: &str) -> Result<f64, Box<dyn Error>> {
     Ok((bytes as f64) / (n as f64))
 }
 
-pub fn column_n(filename: &str, sep: &str) -> Result<usize, Box<dyn Error>> {
-    // current file
-    let mut path = std::env::current_dir()?;
-    path.push(Path::new(filename));
-
+pub fn column_n(path: &Path, sep: &str) -> Result<usize, Box<dyn Error>> {
     // read
     let rdr = BufReader::new(File::open(path)?);
     let r = rdr.lines().next().unwrap()?;
@@ -42,8 +34,8 @@ pub fn column_n(filename: &str, sep: &str) -> Result<usize, Box<dyn Error>> {
     Ok(r.split(sep).count())
 }
 
-pub fn estimate_line_count_by_mb(filename: &str, mb: Option<usize>) -> usize {
-    match estimate_row_bytes(filename) {
+pub fn estimate_line_count_by_mb(path: &Path, mb: Option<usize>) -> usize {
+    match estimate_row_bytes(path) {
         // default chunk-size to 200mb or 10_0000 lines
         Ok(v) => ((mb.unwrap_or(200) * MB_USIZE) as f64 / v) as usize,
         Err(_) => 10_0000,
@@ -71,11 +63,7 @@ pub fn file_or_stdout_wtr(export: bool, path: &Path) -> Result<Box<dyn Write>, B
     }
 }
 
-pub fn first_row(filename: &str) -> Result<String, Box<dyn Error>> {
-    // file
-    let mut path = std::env::current_dir()?;
-    path.push(Path::new(filename));
-
+pub fn first_row(path: &Path) -> Result<String, Box<dyn Error>> {
     let mut rdr = BufReader::new(File::open(path)?).lines();
 
     Ok(rdr.next().unwrap()?)

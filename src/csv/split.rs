@@ -1,10 +1,10 @@
 use crate::utils::chunk_reader::{ChunkReader, Task};
+use crate::utils::cli_result::CliResult;
 use crate::utils::constants::TERMINATOR;
 use crate::utils::file::estimate_line_count_by_mb;
-use crate::utils::filename::{full_path, str_clean_as_filename};
+use crate::utils::filename::str_clean_as_filename;
 use crate::utils::progress::Progress;
 use crate::utils::util::datetime_str;
-
 use crossbeam_channel::bounded;
 use dashmap::DashMap;
 use rayon::prelude::*;
@@ -14,21 +14,17 @@ use std::io::{BufWriter, Write};
 use std::path::Path;
 use std::thread;
 
-pub fn run(filename: &str, no_header: bool, sep: &str, col: usize) -> Result<(), Box<dyn Error>> {
-    // current file
-    let path = full_path(filename);
-
+pub fn run(path: &Path, no_header: bool, sep: &str, col: usize) -> CliResult {
     // new directory
-    let stem = Path::new(filename).file_stem().unwrap();
     let dir = path.with_file_name(format!(
         "{}-split-{}",
-        stem.to_string_lossy(),
+        path.file_stem().unwrap().to_string_lossy(),
         datetime_str()
     ));
     create_dir(&dir)?;
 
     // open file and header
-    let mut rdr = ChunkReader::new(&path)?;
+    let mut rdr = ChunkReader::new(path)?;
     let first_row = if no_header {
         Ok("".to_owned())
     } else {
@@ -42,7 +38,7 @@ pub fn run(filename: &str, no_header: bool, sep: &str, col: usize) -> Result<(),
 
     let (tx, rx) = bounded(1);
     // read
-    let line_buffer_n = estimate_line_count_by_mb(filename, Some(50));
+    let line_buffer_n = estimate_line_count_by_mb(path, Some(50));
     thread::spawn(move || rdr.send_to_channel_in_line_chunks(tx, line_buffer_n));
 
     // process batch work

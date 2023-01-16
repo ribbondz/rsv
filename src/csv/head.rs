@@ -1,16 +1,11 @@
+use crate::utils::cli_result::CliResult;
 use crate::utils::filename::full_path;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use tabled::builder::Builder;
 use tabled::Style;
 
-pub fn run(
-    filename: &str,
-    no_header: bool,
-    sep: &str,
-    n: usize,
-    tabled: bool,
-) -> Result<(), Box<dyn std::error::Error>> {
+pub fn run(filename: &str, no_header: bool, sep: &str, n: usize, tabled: bool) -> CliResult {
     // current file
     let path = full_path(filename);
 

@@ -1,3 +1,4 @@
+use crate::utils::cli_result::CliResult;
 use crate::utils::column::Columns;
 use crate::utils::column_stats::ColumnStats;
 use crate::utils::column_type::ColumnTypes;
@@ -11,13 +12,7 @@ use std::fs::File;
 use std::io::{BufWriter, Write};
 use std::path::Path;
 
-pub fn run(
-    path: &Path,
-    sheet: usize,
-    no_header: bool,
-    cols: &str,
-    export: bool,
-) -> Result<(), Box<dyn std::error::Error>> {
+pub fn run(path: &Path, sheet: usize, no_header: bool, cols: &str, export: bool) -> CliResult {
     // file
     let mut range = ExcelReader::new(path, sheet)?;
     let column_n = range.column_n();
@@ -37,7 +32,7 @@ pub fn run(
             },
             None => return Ok(()),
         }
-    }; 
+    };
 
     // stats holder
     let mut stat = ColumnStats::new(&col_type, &name);

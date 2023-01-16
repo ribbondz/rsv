@@ -80,7 +80,6 @@ impl ColumnTypes {
 
     pub fn guess_from_csv(
         path: &Path,
-        filename: &str,
         sep: &str,
         no_header: bool,
         cols: &column::Columns,
@@ -92,7 +91,7 @@ impl ColumnTypes {
 
         // take first row to analyze the number of column
         let first_row = if no_header {
-            file::first_row(filename)?
+            file::first_row(path)?
         } else {
             rdr.next().unwrap()?
         };

@@ -1,3 +1,4 @@
+use crate::utils::cli_result::CliResult;
 use crate::utils::constants::TERMINATOR;
 use crate::utils::filename::str_clean_as_filename;
 use crate::utils::progress::Progress;
@@ -14,7 +15,7 @@ use std::io::{BufWriter, Write};
 use std::path::Path;
 use std::thread;
 
-pub fn run(path: &Path, sheet: usize, no_header: bool, col: usize) -> Result<(), Box<dyn Error>> {
+pub fn run(path: &Path, sheet: usize, no_header: bool, col: usize) -> CliResult {
     // new directory
     let stem = path.file_stem().unwrap();
     let dir = path.with_file_name(format!(

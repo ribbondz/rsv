@@ -1,23 +1,14 @@
+use crate::utils::cli_result::CliResult;
+use crate::utils::file;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
+use std::path::Path;
 
-use crate::utils::file;
-use crate::utils::filename::full_path;
-
-pub fn run(
-    filename: &str,
-    no_header: bool,
-    sep: &str,
-    delimiter: &str,
-    n: i32,
-) -> Result<(), Box<dyn std::error::Error>> {
-    // current file
-    let path = full_path(filename);
-
+pub fn run(path: &Path, no_header: bool, sep: &str, delimiter: &str, n: i32) -> CliResult {
     // open file and header
     let mut rdr = BufReader::new(File::open(path)?).lines();
     let columns: Vec<String> = if no_header {
-        let column_n = file::column_n(filename, sep)?;
+        let column_n = file::column_n(path, sep)?;
         (1..=column_n)
             .map(|i| "col".to_owned() + &i.to_string())
             .collect::<Vec<_>>()

@@ -1,29 +1,27 @@
-use crossbeam_channel::bounded;
-use rayon::prelude::*;
-
 use crate::utils::chunk_reader::{ChunkReader, Task};
+use crate::utils::cli_result::CliResult;
 use crate::utils::column::Columns;
 use crate::utils::constants::TERMINATOR;
 use crate::utils::file::{estimate_line_count_by_mb, file_or_stdout_wtr};
-use crate::utils::filename::{full_path, new_path};
+use crate::utils::filename::new_path;
 use crate::utils::filter::Filter;
 use crate::utils::progress::Progress;
-
-use std::error::Error;
+use crossbeam_channel::bounded;
+use rayon::prelude::*;
 use std::io::{BufWriter, Write};
+use std::path::Path;
 use std::thread;
 
 pub fn run(
-    filename: &str,
+    path: &Path,
     no_header: bool,
     sep: &str,
     cols: &str,
     filter: &str,
     export: bool,
-) -> Result<(), Box<dyn Error>> {
+) -> CliResult {
     // current file
-    let path = full_path(filename);
-    let out_path = new_path(&path, "-selected");
+    let out_path = new_path(path, "-selected");
 
     // filters and cols
     let filter = Filter::new(filter);
@@ -32,7 +30,7 @@ pub fn run(
     // open file
     let f = file_or_stdout_wtr(export, &out_path)?;
     let mut wtr = BufWriter::new(f);
-    let mut rdr = ChunkReader::new(&path)?;
+    let mut rdr = ChunkReader::new(path)?;
 
     // const
     let sep_bytes = sep.as_bytes();
@@ -52,7 +50,7 @@ pub fn run(
     let (tx, rx) = bounded(1);
 
     // read
-    let line_buffer_n: usize = estimate_line_count_by_mb(filename, Some(10));
+    let line_buffer_n: usize = estimate_line_count_by_mb(path, Some(10));
     thread::spawn(move || rdr.send_to_channel_in_line_chunks(tx, line_buffer_n));
 
     // process

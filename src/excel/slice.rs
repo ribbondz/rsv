@@ -1,11 +1,10 @@
+use crate::utils::cli_result::CliResult;
 use crate::utils::constants::TERMINATOR;
 use crate::utils::excel::datatype_vec_to_string;
 use crate::utils::excel_reader::ExcelReader;
 use crate::utils::filename::new_path;
-
 use crate::utils::file::file_or_stdout_wtr;
 use crate::utils::util::werr;
-use std::error::Error;
 use std::io::{BufWriter, Write};
 use std::path::Path;
 use std::process;
@@ -20,7 +19,7 @@ pub fn run(
     length: Option<usize>,
     index: Option<usize>,
     export: bool,
-) -> Result<(), Box<dyn Error>> {
+) -> CliResult {
     // out file
     let out_path = new_path(path, "-slice");
 

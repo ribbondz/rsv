@@ -1,6 +1,4 @@
-use crossbeam_channel::bounded;
-use rayon::prelude::*;
-
+use crate::utils::cli_result::CliResult;
 use crate::utils::column::Columns;
 use crate::utils::constants::TERMINATOR;
 use crate::utils::excel_reader::{ExcelChunkTask, ExcelReader};
@@ -8,8 +6,8 @@ use crate::utils::file::file_or_stdout_wtr;
 use crate::utils::filename::new_path;
 use crate::utils::filter::Filter;
 use crate::utils::progress::Progress;
-
-use std::error::Error;
+use crossbeam_channel::bounded;
+use rayon::prelude::*;
 use std::io::{BufWriter, Write};
 use std::path::Path;
 use std::thread;
@@ -21,7 +19,7 @@ pub fn run(
     cols: &str,
     filter: &str,
     export: bool,
-) -> Result<(), Box<dyn Error>> {
+) -> CliResult {
     // out path
     let out_path = new_path(path, "-selected");
 

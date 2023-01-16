@@ -9,3 +9,4 @@ pub mod select;
 pub mod slice;
 pub mod split;
 pub mod stats;
+pub mod table;

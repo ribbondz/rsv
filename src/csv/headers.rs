@@ -1,9 +1,9 @@
+use crate::utils::cli_result::CliResult;
 use crate::utils::filename::full_path;
-use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
-pub fn run(filename: &str, sep: &str) -> Result<(), Box<dyn Error>> {
+pub fn run(filename: &str, sep: &str) -> CliResult {
     // current file
     let path = full_path(filename);
 

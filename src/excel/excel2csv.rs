@@ -1,11 +1,11 @@
-use crate::utils::{constants::TERMINATOR, excel_reader::ExcelReader};
+use crate::utils::{cli_result::CliResult, constants::TERMINATOR, excel_reader::ExcelReader};
 use std::{
     fs::File,
     io::{BufWriter, Write},
     path::Path,
 };
 
-pub fn run(path: &Path, sheet: usize, sep: &str) -> Result<(), Box<dyn std::error::Error>> {
+pub fn run(path: &Path, sheet: usize, sep: &str) -> CliResult {
     // new file
     let out_path = path.with_extension("csv");
 
