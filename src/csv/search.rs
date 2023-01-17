@@ -29,7 +29,7 @@ pub fn run(path: &Path, pattern: &str, no_header: bool, export: bool) -> CliResu
     // read file
     let (tx, rx) = bounded(2);
     let line_buffer_n: usize = estimate_line_count_by_mb(path, Some(10));
-    thread::spawn(move || rdr.send_to_channel_in_line_chunks(tx, line_buffer_n));
+    thread::spawn(move || rdr.send_to_channel_by_chunks(tx, line_buffer_n));
 
     // progress for export option
     let mut prog = Progress::new();

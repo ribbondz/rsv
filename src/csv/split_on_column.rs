@@ -44,7 +44,7 @@ pub fn run(path: &Path, no_header: bool, sep: &str, col: usize) -> CliResult {
 
     // read
     let line_buffer_n = estimate_line_count_by_mb(path, Some(50));
-    thread::spawn(move || rdr.send_to_channel_in_line_chunks(tx, line_buffer_n));
+    thread::spawn(move || rdr.send_to_channel_by_chunks(tx, line_buffer_n));
 
     // process batch work
     let header_inserted: DashMap<String, bool> = DashMap::new();

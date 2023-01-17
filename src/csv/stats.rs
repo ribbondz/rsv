@@ -45,7 +45,7 @@ pub fn run(path: &Path, sep: &str, no_header: bool, cols: &str, export: bool) ->
 
     // read
     let n = estimate_line_count_by_mb(path, Some(5));
-    pool.spawn(move || rdr.send_to_channel_in_line_chunks(tx_chunk, n));
+    pool.spawn(move || rdr.send_to_channel_by_chunks(tx_chunk, n));
 
     // parallel process
     pool.scope(|s| {

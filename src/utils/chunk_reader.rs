@@ -22,7 +22,36 @@ impl ChunkReader {
         self.0.next().unwrap()
     }
 
-    pub fn send_to_channel_in_line_chunks(&mut self, tx: Sender<Task>, line_buffer_n: usize) {
+    pub fn send_to_channel_by_chunks(&mut self, tx: Sender<Task>, line_buffer_n: usize) {
+        let mut lines = Vec::with_capacity(line_buffer_n);
+        let mut n = 0;
+        let mut bytes = 0;
+
+        for l in self.0.by_ref() {
+            let l = l.unwrap();
+            n += 1;
+            bytes += l.len();
+            lines.push(l);
+            if n >= line_buffer_n {
+                tx.send(Task { lines, bytes }).unwrap();
+                n = 0;
+                bytes = 0;
+                lines = Vec::with_capacity(line_buffer_n);
+            }
+        }
+
+        if !lines.is_empty() {
+            tx.send(Task { lines, bytes }).unwrap();
+        }
+
+        drop(tx)
+    }
+
+    pub fn send_to_channel_by_fixed_bytes_chunks(
+        &mut self,
+        tx: Sender<Task>,
+        line_buffer_n: usize,
+    ) {
         let mut lines = Vec::with_capacity(line_buffer_n);
         let mut n = 0;
         let mut bytes = 0;
