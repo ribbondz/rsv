@@ -44,7 +44,7 @@ pub fn run(
 
     // read file
     let (tx, rx) = bounded(1);
-    thread::spawn(move || rdr.send_to_channel_in_line_chunks(tx));
+    thread::spawn(move || rdr.send_to_channel_in_line_chunks(tx, None));
 
     // process
     let freq = DashMap::new();

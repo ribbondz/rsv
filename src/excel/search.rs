@@ -34,7 +34,7 @@ pub fn run(path: &Path, sheet: usize, pattern: &str, no_header: bool, export: bo
 
     // read file
     let (tx, rx) = bounded(2);
-    thread::spawn(move || range.send_to_channel_in_line_chunks(tx));
+    thread::spawn(move || range.send_to_channel_in_line_chunks(tx, None));
 
     // progress for export option
     let mut prog = Progress::new();
@@ -49,7 +49,7 @@ pub fn run(path: &Path, sheet: usize, pattern: &str, no_header: bool, export: bo
         }
     };
     let mut matched = 0;
-    for ExcelChunkTask { lines, n } in rx {
+    for ExcelChunkTask { lines, n, chunk: _ } in rx {
         let lines = lines
             .into_par_iter()
             .filter_map(verify_excel_row)

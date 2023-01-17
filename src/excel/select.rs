@@ -50,7 +50,7 @@ pub fn run(
     let (tx, rx) = bounded(1);
 
     // read
-    thread::spawn(move || range.send_to_channel_in_line_chunks(tx));
+    thread::spawn(move || range.send_to_channel_in_line_chunks(tx, None));
 
     // process
     let mut prog = Progress::new();

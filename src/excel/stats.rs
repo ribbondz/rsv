@@ -50,7 +50,7 @@ pub fn run(path: &Path, sheet: usize, no_header: bool, cols: &str, export: bool)
     let pool = ThreadPoolBuilder::new().build().unwrap();
 
     // read
-    pool.spawn(move || range.send_to_channel_in_line_chunks(tx_chunk));
+    pool.spawn(move || range.send_to_channel_in_line_chunks(tx_chunk, None));
 
     // parallel process
     pool.scope(|s| {
@@ -109,7 +109,7 @@ struct ExcelChunkResult {
 }
 
 fn parse_chunk(task: ExcelChunkTask, tx: Sender<ExcelChunkResult>, mut stat: ColumnStats) {
-    let ExcelChunkTask { lines, n } = task;
+    let ExcelChunkTask { lines, n, chunk: _ } = task;
     lines.into_iter().for_each(|i| stat.parse_excel_row(i));
 
     tx.send(ExcelChunkResult { n, stat }).unwrap()

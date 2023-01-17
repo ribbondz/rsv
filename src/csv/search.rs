@@ -36,7 +36,12 @@ pub fn run(path: &Path, pattern: &str, no_header: bool, export: bool) -> CliResu
 
     // regex search
     let re = RegexBuilder::new(pattern).case_insensitive(true).build()?;
-    for Task { lines, bytes } in rx {
+    for Task {
+        lines,
+        bytes,
+        chunk: _,
+    } in rx
+    {
         let lines = lines
             .into_par_iter()
             .filter(|i| re.is_match(i))
