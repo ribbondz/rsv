@@ -3,6 +3,7 @@ use crate::utils::column::Columns;
 use crate::utils::column_stats::ColumnStats;
 use crate::utils::column_type::{ColumnType, ColumnTypes};
 use crate::utils::filename::new_file;
+use crate::utils::util::is_null;
 
 use rayon::prelude::*;
 use std::fs::File;
@@ -57,6 +58,7 @@ pub fn run(sep: &str, no_header: bool, cols: &str, export: bool) -> CliResult {
 
     // stats holder
     let mut stat = ColumnStats::new(&typ, &names);
+    stat.rows += row_with_selected_cols.len();
     row_with_selected_cols.iter().for_each(|r| {
         r.par_iter()
             .zip(&mut stat.stat)
@@ -84,12 +86,14 @@ fn col_type(v: &[Vec<String>]) -> Vec<ColumnType> {
         .into_par_iter()
         .map(|i| {
             let mut typ = ColumnType::Null;
-
             for r in v {
                 if typ.is_string() {
                     break;
                 }
                 let f = &r[i];
+                if is_null(f) {
+                    continue;
+                }
                 match typ {
                     ColumnType::Null => {
                         if f.parse::<i64>().is_ok() {
