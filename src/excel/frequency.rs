@@ -59,9 +59,11 @@ pub fn run(
             }
         });
 
-        prog.add_chunks(1);
-        prog.add_lines(task.n);
-        prog.print_lines();
+        if export {
+            prog.add_chunks(1);
+            prog.add_lines(task.n);
+            prog.print_lines();
+        }
     }
 
     let mut freq: Vec<(String, usize)> = freq.into_iter().collect::<Vec<(_, _)>>();
@@ -82,7 +84,6 @@ pub fn run(
         file::write_frequency_to_csv(&new_path, &names, freq);
         println!("\nSaved to file: {}", new_path.display());
     } else {
-        prog.clear();
         print_frequency_table(&names, freq)
     }
 
