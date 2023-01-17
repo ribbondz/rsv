@@ -35,7 +35,7 @@ pub fn run(
             }
         };
         if col.max() >= first_row.len() {
-            println!("read a bad line # {:?}!", first_row);
+            println!("[info] read a bad line # {:?}!", first_row);
             col.artificial_cols_with_appended_n()
         } else {
             col.select_owned_vector_and_append_n2(first_row)
@@ -52,7 +52,7 @@ pub fn run(
     for task in rx {
         task.lines.par_iter().for_each(|r| {
             if col.max() >= r.len() {
-                println!("ignore a bad line # {:?}!", r);
+                println!("[info] ignore a bad line # {:?}!", r);
             } else {
                 let r = col.select_owned_string_from_excel_datatype(r);
                 *freq.entry(r).or_insert(0) += 1;
@@ -78,10 +78,9 @@ pub fn run(
 
     // export or print
     if export {
-        println!();
         let new_path = filename::new_path(path, "-frequency");
         file::write_frequency_to_csv(&new_path, &names, freq);
-        println!("Saved to file: {}", new_path.display());
+        println!("\nSaved to file: {}", new_path.display());
     } else {
         prog.clear();
         print_frequency_table(&names, freq)

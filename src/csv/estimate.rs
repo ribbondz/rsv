@@ -21,7 +21,7 @@ pub fn run(path: &Path) -> CliResult {
 
     // estimate line count
     let estimate_n = filesize / ((total_bytes as f64) / (n as f64));
-
     println!("{}", estimate_n as usize);
+
     Ok(())
 }

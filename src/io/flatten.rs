@@ -1,4 +1,4 @@
-use crate::utils::{cli_result::CliResult, util::print_table};
+use crate::utils::{cli_result::CliResult, util::print_tabled};
 use std::io::{stdin, BufRead};
 
 pub fn run(no_header: bool, sep: &str, delimiter: &str, n: i32) -> CliResult {
@@ -12,6 +12,7 @@ pub fn run(no_header: bool, sep: &str, delimiter: &str, n: i32) -> CliResult {
         .filter_map(|i| i.ok())
         .collect::<Vec<_>>();
 
+    // too few rows
     if lines.len() <= 1 - no_header as usize {
         return Ok(());
     }
@@ -35,7 +36,7 @@ pub fn run(no_header: bool, sep: &str, delimiter: &str, n: i32) -> CliResult {
             .zip(&columns)
             .map(|(v, k)| vec![k.to_owned(), v.to_owned()])
             .collect::<Vec<_>>();
-        print_table(r);
+        print_tabled(r);
 
         if rdr.peek().is_some() {
             println!(" {delimiter}");

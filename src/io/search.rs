@@ -27,8 +27,7 @@ pub fn run(pattern: &str, no_header: bool, export: bool) -> CliResult {
 
     let mut matched = 0;
     for l in handle {
-        let l = l.unwrap();
-
+        let l = l?;
         if re.is_match(&l) {
             matched += 1;
             write_row(&mut wtr, export, &l)?;

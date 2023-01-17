@@ -22,7 +22,7 @@ pub fn run(path: &Path, sheet: usize, sep: &str) -> CliResult {
 
         while let Some(v) = r.next() {
             wtr.write_all(v.to_string().trim().as_bytes())?;
-
+            
             if r.peek().is_some() {
                 wtr.write_all(sep_bytes)?;
             } else {
@@ -32,5 +32,6 @@ pub fn run(path: &Path, sheet: usize, sep: &str) -> CliResult {
     }
 
     println!("Saved to file: {}", out_path.display());
+
     Ok(())
 }

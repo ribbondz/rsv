@@ -33,10 +33,8 @@ pub fn run(no_header: bool, sep: &str, col: usize) -> CliResult {
 
     for r in rdr {
         let r = r?;
-
         n += 1;
         lines.push(r);
-
         if n >= buffer {
             task_handle(
                 lines,
@@ -84,10 +82,9 @@ fn task_handle(
 
     lines.par_iter().for_each(|r| {
         let seg = r.split(sep).collect::<Vec<_>>();
-        if col >= r.len() {
-            println!("ignore a bad line, content is: {:?}!", r);
-        } else {
-            batch_work.entry(seg[col]).or_insert_with(Vec::new).push(r);
+        match col >= r.len() {
+            true => println!("[info] ignore a bad line, content is: {:?}!", r),
+            false => batch_work.entry(seg[col]).or_insert_with(Vec::new).push(r),
         }
     });
 

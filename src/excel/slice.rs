@@ -35,13 +35,12 @@ pub fn run(
             Some(v) => datatype_vec_to_string(v),
             None => return Ok(()),
         };
-        wtr.write_all(r.as_bytes())?;
-        wtr.write_all(TERMINATOR)?;
+        write(&mut wtr, &r);
     }
 
     // slice
     match index {
-        Some(index) => write_by_index(&mut rdr, &mut wtr, index)?,
+        Some(index) => write_by_index(&mut rdr, &mut wtr, index),
         None => {
             let end = end
                 .or_else(|| length.map(|l| start + l - 1).or(Some(usize::MAX - 10)))
@@ -50,7 +49,7 @@ pub fn run(
                 werr!("Error: end index should be equal to or bigger than start index.");
                 process::exit(1)
             }
-            write_by_range(&mut rdr, &mut wtr, start, end)?;
+            write_by_range(&mut rdr, &mut wtr, start, end);
         }
     }
 
@@ -61,18 +60,11 @@ pub fn run(
     Ok(())
 }
 
-fn write_by_index(
-    rdr: &mut ExcelReader,
-    wtr: &mut BufWriter<Box<dyn Write>>,
-    index: usize,
-) -> std::io::Result<()> {
+fn write_by_index(rdr: &mut ExcelReader, wtr: &mut BufWriter<Box<dyn Write>>, index: usize) {
     for r in rdr.iter().skip(rdr.next_called + index).take(1) {
         let r = datatype_vec_to_string(r);
-        wtr.write_all(r.as_bytes())?;
-        wtr.write_all(TERMINATOR)?;
+        write(wtr, &r);
     }
-
-    Ok(())
 }
 
 fn write_by_range(
@@ -80,16 +72,19 @@ fn write_by_range(
     wtr: &mut BufWriter<Box<dyn Write>>,
     start: usize,
     end: usize,
-) -> std::io::Result<()> {
-    for r in rdr
-        .iter()
-        .skip(rdr.next_called + start)
-        .take(end - start + 1)
-    {
+) {
+    for r in rdr.iter().skip(rdr.next_called + start).take(end - start) {
         let r = datatype_vec_to_string(r);
-        wtr.write_all(r.as_bytes())?;
-        wtr.write_all(TERMINATOR)?;
+        write(wtr, &r);
     }
+}
 
-    Ok(())
+/// ignore write error, when pipeline are closed
+fn write(wtr: &mut BufWriter<Box<dyn Write>>, data: &str) {
+    if wtr.write_all(data.as_bytes()).is_err() {
+        process::exit(0)
+    };
+    if wtr.write_all(TERMINATOR).is_err() {
+        process::exit(0)
+    };
 }

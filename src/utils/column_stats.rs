@@ -74,7 +74,7 @@ impl ColumnStats {
         let v = line.split(sep).collect::<Vec<_>>();
 
         if self.max_col >= v.len() {
-            println!("ignore a bad line: {:?}", v);
+            println!("[info] ignore a bad line: {:?}", v);
             return;
         }
 
@@ -86,7 +86,7 @@ impl ColumnStats {
 
     pub fn parse_excel_row(&mut self, v: Vec<DataType>) {
         if self.max_col >= v.len() {
-            println!("ignore a bad line: {:?}", v);
+            println!("[info] ignore a bad line: {:?}", v);
             return;
         }
 

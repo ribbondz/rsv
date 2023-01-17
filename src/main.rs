@@ -367,7 +367,7 @@ fn main() {
             Some(f) => {
                 let path = full_path(f);
                 match is_excel(&path) {
-                    true => excel::head::run(&path, option.sheet, option.no_header, option.n)
+                    true => excel::head::run(&path, option.sheet, option.no_header, option.n,option.tabled)
                         .handle_err(),
                     false => csv::head::run(
                         &path,

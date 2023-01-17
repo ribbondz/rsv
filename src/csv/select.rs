@@ -10,7 +10,7 @@ use crossbeam_channel::bounded;
 use rayon::prelude::*;
 use std::io::{BufWriter, Write};
 use std::path::Path;
-use std::thread;
+use std::{process, thread};
 
 pub fn run(
     path: &Path,
@@ -37,13 +37,18 @@ pub fn run(
 
     // header
     if !no_header {
-        let row = rdr.next()?;
-        let row = row.split(sep).collect::<Vec<_>>();
-        let record = match cols.all {
-            true => row,
-            false => cols.iter().map(|&i| row[i]).collect(),
-        };
-        print_record(&mut wtr, &record, sep_bytes)?;
+        match rdr.next() {
+            Ok(r) => {
+                let r = r.split(sep).collect::<Vec<_>>();
+                let r = match cols.all {
+                    true => r,
+                    false => cols.iter().map(|&i| r[i]).collect(),
+                };
+
+                print_record(&mut wtr, &r, sep_bytes)
+            }
+            Err(_) => return Ok(()),
+        }
     }
 
     // parallel queue
@@ -86,14 +91,15 @@ fn handle_task(
         .collect::<Vec<_>>();
 
     // write
-    filtered.iter().for_each(|row| {
-        if cols.all {
-            print_record(wtr, row, sep_bytes).unwrap()
-        } else {
-            let record = cols.iter().map(|&i| row[i]).collect::<Vec<_>>();
-            print_record(wtr, &record, sep_bytes).unwrap()
+    for row in filtered {
+        match cols.all {
+            true => print_record(wtr, &row, sep_bytes),
+            false => {
+                let record = cols.iter().map(|&i| row[i]).collect::<Vec<_>>();
+                print_record(wtr, &record, sep_bytes)
+            }
         }
-    });
+    }
 
     if export {
         prog.add_chunks(1);
@@ -102,22 +108,22 @@ fn handle_task(
     }
 }
 
-fn print_record(
-    wtr: &mut BufWriter<Box<dyn Write>>,
-    record: &[&str],
-    sep_bytes: &[u8],
-) -> std::io::Result<()> {
+/// terminate program when pipeline closed
+fn print_record(wtr: &mut BufWriter<Box<dyn Write>>, record: &[&str], sep_bytes: &[u8]) {
     let mut it = record.iter().peekable();
 
     while let Some(&field) = it.next() {
-        wtr.write_all(field.as_bytes())?;
+        if wtr.write_all(field.as_bytes()).is_err() {
+            process::exit(0);
+        };
 
-        if it.peek().is_none() {
-            wtr.write_all(TERMINATOR)?;
+        let t = if it.peek().is_none() {
+            TERMINATOR
         } else {
-            wtr.write_all(sep_bytes)?;
-        }
+            sep_bytes
+        };
+        if wtr.write_all(t).is_err() {
+            process::exit(0);
+        };
     }
-
-    Ok(())
 }

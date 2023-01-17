@@ -1,4 +1,4 @@
-use crate::utils::{cli_result::CliResult, util::print_table};
+use crate::utils::{cli_result::CliResult, util::print_tabled};
 use std::io::{self, BufRead};
 
 pub fn run(sep: &str) -> CliResult {
@@ -9,7 +9,7 @@ pub fn run(sep: &str) -> CliResult {
         rows.push(l);
     }
 
-    print_table(rows);
+    print_tabled(rows);
 
     Ok(())
 }

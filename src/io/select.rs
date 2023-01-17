@@ -42,11 +42,12 @@ pub fn run(no_header: bool, sep: &str, cols: &str, filter: &str, export: bool) -
         let r = r?;
         let r = r.split(sep).collect::<Vec<_>>();
         if filter.record_is_valid(&r) {
-            if cols.all {
-                print_record(&mut wtr, &r, sep_bytes).unwrap()
-            } else {
-                let record = cols.iter().map(|&i| r[i]).collect::<Vec<_>>();
-                print_record(&mut wtr, &record, sep_bytes).unwrap()
+            match cols.all {
+                true => print_record(&mut wtr, &r, sep_bytes)?,
+                false => {
+                    let record = cols.iter().map(|&i| r[i]).collect::<Vec<_>>();
+                    print_record(&mut wtr, &record, sep_bytes)?
+                }
             }
         }
     }

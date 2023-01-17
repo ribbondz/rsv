@@ -58,12 +58,10 @@ fn write_by_index(
         if bytes == 0 {
             break;
         }
-
         if n == index {
             wtr.write_all(&buf[..bytes])?;
             break;
         }
-
         buf.clear();
         n += 1;
     }
@@ -84,11 +82,9 @@ fn write_by_range(
         if bytes == 0 || n >= end {
             break;
         }
-
         if n >= start && n < end {
             wtr.write_all(&buf[..bytes])?;
         }
-
         buf.clear();
         n += 1;
     }

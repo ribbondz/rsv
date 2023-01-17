@@ -25,10 +25,9 @@ pub fn run(sep: &str, no_header: bool, cols: &str, export: bool) -> CliResult {
     let cols = Columns::new(cols);
 
     // header
-    let names = if no_header {
-        cols.artificial_n_cols(rows[0].split(sep).count())
-    } else {
-        rows[0].split(sep).map(|i| i.to_owned()).collect::<Vec<_>>()
+    let names = match no_header {
+        true => cols.artificial_n_cols(rows[0].split(sep).count()),
+        false => rows[0].split(sep).map(|i| i.to_owned()).collect::<Vec<_>>(),
     };
     let names = match cols.all {
         true => names,
@@ -90,9 +89,7 @@ fn col_type(v: &[Vec<String>]) -> Vec<ColumnType> {
                 if typ.is_string() {
                     break;
                 }
-
                 let f = &r[i];
-
                 match typ {
                     ColumnType::Null => {
                         if f.parse::<i64>().is_ok() {
@@ -120,7 +117,6 @@ fn col_type(v: &[Vec<String>]) -> Vec<ColumnType> {
                     _ => {}
                 }
             }
-
             typ
         })
         .collect::<Vec<_>>()

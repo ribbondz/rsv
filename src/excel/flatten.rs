@@ -1,4 +1,4 @@
-use crate::utils::{cli_result::CliResult, excel_reader::ExcelReader, util::print_table};
+use crate::utils::{cli_result::CliResult, excel_reader::ExcelReader, util::print_tabled};
 use std::path::Path;
 
 pub fn run(path: &Path, no_header: bool, sheet: usize, delimiter: &str, n: i32) -> CliResult {
@@ -12,11 +12,10 @@ pub fn run(path: &Path, no_header: bool, sheet: usize, delimiter: &str, n: i32) 
             .map(|i| "col".to_owned() + &i.to_string())
             .collect::<Vec<_>>()
     } else {
-        let first_row = match range.next() {
-            Some(v) => v,
+        match range.next() {
+            Some(r) => r.iter().map(|i| i.to_string()).collect::<Vec<_>>(),
             None => return Ok(()),
-        };
-        first_row.iter().map(|i| i.to_string()).collect::<Vec<_>>()
+        }
     };
 
     // read file
@@ -28,7 +27,7 @@ pub fn run(path: &Path, no_header: bool, sheet: usize, delimiter: &str, n: i32) 
             .zip(&columns)
             .map(|(v, k)| vec![k.to_owned(), v.to_string()])
             .collect::<Vec<_>>();
-        print_table(r);
+        print_tabled(r);
 
         if rdr.peek().is_some() {
             println!(" {delimiter}");

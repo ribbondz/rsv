@@ -1,4 +1,4 @@
-use crate::utils::{cli_result::CliResult, util::print_table};
+use crate::utils::{cli_result::CliResult, util::print_tabled};
 use std::{
     fs::File,
     io::{BufRead, BufReader},
@@ -16,7 +16,7 @@ pub fn run(path: &Path, sep: &str) -> CliResult {
         .map(|r| r.split(sep).map(|i| i.to_owned()).collect::<Vec<_>>())
         .collect();
 
-    print_table(rows);
+    print_tabled(rows);
 
     Ok(())
 }

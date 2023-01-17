@@ -3,9 +3,9 @@ use std::path::Path;
 use crate::utils::cli_result::CliResult;
 use crate::utils::excel::datatype_vec_to_string_vec;
 use crate::utils::excel_reader::ExcelReader;
-use crate::utils::util::print_table;
+use crate::utils::util::print_tabled;
 
-pub fn run(path: &Path, sheet: usize, no_header: bool, n: usize) -> CliResult {
+pub fn run(path: &Path, sheet: usize, no_header: bool, n: usize, tabled: bool) -> CliResult {
     let range = ExcelReader::new(path, sheet)?;
 
     // show head n
@@ -16,7 +16,11 @@ pub fn run(path: &Path, sheet: usize, no_header: bool, n: usize) -> CliResult {
         .collect::<Vec<_>>();
 
     // tabled print
-    print_table(r);
+    if tabled {
+        print_tabled(r);
+    } else {
+        r.iter().for_each(|i| println!("{}", i.join(",")))
+    }
 
     Ok(())
 }

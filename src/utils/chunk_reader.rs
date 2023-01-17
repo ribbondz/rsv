@@ -29,12 +29,9 @@ impl ChunkReader {
 
         for l in self.0.by_ref() {
             let l = l.unwrap();
-
             n += 1;
             bytes += l.len();
-
             lines.push(l);
-
             if n >= line_buffer_n {
                 tx.send(Task { lines, bytes }).unwrap();
                 n = 0;

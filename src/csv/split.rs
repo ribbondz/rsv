@@ -4,7 +4,7 @@ use crate::utils::constants::TERMINATOR;
 use crate::utils::file::estimate_line_count_by_mb;
 use crate::utils::filename::str_clean_as_filename;
 use crate::utils::progress::Progress;
-use crate::utils::util::datetime_str;
+use crate::utils::util::{datetime_str, werr};
 use crossbeam_channel::bounded;
 use dashmap::DashMap;
 use rayon::prelude::*;
@@ -12,7 +12,7 @@ use std::error::Error;
 use std::fs::{create_dir, OpenOptions};
 use std::io::{BufWriter, Write};
 use std::path::Path;
-use std::thread;
+use std::{process, thread};
 
 pub fn run(path: &Path, no_header: bool, sep: &str, col: usize) -> CliResult {
     // new directory
@@ -26,17 +26,22 @@ pub fn run(path: &Path, no_header: bool, sep: &str, col: usize) -> CliResult {
     // open file and header
     let mut rdr = ChunkReader::new(path)?;
     let first_row = if no_header {
-        Ok("".to_owned())
+        "".to_owned()
     } else {
-        let first_row = rdr.next()?;
+        let first_row = match rdr.next() {
+            Ok(v) => v,
+            Err(_) => return Ok(()),
+        };
         if col >= first_row.split(sep).count() {
-            Err("column index out of range!")
-        } else {
-            Ok(first_row)
+            werr!("column index out of range!");
+            process::exit(1)
         }
-    }?;
+        first_row
+    };
 
+    // work pip
     let (tx, rx) = bounded(1);
+
     // read
     let line_buffer_n = estimate_line_count_by_mb(path, Some(50));
     thread::spawn(move || rdr.send_to_channel_in_line_chunks(tx, line_buffer_n));
@@ -82,7 +87,7 @@ fn task_handle(
     task.lines.par_iter().for_each(|r| {
         let seg = r.split(sep).collect::<Vec<_>>();
         if col >= r.len() {
-            println!("ignore a bad line, content is: {:?}!", r);
+            println!("[info] ignore a bad line, content is: {:?}!", r);
         } else {
             batch_work.entry(seg[col]).or_insert_with(Vec::new).push(r);
         }

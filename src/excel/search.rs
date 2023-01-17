@@ -10,7 +10,7 @@ use rayon::prelude::*;
 use regex::RegexBuilder;
 use std::io::{BufWriter, Write};
 use std::path::Path;
-use std::thread;
+use std::{process, thread};
 
 pub fn run(path: &Path, sheet: usize, pattern: &str, no_header: bool, export: bool) -> CliResult {
     // wtr and rdr
@@ -29,8 +29,7 @@ pub fn run(path: &Path, sheet: usize, pattern: &str, no_header: bool, export: bo
                 .join(","),
             None => return Ok(()),
         };
-        wtr.write_all(first_row.as_bytes())?;
-        wtr.write_all(TERMINATOR)?;
+        write(&mut wtr, &first_row);
     };
 
     // read file
@@ -61,12 +60,7 @@ pub fn run(path: &Path, sheet: usize, pattern: &str, no_header: bool, export: bo
         // pipeline could be closed,
         // e.g., when rsv head take enough items
         for l in lines {
-            if let Err(_) = wtr.write_all(l.as_bytes()) {
-                return Ok(());
-            };
-            if let Err(_) = wtr.write_all(TERMINATOR) {
-                return Ok(());
-            };
+            write(&mut wtr, &l)
         }
 
         if export {
@@ -82,4 +76,13 @@ pub fn run(path: &Path, sheet: usize, pattern: &str, no_header: bool, export: bo
     }
 
     Ok(())
+}
+
+fn write(wtr: &mut BufWriter<Box<dyn Write>>, data: &str) {
+    if wtr.write_all(data.as_bytes()).is_err() {
+        process::exit(0)
+    };
+    if wtr.write_all(TERMINATOR).is_err() {
+        process::exit(0)
+    };
 }

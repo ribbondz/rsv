@@ -10,7 +10,7 @@ use crossbeam_channel::bounded;
 use rayon::prelude::*;
 use std::io::{BufWriter, Write};
 use std::path::Path;
-use std::thread;
+use std::{process, thread};
 
 pub fn run(
     path: &Path,
@@ -43,7 +43,7 @@ pub fn run(
                 return Ok(());
             }
         };
-        print_record(&mut wtr, &row)?;
+        print_record(&mut wtr, &row);
     }
 
     // parallel queue
@@ -81,12 +81,11 @@ fn handle_task(
         .collect::<Vec<_>>();
 
     // write
-    filtered.into_iter().for_each(|row| {
-        if cols.all {
-            print_record(wtr, &row).unwrap()
-        } else {
+    filtered.into_iter().for_each(|row| match cols.all {
+        true => print_record(wtr, &row),
+        false => {
             let record = cols.iter().map(|&i| row[i].to_owned()).collect::<Vec<_>>();
-            print_record(wtr, &record).unwrap()
+            print_record(wtr, &record)
         }
     });
 
@@ -97,18 +96,21 @@ fn handle_task(
     }
 }
 
-fn print_record(wtr: &mut BufWriter<Box<dyn Write>>, record: &[String]) -> std::io::Result<()> {
+fn print_record(wtr: &mut BufWriter<Box<dyn Write>>, record: &[String]) {
     let mut it = record.iter().peekable();
 
     while let Some(field) = it.next() {
-        wtr.write_all(field.as_bytes())?;
+        if wtr.write_all(field.as_bytes()).is_err() {
+            process::exit(0)
+        };
 
-        if it.peek().is_none() {
-            wtr.write_all(TERMINATOR)?;
+        let t = if it.peek().is_none() {
+            TERMINATOR
         } else {
-            wtr.write_all(b",")?;
-        }
+            b","
+        };
+        if wtr.write_all(t).is_err() {
+            process::exit(0)
+        };
     }
-
-    Ok(())
 }

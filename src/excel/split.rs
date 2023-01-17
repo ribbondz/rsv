@@ -2,7 +2,7 @@ use crate::utils::cli_result::CliResult;
 use crate::utils::constants::TERMINATOR;
 use crate::utils::filename::str_clean_as_filename;
 use crate::utils::progress::Progress;
-use crate::utils::util::datetime_str;
+use crate::utils::util::{datetime_str, werr};
 
 use crate::utils::excel_reader::{ExcelChunkTask, ExcelReader};
 use calamine::DataType;
@@ -13,7 +13,7 @@ use std::error::Error;
 use std::fs::{create_dir, OpenOptions};
 use std::io::{BufWriter, Write};
 use std::path::Path;
-use std::thread;
+use std::{process, thread};
 
 pub fn run(path: &Path, sheet: usize, no_header: bool, col: usize) -> CliResult {
     // new directory
@@ -28,23 +28,22 @@ pub fn run(path: &Path, sheet: usize, no_header: bool, col: usize) -> CliResult 
     // open file and header
     let mut range = ExcelReader::new(path, sheet)?;
     let first_row = if no_header {
-        Ok("".to_owned())
+        "".to_owned()
     } else {
         let first_row = match range.next() {
             Some(v) => v,
             None => return Ok(()),
         };
         if col >= first_row.len() {
-            Err("column index out of range!")
-        } else {
-            let v = first_row
-                .iter()
-                .map(|i| i.to_string())
-                .collect::<Vec<_>>()
-                .join(",");
-            Ok(v)
-        }
-    }?;
+            werr!("Error: column index out of range!");
+            process::exit(1);
+        };
+        first_row
+            .iter()
+            .map(|i| i.to_string())
+            .collect::<Vec<_>>()
+            .join(",")
+    };
 
     let (tx, rx) = bounded(1);
     // read
@@ -88,7 +87,7 @@ fn task_handle(
     let batch_work = DashMap::new();
     task.lines.par_iter().for_each(|r| {
         if col >= r.len() {
-            println!("ignore a bad line, content is: {:?}!", r);
+            println!("[info] ignore a bad line, content is: {:?}!", r);
         } else {
             batch_work
                 .entry(r[col].to_string())

@@ -27,13 +27,10 @@ fn count_file_lines(path: &Path, no_header: bool) -> Result<(), Box<dyn Error>> 
     loop {
         let bytes_read = {
             let buf = rdr.fill_buf()?;
-
             if buf.is_empty() {
                 break;
             }
-
             n += bytecount::count(buf, b'\n');
-
             buf.len()
         };
 
@@ -65,7 +62,9 @@ fn count_dir_files(path: &Path) -> Result<(), Box<dyn Error>> {
     });
 
     println!(
-        "{file_n} files and {dir_n} sub-directories in {}",
+        "{} files and {} sub-directories in {}",
+        file_n,
+        dir_n,
         path.display()
     );
 

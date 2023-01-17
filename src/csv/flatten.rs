@@ -1,6 +1,6 @@
 use crate::utils::cli_result::CliResult;
 use crate::utils::file;
-use crate::utils::util::print_table;
+use crate::utils::util::print_tabled;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
@@ -16,11 +16,13 @@ pub fn run(path: &Path, no_header: bool, sep: &str, delimiter: &str, n: i32) -> 
             .map(|i| "col".to_owned() + &i.to_string())
             .collect::<Vec<_>>()
     } else {
-        let first_row = rdr.next().unwrap()?;
-        first_row
-            .split(sep)
-            .map(|i| i.to_string())
-            .collect::<Vec<_>>()
+        match rdr.next() {
+            Some(r) => match r {
+                Ok(v) => v.split(sep).map(|i| i.to_string()).collect::<Vec<_>>(),
+                Err(_) => return Ok(()),
+            },
+            None => return Ok(()),
+        }
     };
 
     // read file
@@ -34,7 +36,7 @@ pub fn run(path: &Path, no_header: bool, sep: &str, delimiter: &str, n: i32) -> 
             .zip(&columns)
             .map(|(v, k)| vec![k.to_owned(), v.to_owned()])
             .collect::<Vec<_>>();
-        print_table(r);
+        print_tabled(r);
 
         if rdr.peek().is_some() {
             println!(" {delimiter}");

@@ -1,3 +1,5 @@
+use std::io::{stdout, Write};
+
 use chrono;
 use tabled::builder::Builder;
 use tabled::Style;
@@ -11,7 +13,7 @@ pub fn is_null(s: &str) -> bool {
     s.is_empty() || s == "NA" || s == "Na" || s == "na" || s == "NULL" || s == "Null" || s == "null"
 }
 
-pub fn print_table(records: Vec<Vec<String>>) {
+pub fn print_tabled(records: Vec<Vec<String>>) {
     let mut builder = Builder::default();
 
     records.iter().for_each(|r| {
@@ -27,9 +29,15 @@ pub fn print_table(records: Vec<Vec<String>>) {
     println!("{table}");
 }
 
+/// early return when pipeline closed
 pub fn print_frequency_table(names: &[String], freq: Vec<(String, usize)>) {
     println!("{}", names.join(","));
-    freq.iter().for_each(|(k, n)| println!("{},{}", k, n))
+    let mut lock = stdout().lock();
+    for (k, n) in &freq {
+        if writeln!(lock, "{},{}", k, n).is_err() {
+            return;
+        }
+    }
 }
 
 macro_rules! werr {

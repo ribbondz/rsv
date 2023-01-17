@@ -9,7 +9,7 @@ use rayon::prelude::*;
 use regex::RegexBuilder;
 use std::io::{BufWriter, Write};
 use std::path::Path;
-use std::thread;
+use std::{process, thread};
 
 pub fn run(path: &Path, pattern: &str, no_header: bool, export: bool) -> CliResult {
     // wtr and rdr
@@ -20,9 +20,10 @@ pub fn run(path: &Path, pattern: &str, no_header: bool, export: bool) -> CliResu
 
     // header
     if !no_header {
-        let first_row = rdr.next()?;
-        wtr.write_all(first_row.as_bytes())?;
-        wtr.write_all(TERMINATOR)?;
+        match rdr.next() {
+            Ok(r) => write(&mut wtr, &r),
+            Err(_) => return Ok(()),
+        }
     };
 
     // read file
@@ -41,15 +42,10 @@ pub fn run(path: &Path, pattern: &str, no_header: bool, export: bool) -> CliResu
             .filter(|i| re.is_match(i))
             .collect::<Vec<_>>();
 
-        // pipeline could be closed,
-        // e.g., when rsv head take enough items
+        // pipeline could be closed, e.g., when rsv head take enough items
+        // ignore the error
         for l in &lines {
-            if let Err(_) = wtr.write_all(l.as_bytes()) {
-                return Ok(());
-            };
-            if let Err(_) = wtr.write_all(TERMINATOR) {
-                return Ok(());
-            };
+            write(&mut wtr, l)
         }
 
         if export {
@@ -66,4 +62,13 @@ pub fn run(path: &Path, pattern: &str, no_header: bool, export: bool) -> CliResu
     }
 
     Ok(())
+}
+
+fn write(wtr: &mut BufWriter<Box<dyn Write>>, data: &str) {
+    if wtr.write_all(data.as_bytes()).is_err() {
+        process::exit(0)
+    };
+    if wtr.write_all(TERMINATOR).is_err() {
+        process::exit(0)
+    };
 }
