@@ -13,6 +13,7 @@ pub struct ExcelReader {
 pub struct ExcelChunkTask {
     pub lines: Vec<Vec<DataType>>,
     pub n: usize,
+    pub chunk: usize,
 }
 
 impl<'a> ExcelReader {
@@ -47,31 +48,25 @@ impl<'a> ExcelReader {
         self.range.rows()
     }
 
-    pub fn send_to_channel_in_line_chunks(self, tx: Sender<ExcelChunkTask>) {
-        let line_buffer_n = 1000;
+    pub fn send_to_channel_in_line_chunks(self, tx: Sender<ExcelChunkTask>, size: Option<usize>) {
+        let line_buffer_n = size.or(Some(1000)).unwrap();
         let mut lines = Vec::with_capacity(line_buffer_n);
         let mut n = 0;
-
-        let mut iter = self.iter();
-        for _ in 0..self.next_called {
-            iter.next();
-        }
-
-        for l in iter {
+        let mut chunk = 1;
+        for l in self.iter().skip(self.next_called) {
             let l = l.to_owned();
             n += 1;
-
             lines.push(l);
-
             if n >= line_buffer_n {
-                tx.send(ExcelChunkTask { lines, n }).unwrap();
+                tx.send(ExcelChunkTask { lines, n, chunk }).unwrap();
                 n = 0;
                 lines = Vec::with_capacity(line_buffer_n);
+                chunk += 1;
             }
         }
 
         if !lines.is_empty() {
-            tx.send(ExcelChunkTask { lines, n }).unwrap();
+            tx.send(ExcelChunkTask { lines, n, chunk }).unwrap();
         }
 
         drop(tx)

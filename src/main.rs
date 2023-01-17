@@ -66,7 +66,7 @@ enum Commands {
     )]
     Frequency(Frequency),
     #[command(
-        about = "Split file into separate files according to column value",
+        about = "Split file into separate files sequentially or according to column value",
         override_help = SPLIT_DESC
     )]
     Split(Split),
@@ -253,12 +253,15 @@ struct Split {
     /// Whether the file has a header
     #[arg(long, default_value_t = false)]
     no_header: bool,
-    /// Columns to generate frequency table
+    /// Column to split upon
     #[arg(short, long, default_value_t = 0)]
     col: usize,
     /// Get the nth worksheet of EXCEL file
     #[arg(short = 'S', long, default_value_t = 0)]
     sheet: usize,
+    /// Number of records to write in each separate file
+    #[arg(long)]
+    size: Option<usize>,
 }
 
 #[derive(Debug, Args)]
@@ -367,8 +370,14 @@ fn main() {
             Some(f) => {
                 let path = full_path(f);
                 match is_excel(&path) {
-                    true => excel::head::run(&path, option.sheet, option.no_header, option.n,option.tabled)
-                        .handle_err(),
+                    true => excel::head::run(
+                        &path,
+                        option.sheet,
+                        option.no_header,
+                        option.n,
+                        option.tabled,
+                    )
+                    .handle_err(),
                     false => csv::head::run(
                         &path,
                         option.no_header,
@@ -451,13 +460,27 @@ fn main() {
             Some(f) => {
                 let path = full_path(f);
                 match is_excel(&path) {
-                    true => excel::split::run(&path, option.sheet, option.no_header, option.col)
-                        .handle_err(),
-                    false => csv::split::run(&path, option.no_header, &option.sep, option.col)
-                        .handle_err(),
+                    true => excel::split::run(
+                        &path,
+                        option.sheet,
+                        option.no_header,
+                        option.col,
+                        &option.size,
+                    )
+                    .handle_err(),
+                    false => csv::split::run(
+                        &path,
+                        option.no_header,
+                        &option.sep,
+                        option.col,
+                        &option.size,
+                    )
+                    .handle_err(),
                 }
             }
-            None => io::split::run(option.no_header, &option.sep, option.col).handle_err(),
+            None => {
+                io::split::run(option.no_header, &option.sep, option.col, &option.size).handle_err()
+            }
         },
         Commands::Select(option) => match &option.filename {
             Some(f) => {

@@ -8,7 +8,6 @@ pub mod headers;
 pub mod search;
 pub mod select;
 pub mod slice;
-pub mod split_on_column;
-pub mod split_sequential;
+pub mod split;
 pub mod stats;
 pub mod table;

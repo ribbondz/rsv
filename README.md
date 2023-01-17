@@ -20,7 +20,7 @@ download **rsv.exe** from release tab, and append the file directory to system p
 - **estimate** - Fast estimate the number of lines.
 - **clean** - Clean file with escape char (e.g. ") or other strings :running:.
 - **frequency** - Show frequency table for column(s) :running: :star:.
-- **split** - Split file into separate files based on column value :running: :star:.
+- **split** - Split file into separate files sequentially or based on column value :running: :star:.
 - **select** - Select rows and columns by filter :running:.
 - **flatten** - Prints flattened records to view records one by one.
 - **slice** - Prints a slice of rows from file.
@@ -111,12 +111,13 @@ column selection syntax:
 - **rsv split**
 
 ```shell
-rsv split data.csv              # default to first column and field separator of ,
-rsv split data.xlsx             # EXCEL file
-rsv split -s \\t data.csv       # tab separator
-rsv split -c 1 data.csv         # split based on second column
-rsv split -c 0 -s \\t data.csv  # first column, \t separator
-rsv split --help                # help info on all flags
+rsv split data.csv                # default to first column and field separator of ,
+rsv split data.xlsx               # EXCEL file
+rsv split -s \\t data.csv         # tab separator
+rsv split -c 1 data.csv           # split based on second column
+rsv split -c 0 -s \\t data.csv    # first column, \t separator
+rsv split --size 1000 data.xlsx   # Sequential split, 1000 records in a file.
+rsv split --help                  # help info on all flags
 ```
 
 - **rsv select**

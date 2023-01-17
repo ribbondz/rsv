@@ -35,8 +35,7 @@ Options:
   -S, --sheet <SHEET>  Get the nth worksheet of EXCEL file [default: 0] 
   -h, --help           Print help information";
 
-pub const HEAD_DESC: &str =
-    "Show head n lines of file. When it is a CSV or TXT file, the result 
+pub const HEAD_DESC: &str = "Show head n lines of file. When it is a CSV or TXT file, the result 
 could be formatted as an aligned table by setting the --tabled flag. 
 An EXCEL file is printed in default as an aligned table.
 
@@ -203,9 +202,9 @@ Column selection syntax:
 -c 0-2,5     -->    same as cols [0,1,2,5]
 ";
 
-pub const SPLIT_DESC: &str = "Split a big and unordered file into separate files
-based on a column value. Only one column can be specified at a time,
-with the --col or -c flag. 
+pub const SPLIT_DESC: &str = "Split a big and unordered file into separate files: (1) sequentially;
+(2) or based on a column value . In (2), Only one column can be specified
+at a time, with the --col or -c flag. 
 
 The output directory is created automatically within the current data
 directory. Separate small files are named after unique column value. 
@@ -215,21 +214,28 @@ e.g., 50MB by default, other than by line by line, so that it avoid
 continuously opening and closing small files; (2) rows of CSV or EXCEL 
 are analyzed in parallel (based on Rayon) after their read in.
 
+The default mode is split based on values of first column.
+
 Usage: 
   rsv.exe split [OPTIONS] <FILENAME>
-  rsv split data.csv               # default to first column and field separator of \",\" 
+  rsv split data.csv               # default to split based on first column 
   rsv split -c 1 data.csv          # second column to split
   rsv split -c 0 -s \\t data.csv    # first column, \\t separator
   rsv split data.xlsx              # EXCEL file
+  rsv split --size 1000 data.xlsx  # sequential split, 1000 records in a file.
 
 Arguments:
   <FILENAME>  File to open
 
-Options:
+Sequential Split options: 
+  --size <SIZE>    Number of records to write in each separate file
+
+Column-based Split Options: 
   -s, --sep <SEP>      Separator [default: ,]
       --no-header      Whether the file has a header
-  -c, --col <COL>      Columns to generate frequency table [default: 0]
+  -c, --col <COL>      Column to split upon [default: 0]
   -S, --sheet <SHEET>  Get the nth worksheet of EXCEL file [default: 0]
+      --size <SIZE>    Number of records to write in each separate file
   -h, --help           Print help information
 ";
 

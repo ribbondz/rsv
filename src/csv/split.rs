@@ -14,7 +14,9 @@ use std::io::{BufWriter, Write};
 use std::path::Path;
 use std::{process, thread};
 
-pub fn run(path: &Path, no_header: bool, sep: &str, col: usize) -> CliResult {
+pub fn run(path: &Path, no_header: bool, sep: &str, col: usize, size: &Option<usize>) -> CliResult {
+    let is_sequential_split = size.is_some();
+
     // new directory
     let dir = path.with_file_name(format!(
         "{}-split-{}",
@@ -43,26 +45,88 @@ pub fn run(path: &Path, no_header: bool, sep: &str, col: usize) -> CliResult {
     let (tx, rx) = bounded(1);
 
     // read
-    let line_buffer_n = estimate_line_count_by_mb(path, Some(50));
+    let line_buffer_n = if is_sequential_split {
+        size.unwrap()
+    } else {
+        estimate_line_count_by_mb(path, Some(50))
+    };
     thread::spawn(move || rdr.send_to_channel_by_chunks(tx, line_buffer_n));
 
     // process batch work
-    let header_inserted: DashMap<String, bool> = DashMap::new();
     let mut prog = Progress::new();
-    for task in rx {
-        task_handle(
-            task,
-            &mut prog,
-            sep,
-            no_header,
-            col,
-            &dir,
-            &first_row,
-            &header_inserted,
-        )?
+    match is_sequential_split {
+        true => {
+            let stem = path.file_stem().unwrap();
+            let extension = path
+                .extension()
+                .and_then(|i| i.to_str())
+                .or(Some(""))
+                .unwrap();
+
+            for task in rx {
+                let mut out = dir.to_owned();
+                out.push(format!(
+                    "{}-split{}.{}",
+                    stem.to_string_lossy(),
+                    task.chunk,
+                    extension
+                ));
+                sequential_task_handle(task, &mut prog, &out, &first_row)?;
+            }
+        }
+        false => {
+            let header_inserted: DashMap<String, bool> = DashMap::new();
+            for task in rx {
+                task_handle(
+                    task,
+                    &mut prog,
+                    sep,
+                    no_header,
+                    col,
+                    &dir,
+                    &first_row,
+                    &header_inserted,
+                )?
+            }
+        }
     }
 
     println!("\nSaved to directory: {}", dir.display());
+
+    Ok(())
+}
+
+fn sequential_task_handle(
+    task: Task,
+    prog: &mut Progress,
+    out: &Path,
+    first_row: &str,
+) -> Result<(), Box<dyn Error>> {
+    // progress
+    prog.add_chunks(1);
+    prog.add_bytes(task.bytes);
+
+    // open file
+    let f = OpenOptions::new()
+        .write(true)
+        .append(true)
+        .create(true)
+        .open(out)?;
+    let mut wtr = BufWriter::new(f);
+
+    // header
+    if !first_row.is_empty() {
+        wtr.write_all(first_row.as_bytes())?;
+        wtr.write_all(TERMINATOR)?;
+    }
+
+    // content
+    task.lines.iter().for_each(|r| {
+        wtr.write_all(r.as_bytes()).unwrap();
+        wtr.write_all(TERMINATOR).unwrap();
+    });
+
+    prog.print();
 
     Ok(())
 }
