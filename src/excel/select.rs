@@ -39,14 +39,12 @@ pub fn run(
                 true => v.iter().map(|i| i.to_string()).collect::<Vec<_>>(),
                 false => cols.iter().map(|&i| v[i].to_string()).collect::<Vec<_>>(),
             },
-            None => {
-                return Ok(());
-            }
+            None => return Ok(()),
         };
         print_record(&mut wtr, &row);
     }
 
-    // parallel queue
+    // task queue
     let (tx, rx) = bounded(1);
 
     // read

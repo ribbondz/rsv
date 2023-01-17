@@ -25,7 +25,6 @@ pub fn run(
 
     // open file
     let f = file_or_stdout_wtr(export, &out_path)?;
-
     let mut wtr = BufWriter::new(f);
     let mut rdr = ExcelReader::new(path, sheet)?;
 

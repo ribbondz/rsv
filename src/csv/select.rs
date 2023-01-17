@@ -44,7 +44,6 @@ pub fn run(
                     true => r,
                     false => cols.iter().map(|&i| r[i]).collect(),
                 };
-
                 print_record(&mut wtr, &r, sep_bytes)
             }
             None => return Ok(()),

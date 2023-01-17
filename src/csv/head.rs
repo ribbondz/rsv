@@ -14,7 +14,7 @@ pub fn run(path: &Path, no_header: bool, sep: &str, n: usize, tabled: bool) -> C
         .collect::<Vec<_>>();
 
     // tabled or not
-    if tabled {
+    if tabled && !r.is_empty() {
         print_as_table(r, sep, no_header);
     } else {
         r.iter().for_each(|i| println!("{}", i));
