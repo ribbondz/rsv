@@ -19,8 +19,9 @@ impl ChunkReader {
         Ok(ChunkReader(rdr))
     }
 
-    pub fn next(&mut self) -> Result<String, std::io::Error> {
-        self.0.next().unwrap()
+    pub fn next(&mut self) -> Result<Option<String>, std::io::Error> {
+        let v = self.0.next().and_then(|i| i.ok());
+        Ok(v)
     }
 
     pub fn send_to_channel_by_chunks(&mut self, tx: Sender<Task>, line_buffer_n: usize) {

@@ -37,8 +37,8 @@ pub fn run(
 
     // header
     if !no_header {
-        match rdr.next() {
-            Ok(r) => {
+        match rdr.next()? {
+            Some(r) => {
                 let r = r.split(sep).collect::<Vec<_>>();
                 let r = match cols.all {
                     true => r,
@@ -47,7 +47,7 @@ pub fn run(
 
                 print_record(&mut wtr, &r, sep_bytes)
             }
-            Err(_) => return Ok(()),
+            None => return Ok(()),
         }
     }
 

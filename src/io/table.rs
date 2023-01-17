@@ -9,7 +9,9 @@ pub fn run(sep: &str) -> CliResult {
         rows.push(l);
     }
 
-    print_tabled(rows);
+    if !rows.is_empty() {
+        print_tabled(rows);
+    }
 
     Ok(())
 }

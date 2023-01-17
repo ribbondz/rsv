@@ -20,9 +20,9 @@ pub fn run(path: &Path, pattern: &str, no_header: bool, export: bool) -> CliResu
 
     // header
     if !no_header {
-        match rdr.next() {
-            Ok(r) => write(&mut wtr, &r),
-            Err(_) => return Ok(()),
+        match rdr.next()? {
+            Some(r) => write(&mut wtr, &r),
+            None => return Ok(()),
         }
     };
 

@@ -14,9 +14,11 @@ pub fn run(path: &Path, sep: &str) -> CliResult {
         .into_iter()
         .filter_map(|r| r.ok())
         .map(|r| r.split(sep).map(|i| i.to_owned()).collect::<Vec<_>>())
-        .collect();
+        .collect::<Vec<_>>();
 
-    print_tabled(rows);
+    if !rows.is_empty() {
+        print_tabled(rows);
+    }
 
     Ok(())
 }

@@ -30,9 +30,9 @@ pub fn run(path: &Path, no_header: bool, sep: &str, col: usize, size: &Option<us
     let first_row = if no_header {
         "".to_owned()
     } else {
-        let first_row = match rdr.next() {
-            Ok(v) => v,
-            Err(_) => return Ok(()),
+        let first_row = match rdr.next()? {
+            Some(v) => v,
+            None => return Ok(()),
         };
         if col >= first_row.split(sep).count() {
             werr!("column index out of range!");
@@ -56,7 +56,7 @@ pub fn run(path: &Path, no_header: bool, sep: &str, col: usize, size: &Option<us
     let mut prog = Progress::new();
     match is_sequential_split {
         true => {
-            let stem = path.file_stem().unwrap();
+            let stem = path.file_stem().unwrap().to_string_lossy();
             let extension = path
                 .extension()
                 .and_then(|i| i.to_str())
@@ -65,12 +65,7 @@ pub fn run(path: &Path, no_header: bool, sep: &str, col: usize, size: &Option<us
 
             for task in rx {
                 let mut out = dir.to_owned();
-                out.push(format!(
-                    "{}-split{}.{}",
-                    stem.to_string_lossy(),
-                    task.chunk,
-                    extension
-                ));
+                out.push(format!("{}-split{}.{}", stem, task.chunk, extension));
                 sequential_task_handle(task, &mut prog, &out, &first_row)?;
             }
         }

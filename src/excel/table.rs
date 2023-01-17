@@ -10,7 +10,9 @@ pub fn run(path: &Path, sheet: usize) -> CliResult {
         .map(|r| r.iter().map(|i| i.to_string()).collect::<Vec<_>>())
         .collect::<Vec<_>>();
 
-    print_tabled(rows);
+    if !rows.is_empty() {
+        print_tabled(rows);
+    }
 
     Ok(())
 }

@@ -64,14 +64,10 @@ pub fn run(
     let mut prog = Progress::new();
     match is_sequential_split {
         true => {
-            let stem = path.file_stem().unwrap();
+            let stem = path.file_stem().unwrap().to_string_lossy();
             for task in rx {
                 let mut out = dir.to_owned();
-                out.push(format!(
-                    "{}-split{}.csv",
-                    stem.to_string_lossy(),
-                    task.chunk
-                ));
+                out.push(format!("{}-split{}.csv", stem, task.chunk));
                 sequential_task_handle(task, &mut prog, &out, &first_row)?;
             }
         }

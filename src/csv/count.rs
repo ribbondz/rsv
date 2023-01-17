@@ -37,7 +37,7 @@ fn count_file_lines(path: &Path, no_header: bool) -> Result<(), Box<dyn Error>> 
         rdr.consume(bytes_read);
     }
 
-    if !no_header {
+    if !no_header && n > 0 {
         n -= 1;
     }
 

@@ -12,7 +12,7 @@ pub fn run(path: &Path, sheet: usize, no_header: bool) -> CliResult {
 
     let mut n = range.len();
 
-    if !no_header {
+    if !no_header && n > 0 {
         n -= 1;
     }
 

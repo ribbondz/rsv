@@ -415,7 +415,7 @@ fn main() {
         Commands::Clean(option) => {
             let path = full_path(&option.filename);
             if is_excel(&path) {
-                werr!("rsv clean does not support Excel files.")
+                werr!("Error: rsv clean does not support Excel files.")
             } else {
                 csv::clean::run(&path, &option.escape, &option.output).handle_err()
             }

@@ -15,7 +15,10 @@ use std::path::Path;
 pub fn run(path: &Path, sep: &str, no_header: bool, cols: &str, export: bool) -> CliResult {
     // Column
     let cols = Columns::new(cols);
-    let col_type = ColumnTypes::guess_from_csv(path, sep, no_header, &cols)?;
+    let col_type = match ColumnTypes::guess_from_csv(path, sep, no_header, &cols)? {
+        Some(v) => v,
+        None => return Ok(()),
+    };
 
     // open file
     let mut rdr = ChunkReader::new(path)?;
@@ -24,7 +27,10 @@ pub fn run(path: &Path, sep: &str, no_header: bool, cols: &str, export: bool) ->
     let name = if no_header {
         cols.artificial_n_cols(column_n(path, sep)?)
     } else {
-        let r = rdr.next()?;
+        let r = match rdr.next()? {
+            Some(r) => r,
+            None => return Ok(()),
+        };
         r.split(sep).map(String::from).collect()
     };
 

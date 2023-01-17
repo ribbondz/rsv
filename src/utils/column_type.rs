@@ -93,7 +93,7 @@ impl ColumnTypes {
         sep: &str,
         no_header: bool,
         cols: &column::Columns,
-    ) -> Result<Self, Box<dyn Error>> {
+    ) -> Result<Option<Self>, Box<dyn Error>> {
         let mut guess = ColumnTypes(vec![]);
 
         // reader
@@ -101,9 +101,15 @@ impl ColumnTypes {
 
         // take first row to analyze the number of column
         let first_row = if no_header {
-            file::first_row(path)?
+            match file::first_row(path)? {
+                Some(v) => v,
+                None => return Ok(None),
+            }
         } else {
-            rdr.next().unwrap()?
+            match rdr.next() {
+                Some(r) => r?,
+                None => return Ok(None),
+            }
         };
         let first_row = first_row.split(sep).collect::<Vec<_>>();
 
@@ -131,7 +137,7 @@ impl ColumnTypes {
             (0..guess.len()).for_each(|n| guess.parse_csv_row(n, v[guess.col_index_at(n)]))
         }
 
-        Ok(guess)
+        Ok(Some(guess))
     }
 
     fn parse_csv_row(&mut self, n: usize, v: &str) {

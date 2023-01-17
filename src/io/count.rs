@@ -6,7 +6,7 @@ pub fn run(no_header: bool) -> CliResult {
     // progress
     let mut n = stdin().lock().lines().count();
 
-    if !no_header {
+    if !no_header && n > 0 {
         n -= 1;
     }
 

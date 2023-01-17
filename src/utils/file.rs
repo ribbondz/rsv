@@ -63,10 +63,11 @@ pub fn file_or_stdout_wtr(export: bool, path: &Path) -> Result<Box<dyn Write>, B
     }
 }
 
-pub fn first_row(path: &Path) -> Result<String, Box<dyn Error>> {
+pub fn first_row(path: &Path) -> Result<Option<String>, Box<dyn Error>> {
     let mut rdr = BufReader::new(File::open(path)?).lines();
 
-    Ok(rdr.next().unwrap()?)
+    let r = rdr.next().and_then(|i| i.ok());
+    Ok(r)
 }
 
 pub fn is_excel(p: &Path) -> bool {
