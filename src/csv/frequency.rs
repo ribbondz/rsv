@@ -32,7 +32,7 @@ pub fn run(
             Ok(r) => {
                 let r = r.split(sep).collect::<Vec<_>>();
                 if col.max() >= r.len() {
-                    println!("[info] read a bad line # {:?}!", r);
+                    println!("[info] ignore a bad line # {:?}!", r);
                     col.artificial_cols_with_appended_n()
                 } else {
                     col.select_owned_vector_and_append_n(&r)

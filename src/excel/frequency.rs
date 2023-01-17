@@ -35,7 +35,7 @@ pub fn run(
             }
         };
         if col.max() >= first_row.len() {
-            println!("[info] read a bad line # {:?}!", first_row);
+            println!("[info] ignore a bad line # {:?}!", first_row);
             col.artificial_cols_with_appended_n()
         } else {
             col.select_owned_vector_and_append_n2(first_row)
