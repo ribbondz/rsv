@@ -16,6 +16,11 @@ impl Writer {
         Ok(Writer(wtr))
     }
 
+    pub fn one_time_to_stdout(buf: &str) {
+        let mut wtr = BufWriter::new(stdout());
+        wtr.write_all(buf.as_bytes()).unwrap();
+    }
+
     pub fn file_or_stdout(export: bool, path: &Path) -> Result<Self, Error> {
         let wtr = match export {
             true => Box::new(BufWriter::new(File::create(path)?)) as Box<dyn Write>,

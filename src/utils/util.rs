@@ -1,6 +1,6 @@
-use std::io::{stdout, Write};
-
+use crate::utils::writer::Writer;
 use chrono;
+use std::io::{stdout, BufWriter, Write};
 use tabled::builder::Builder;
 use tabled::Style;
 
@@ -34,15 +34,19 @@ pub fn print_tabled(records: Vec<Vec<String>>) {
     // style
     table.with(Style::blank());
 
-    println!("{table}");
+    Writer::one_time_to_stdout(&table.to_string());
 }
 
 /// early return when pipeline closed
 pub fn print_frequency_table(names: &[String], freq: Vec<(String, usize)>) {
-    println!("{}", names.join(","));
-    let mut lock = stdout().lock();
+    let mut wtr = BufWriter::new(stdout());
+
+    if writeln!(wtr, "{}", names.join(",")).is_err() {
+        return;
+    };
+
     for (k, n) in &freq {
-        if writeln!(lock, "{},{}", k, n).is_err() {
+        if writeln!(wtr, "{},{}", k, n).is_err() {
             return;
         }
     }

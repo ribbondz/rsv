@@ -68,6 +68,8 @@ pub fn first_row(path: &Path) -> Result<Option<String>, Box<dyn Error>> {
 }
 
 pub fn is_excel(p: &Path) -> bool {
-    let e = p.extension().unwrap();
-    e == "xlsx" || e == "xls"
+    match p.extension() {
+        Some(e) => e == "xlsx" || e == "xls",
+        None => false,
+    }
 }

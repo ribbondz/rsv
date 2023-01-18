@@ -74,6 +74,7 @@ pub fn run(sep: &str, no_header: bool, cols: &str, export: bool) -> CliResult {
         println!("Saved to file: {}", out.display());
     } else {
         stat.print();
+        println!("Total rows: {}", stat.rows);
     }
 
     Ok(())
