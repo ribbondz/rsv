@@ -37,7 +37,7 @@ pub fn run(
         Some(index) => write_by_index(&mut rdr, &mut wtr, index),
         None => {
             let end = end
-                .or_else(|| length.map(|l| start + l - 1).or(Some(usize::MAX - 10)))
+                .or_else(|| length.map(|l| start + l).or(Some(usize::MAX - 10)))
                 .unwrap();
             if start > end {
                 werr!("Error: end index should be equal to or bigger than start index.");
