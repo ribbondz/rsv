@@ -18,6 +18,10 @@ pub fn is_tab(sep: &str) -> bool {
 }
 
 pub fn print_tabled(records: Vec<Vec<String>>) {
+    if !records.is_empty() {
+        return;
+    }
+
     let mut builder = Builder::default();
 
     records.iter().for_each(|r| {

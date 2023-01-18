@@ -58,6 +58,7 @@ pub fn run(
     if export {
         println!("\nSaved to file: {}", out_path.display())
     }
+    
     Ok(())
 }
 

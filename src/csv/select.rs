@@ -42,6 +42,7 @@ pub fn run(
         }
 
         let r = r.unwrap()?;
+
         match cols.all {
             true => wtr.write_line_unchecked(&r),
             false => {
