@@ -11,7 +11,7 @@ impl Re {
         Ok(Re(re))
     }
 
-    fn is_match(&self, v: &str) -> bool {
+    pub fn is_match(&self, v: &str) -> bool {
         self.0.is_match(v)
     }
 

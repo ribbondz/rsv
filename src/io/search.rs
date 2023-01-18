@@ -1,16 +1,12 @@
 use crate::utils::filename::new_file;
+use crate::utils::regex::Re;
 use crate::utils::{cli_result::CliResult, writer::Writer};
-
-use regex::RegexBuilder;
 use std::io::{self, BufRead};
 
 pub fn run(pattern: &str, no_header: bool, export: bool) -> CliResult {
     // wtr and rdr
     let out = new_file("searched.csv");
     let mut wtr = Writer::file_or_stdout(export, &out)?;
-
-    // regex
-    let re = RegexBuilder::new(pattern).case_insensitive(true).build()?;
 
     // read
     let mut handle = io::stdin().lock().lines();
@@ -22,6 +18,8 @@ pub fn run(pattern: &str, no_header: bool, export: bool) -> CliResult {
         }
     }
 
+    // regex
+    let re = Re::new(pattern)?;
     let mut matched = 0;
     for l in handle {
         let l = l?;

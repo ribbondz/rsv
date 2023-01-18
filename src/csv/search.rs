@@ -3,10 +3,10 @@ use crate::utils::cli_result::CliResult;
 use crate::utils::file::estimate_line_count_by_mb;
 use crate::utils::filename::new_path;
 use crate::utils::progress::Progress;
+use crate::utils::regex::Re;
 use crate::utils::writer::Writer;
 use crossbeam_channel::bounded;
 use rayon::prelude::*;
-use regex::RegexBuilder;
 use std::path::Path;
 use std::thread;
 
@@ -34,7 +34,7 @@ pub fn run(path: &Path, pattern: &str, no_header: bool, export: bool) -> CliResu
     let mut prog = Progress::new();
 
     // regex search
-    let re = RegexBuilder::new(pattern).case_insensitive(true).build()?;
+    let re = Re::new(pattern)?;
     for Task {
         lines,
         bytes,
