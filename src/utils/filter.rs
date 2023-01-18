@@ -86,7 +86,10 @@ impl Filter {
     }
 
     pub fn excel_record_valid_map(&self, row: &[DataType]) -> Option<Vec<String>> {
-        let row = row.iter().map(|i| i.to_string()).collect::<Vec<_>>();
+        let row = row
+            .iter()
+            .map(|i| i.to_string().trim().to_owned())
+            .collect::<Vec<_>>();
         if self.excel_record_is_valid(&row) {
             Some(row)
         } else {

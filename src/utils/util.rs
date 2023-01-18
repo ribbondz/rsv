@@ -13,6 +13,10 @@ pub fn is_null(s: &str) -> bool {
     s.is_empty() || s == "NA" || s == "Na" || s == "na" || s == "NULL" || s == "Null" || s == "null"
 }
 
+pub fn is_tab(sep: &str) -> bool {
+    sep == "\\t" || sep == "'\\t'" || sep == "\"\\t\""
+}
+
 pub fn print_tabled(records: Vec<Vec<String>>) {
     let mut builder = Builder::default();
 

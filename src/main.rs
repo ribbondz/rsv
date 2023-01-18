@@ -11,6 +11,8 @@ use utils::{
     util::werr,
 };
 
+use crate::utils::util::is_tab;
+
 mod csv;
 mod excel;
 mod io;
@@ -26,6 +28,19 @@ mod utils;
 struct Cli {
     #[command(subcommand)]
     command: Commands,
+}
+
+trait ValidFileSep {
+    fn valid(&self) -> String;
+}
+
+impl ValidFileSep for String {
+    fn valid(&self) -> String {
+        match is_tab(&self) {
+            true => '\t'.to_string(),
+            false => self.to_owned(),
+        }
+    }
 }
 
 #[derive(Subcommand)]
@@ -381,32 +396,36 @@ fn main() {
                     false => csv::head::run(
                         &path,
                         option.no_header,
-                        &option.sep,
+                        &option.sep.valid(),
                         option.n,
                         option.tabled,
                     )
                     .handle_err(),
                 }
             }
-            None => {
-                io::head::run(option.no_header, &option.sep, option.n, option.tabled).handle_err()
-            }
+            None => io::head::run(
+                option.no_header,
+                &option.sep.valid(),
+                option.n,
+                option.tabled,
+            )
+            .handle_err(),
         },
         Commands::Headers(option) => match &option.filename {
             Some(f) => {
                 let path = full_path(f);
                 match is_excel(&path) {
                     true => excel::headers::run(&path, option.sheet).handle_err(),
-                    false => csv::headers::run(&path, &option.sep).handle_err(),
+                    false => csv::headers::run(&path, &option.sep.valid()).handle_err(),
                 }
             }
-            None => io::headers::run(&option.sep).handle_err(),
+            None => io::headers::run(&option.sep.valid()).handle_err(),
         },
         Commands::Estimate(option) => match &option.filename {
             Some(f) => {
                 let path = full_path(f);
                 match is_excel(&path) {
-                    true => excel::count::run(&path, option.sheet, true).handle_err(),
+                    true => excel::count::run(&path, option.sheet, false).handle_err(),
                     false => csv::estimate::run(&path).handle_err(),
                 }
             }
@@ -437,7 +456,7 @@ fn main() {
                     false => csv::frequency::run(
                         &path,
                         option.no_header,
-                        &option.sep,
+                        &option.sep.valid(),
                         &option.cols,
                         option.ascending,
                         option.n,
@@ -448,7 +467,7 @@ fn main() {
             }
             None => io::frequency::run(
                 option.no_header,
-                &option.sep,
+                &option.sep.valid(),
                 &option.cols,
                 option.ascending,
                 option.n,
@@ -471,16 +490,20 @@ fn main() {
                     false => csv::split::run(
                         &path,
                         option.no_header,
-                        &option.sep,
+                        &option.sep.valid(),
                         option.col,
                         &option.size,
                     )
                     .handle_err(),
                 }
             }
-            None => {
-                io::split::run(option.no_header, &option.sep, option.col, &option.size).handle_err()
-            }
+            None => io::split::run(
+                option.no_header,
+                &option.sep.valid(),
+                option.col,
+                &option.size,
+            )
+            .handle_err(),
         },
         Commands::Select(option) => match &option.filename {
             Some(f) => {
@@ -498,7 +521,7 @@ fn main() {
                     false => csv::select::run(
                         &path,
                         option.no_header,
-                        &option.sep,
+                        &option.sep.valid(),
                         &option.cols,
                         &option.filter,
                         option.export,
@@ -508,7 +531,7 @@ fn main() {
             }
             None => io::select::run(
                 option.no_header,
-                &option.sep,
+                &option.sep.valid(),
                 &option.cols,
                 &option.filter,
                 option.export,
@@ -530,15 +553,20 @@ fn main() {
                     false => csv::flatten::run(
                         &path,
                         option.no_header,
-                        &option.sep,
+                        &option.sep.valid(),
                         &option.delimiter,
                         option.n,
                     )
                     .handle_err(),
                 }
             }
-            None => io::flatten::run(option.no_header, &option.sep, &option.delimiter, option.n)
-                .handle_err(),
+            None => io::flatten::run(
+                option.no_header,
+                &option.sep.valid(),
+                &option.delimiter,
+                option.n,
+            )
+            .handle_err(),
         },
         Commands::Slice(option) => match &option.filename {
             Some(f) => {
@@ -591,7 +619,7 @@ fn main() {
                     .handle_err(),
                     false => csv::stats::run(
                         &path,
-                        &option.sep,
+                        &option.sep.valid(),
                         option.no_header,
                         &option.cols,
                         option.export,
@@ -599,13 +627,20 @@ fn main() {
                     .handle_err(),
                 }
             }
-            None => io::stats::run(&option.sep, option.no_header, &option.cols, option.export)
-                .handle_err(),
+            None => io::stats::run(
+                &option.sep.valid(),
+                option.no_header,
+                &option.cols,
+                option.export,
+            )
+            .handle_err(),
         },
         Commands::Excel2csv(option) => {
             let path = full_path(&option.filename);
             match is_excel(&path) {
-                true => excel::excel2csv::run(&path, option.sheet, &option.sep).handle_err(),
+                true => {
+                    excel::excel2csv::run(&path, option.sheet, &option.sep.valid()).handle_err()
+                }
                 false => werr!("Error: File <{}> is not an excel file.", path.display()),
             }
         }
@@ -614,10 +649,10 @@ fn main() {
                 let p = full_path(f);
                 match is_excel(&p) {
                     true => excel::table::run(&p, option.sheet).handle_err(),
-                    false => csv::table::run(&p, &option.sep).handle_err(),
+                    false => csv::table::run(&p, &option.sep.valid()).handle_err(),
                 }
             }
-            None => io::table::run(&option.sep).handle_err(),
+            None => io::table::run(&option.sep.valid()).handle_err(),
         },
         Commands::Search(option) => match &option.filename {
             Some(f) => {

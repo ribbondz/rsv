@@ -11,12 +11,8 @@ pub fn run(path: &Path, sheet: usize, sep: &str) -> CliResult {
     let range = ExcelReader::new(path, sheet)?;
     let mut wtr = Writer::new(&out_path)?;
 
-    // progress
-    let sep_bytes = if sep == "\\t" {
-        &[b'\t'; 1]
-    } else {
-        sep.as_bytes()
-    };
+    // const
+    let sep_bytes = sep.as_bytes();
 
     // excel2csv
     for r in range.iter() {
