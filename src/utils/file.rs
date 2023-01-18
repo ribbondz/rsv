@@ -1,5 +1,4 @@
 use std::error::Error;
-use std::io::stdout;
 use std::{
     fs::File,
     io::{BufRead, BufReader, BufWriter, Write},
@@ -26,12 +25,17 @@ pub fn estimate_row_bytes(path: &Path) -> Result<f64, Box<dyn Error>> {
     Ok((bytes as f64) / (n as f64))
 }
 
-pub fn column_n(path: &Path, sep: &str) -> Result<usize, Box<dyn Error>> {
+pub fn column_n(path: &Path, sep: &str) -> Result<Option<usize>, Box<dyn Error>> {
     // read
     let rdr = BufReader::new(File::open(path)?);
-    let r = rdr.lines().next().unwrap()?;
+    let n = rdr
+        .lines()
+        .next()
+        .map(|i| i.ok())
+        .unwrap_or_default()
+        .map(|i| i.split(sep).count());
 
-    Ok(r.split(sep).count())
+    Ok(n)
 }
 
 pub fn estimate_line_count_by_mb(path: &Path, mb: Option<usize>) -> usize {
@@ -53,13 +57,6 @@ pub fn write_frequency_to_csv(path: &PathBuf, names: &Vec<String>, freq: Vec<(St
     // content
     for (k, v) in freq {
         writeln!(f, "{},{}", k, v).unwrap();
-    }
-}
-
-pub fn file_or_stdout_wtr(export: bool, path: &Path) -> Result<Box<dyn Write>, Box<dyn Error>> {
-    match export {
-        true => Ok(Box::new(File::create(path)?) as Box<dyn Write>),
-        false => Ok(Box::new(stdout()) as Box<dyn Write>),
     }
 }
 

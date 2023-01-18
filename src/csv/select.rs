@@ -1,16 +1,15 @@
 use crate::utils::chunk_reader::{ChunkReader, Task};
 use crate::utils::cli_result::CliResult;
 use crate::utils::column::Columns;
-use crate::utils::constants::TERMINATOR;
-use crate::utils::file::{estimate_line_count_by_mb, file_or_stdout_wtr};
+use crate::utils::file::estimate_line_count_by_mb;
 use crate::utils::filename::new_path;
 use crate::utils::filter::Filter;
 use crate::utils::progress::Progress;
+use crate::utils::writer::Writer;
 use crossbeam_channel::bounded;
 use rayon::prelude::*;
-use std::io::{BufWriter, Write};
 use std::path::Path;
-use std::{process, thread};
+use std::thread;
 
 pub fn run(
     path: &Path,
@@ -28,8 +27,7 @@ pub fn run(
     let cols = Columns::new(cols);
 
     // open file
-    let f = file_or_stdout_wtr(export, &out_path)?;
-    let mut wtr = BufWriter::new(f);
+    let mut wtr = Writer::file_or_stdout(export, &out_path)?;
     let mut rdr = ChunkReader::new(path)?;
 
     // const
@@ -37,17 +35,21 @@ pub fn run(
 
     // header
     if !no_header {
-        match rdr.next()? {
-            Some(r) => {
-                let r = r.split(sep).collect::<Vec<_>>();
-                let r = match cols.all {
-                    true => r,
-                    false => cols.iter().map(|&i| r[i]).collect(),
-                };
-                print_record(&mut wtr, &r, sep_bytes)
-            }
-            None => return Ok(()),
+        let r = rdr.next();
+
+        if r.is_none() {
+            return Ok(());
         }
+
+        let r = r.unwrap()?;
+        match cols.all {
+            true => wtr.write_line_unchecked(&r),
+            false => {
+                let mut r = r.split(sep).collect::<Vec<_>>();
+                r = cols.iter().map(|&i| r[i]).collect();
+                wtr.write_line_by_field_unchecked(&r, Some(sep_bytes));
+            }
+        };
     }
 
     // parallel queue
@@ -77,7 +79,7 @@ fn handle_task(
     filter: &Filter,
     sep: &str,
     cols: &Columns,
-    wtr: &mut BufWriter<Box<dyn Write>>,
+    wtr: &mut Writer,
     sep_bytes: &[u8],
     export: bool,
     prog: &mut Progress,
@@ -87,15 +89,16 @@ fn handle_task(
         .lines
         .par_iter()
         .filter_map(|row| filter.record_valid_map(row, sep))
-        .collect::<Vec<_>>();
+        .collect::<Vec<(_, _)>>();
 
     // write
-    for row in filtered {
+    for (r, f) in filtered {
         match cols.all {
-            true => print_record(wtr, &row, sep_bytes),
+            true => wtr.write_line_unchecked(r.unwrap()),
             false => {
-                let record = cols.iter().map(|&i| row[i]).collect::<Vec<_>>();
-                print_record(wtr, &record, sep_bytes)
+                let f = f.unwrap();
+                let row = cols.iter().map(|&i| f[i]).collect::<Vec<_>>();
+                wtr.write_line_by_field_unchecked(&row, Some(sep_bytes));
             }
         }
     }
@@ -104,25 +107,5 @@ fn handle_task(
         prog.add_chunks(1);
         prog.add_bytes(task.bytes);
         prog.print();
-    }
-}
-
-/// terminate program when pipeline closed
-fn print_record(wtr: &mut BufWriter<Box<dyn Write>>, record: &[&str], sep_bytes: &[u8]) {
-    let mut it = record.iter().peekable();
-
-    while let Some(&field) = it.next() {
-        if wtr.write_all(field.as_bytes()).is_err() {
-            process::exit(0);
-        };
-
-        let t = if it.peek().is_none() {
-            TERMINATOR
-        } else {
-            sep_bytes
-        };
-        if wtr.write_all(t).is_err() {
-            process::exit(0);
-        };
     }
 }

@@ -11,4 +11,6 @@ pub mod file;
 pub mod filename;
 pub mod filter;
 pub mod progress;
+pub mod regex;
 pub mod util;
+pub mod writer;

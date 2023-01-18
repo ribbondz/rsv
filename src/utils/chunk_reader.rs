@@ -1,4 +1,5 @@
 use crossbeam_channel::Sender;
+use std::io::Error;
 use std::path::Path;
 use std::{
     fs::File,
@@ -14,14 +15,13 @@ pub struct Task {
 }
 
 impl ChunkReader {
-    pub fn new(path: &Path) -> Result<Self, std::io::Error> {
+    pub fn new(path: &Path) -> Result<Self, Error> {
         let rdr = BufReader::new(File::open(path)?).lines();
         Ok(ChunkReader(rdr))
     }
 
-    pub fn next(&mut self) -> Result<Option<String>, std::io::Error> {
-        let v = self.0.next().and_then(|i| i.ok());
-        Ok(v)
+    pub fn next(&mut self) -> Option<Result<String, Error>> {
+        self.0.next()
     }
 
     pub fn send_to_channel_by_chunks(&mut self, tx: Sender<Task>, line_buffer_n: usize) {

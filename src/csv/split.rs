@@ -1,16 +1,15 @@
 use crate::utils::chunk_reader::{ChunkReader, Task};
 use crate::utils::cli_result::CliResult;
-use crate::utils::constants::TERMINATOR;
 use crate::utils::file::estimate_line_count_by_mb;
-use crate::utils::filename::str_clean_as_filename;
+use crate::utils::filename::{dir_file, str_to_filename};
 use crate::utils::progress::Progress;
 use crate::utils::util::{datetime_str, werr};
+use crate::utils::writer::Writer;
 use crossbeam_channel::bounded;
 use dashmap::DashMap;
 use rayon::prelude::*;
 use std::error::Error;
-use std::fs::{create_dir, OpenOptions};
-use std::io::{BufWriter, Write};
+use std::fs::create_dir;
 use std::path::Path;
 use std::{process, thread};
 
@@ -30,8 +29,8 @@ pub fn run(path: &Path, no_header: bool, sep: &str, col: usize, size: &Option<us
     let first_row = if no_header {
         "".to_owned()
     } else {
-        let first_row = match rdr.next()? {
-            Some(v) => v,
+        let first_row = match rdr.next() {
+            Some(v) => v?,
             None => return Ok(()),
         };
         if col >= first_row.split(sep).count() {
@@ -101,25 +100,10 @@ fn sequential_task_handle(
     prog.add_chunks(1);
     prog.add_bytes(task.bytes);
 
-    // open file
-    let f = OpenOptions::new()
-        .write(true)
-        .append(true)
-        .create(true)
-        .open(out)?;
-    let mut wtr = BufWriter::new(f);
-
-    // header
-    if !first_row.is_empty() {
-        wtr.write_all(first_row.as_bytes())?;
-        wtr.write_all(TERMINATOR)?;
-    }
-
-    // content
-    task.lines.iter().for_each(|r| {
-        wtr.write_all(r.as_bytes()).unwrap();
-        wtr.write_all(TERMINATOR).unwrap();
-    });
+    // write
+    let mut wtr = Writer::append_to(out)?;
+    wtr.write_header(first_row)?;
+    wtr.write_lines(&task.lines)?;
 
     prog.print();
 
@@ -157,8 +141,8 @@ fn task_handle(
         .into_iter()
         .collect::<Vec<(_, _)>>()
         .par_iter()
-        .for_each(|(a, b)| {
-            save_to_disk(dir, a, b, no_header, header_inserted, first_row).unwrap();
+        .for_each(|(field, rows)| {
+            save_to_disk(dir, field, rows, no_header, header_inserted, first_row).unwrap();
         });
 
     prog.print();
@@ -175,30 +159,16 @@ fn save_to_disk(
     first_row: &str,
 ) -> Result<(), Box<dyn Error>> {
     // file path
-    let filename = str_clean_as_filename(field, None);
-    let mut path = dir.to_path_buf();
-    path.push(&filename);
+    let filename = str_to_filename(field) + ".csv";
+    let out = dir_file(dir, &filename);
 
-    // open file
-    let f = OpenOptions::new()
-        .write(true)
-        .append(true)
-        .create(true)
-        .open(&path)?;
-    let mut wtr = BufWriter::new(f);
-
-    // header
+    // write
+    let mut wtr = Writer::append_to(&out)?;
     if !no_header && !header_inserted.contains_key(&filename) {
         header_inserted.insert(filename, true);
-        wtr.write_all(first_row.as_bytes())?;
-        wtr.write_all(TERMINATOR)?;
+        wtr.write_line(first_row)?
     }
-
-    // content
-    rows.iter().for_each(|&r| {
-        wtr.write_all(r.as_bytes()).unwrap();
-        wtr.write_all(TERMINATOR).unwrap();
-    });
+    wtr.write_lines(rows)?;
 
     Ok(())
 }

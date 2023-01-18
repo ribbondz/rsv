@@ -1,29 +1,28 @@
 use crate::utils::chunk_reader::{ChunkReader, Task};
 use crate::utils::cli_result::CliResult;
-use crate::utils::constants::TERMINATOR;
-use crate::utils::file::{estimate_line_count_by_mb, file_or_stdout_wtr};
+use crate::utils::file::estimate_line_count_by_mb;
 use crate::utils::filename::new_path;
 use crate::utils::progress::Progress;
+use crate::utils::writer::Writer;
 use crossbeam_channel::bounded;
 use rayon::prelude::*;
 use regex::RegexBuilder;
-use std::io::{BufWriter, Write};
 use std::path::Path;
-use std::{process, thread};
+use std::thread;
 
 pub fn run(path: &Path, pattern: &str, no_header: bool, export: bool) -> CliResult {
     // wtr and rdr
     let out_path = new_path(path, "-searched");
-    let f = file_or_stdout_wtr(export, &out_path)?;
-    let mut wtr = BufWriter::new(f);
+
+    let mut wtr = Writer::file_or_stdout(export, &out_path)?;
     let mut rdr = ChunkReader::new(path)?;
 
     // header
     if !no_header {
-        match rdr.next()? {
-            Some(r) => write(&mut wtr, &r),
+        match rdr.next() {
+            Some(r) => wtr.write_header_unchecked(&r?),
             None => return Ok(()),
-        }
+        };
     };
 
     // read file
@@ -49,9 +48,7 @@ pub fn run(path: &Path, pattern: &str, no_header: bool, export: bool) -> CliResu
 
         // pipeline could be closed, e.g., when rsv head take enough items
         // ignore the error
-        for l in &lines {
-            write(&mut wtr, l)
-        }
+        wtr.write_lines_unchecked(&lines);
 
         if export {
             prog.add_lines(lines.len());
@@ -67,13 +64,4 @@ pub fn run(path: &Path, pattern: &str, no_header: bool, export: bool) -> CliResu
     }
 
     Ok(())
-}
-
-fn write(wtr: &mut BufWriter<Box<dyn Write>>, data: &str) {
-    if wtr.write_all(data.as_bytes()).is_err() {
-        process::exit(0)
-    };
-    if wtr.write_all(TERMINATOR).is_err() {
-        process::exit(0)
-    };
 }

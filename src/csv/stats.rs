@@ -25,10 +25,13 @@ pub fn run(path: &Path, sep: &str, no_header: bool, cols: &str, export: bool) ->
 
     // header
     let name = if no_header {
-        cols.artificial_n_cols(column_n(path, sep)?)
+        match column_n(path, sep)? {
+            Some(n) => cols.artificial_n_cols(n),
+            None => return Ok(()),
+        }
     } else {
-        let r = match rdr.next()? {
-            Some(r) => r,
+        let r = match rdr.next() {
+            Some(r) => r?,
             None => return Ok(()),
         };
         r.split(sep).map(String::from).collect()

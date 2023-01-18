@@ -51,5 +51,6 @@ pub fn run(path: &Path, escape: &str, new_filename: &str) -> CliResult {
     prog.print();
 
     println!("\nSaved to file: {}", new_path.display());
+    
     Ok(())
 }

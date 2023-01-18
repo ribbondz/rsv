@@ -1,11 +1,8 @@
 use crate::utils::cli_result::CliResult;
-use crate::utils::constants::TERMINATOR;
-use crate::utils::excel::datatype_vec_to_string;
 use crate::utils::excel_reader::ExcelReader;
-use crate::utils::file::file_or_stdout_wtr;
 use crate::utils::filename::new_path;
 use crate::utils::util::werr;
-use std::io::{BufWriter, Write};
+use crate::utils::writer::Writer;
 use std::path::Path;
 use std::process;
 
@@ -24,17 +21,15 @@ pub fn run(
     let out_path = new_path(path, "-slice");
 
     // open file
-    let f = file_or_stdout_wtr(export, &out_path)?;
-    let mut wtr = BufWriter::new(f);
+    let mut wtr = Writer::file_or_stdout(export, &out_path)?;
     let mut rdr = ExcelReader::new(path, sheet)?;
 
     // header
     if !no_header {
-        let r = match rdr.next() {
-            Some(v) => datatype_vec_to_string(v),
+        match rdr.next() {
+            Some(v) => wtr.write_excel_line_unchecked(v),
             None => return Ok(()),
-        };
-        write(&mut wtr, &r);
+        }
     }
 
     // slice
@@ -59,31 +54,14 @@ pub fn run(
     Ok(())
 }
 
-fn write_by_index(rdr: &mut ExcelReader, wtr: &mut BufWriter<Box<dyn Write>>, index: usize) {
+fn write_by_index(rdr: &mut ExcelReader, wtr: &mut Writer, index: usize) {
     for r in rdr.iter().skip(rdr.next_called + index).take(1) {
-        let r = datatype_vec_to_string(r);
-        write(wtr, &r);
+        wtr.write_excel_line_unchecked(r);
     }
 }
 
-fn write_by_range(
-    rdr: &mut ExcelReader,
-    wtr: &mut BufWriter<Box<dyn Write>>,
-    start: usize,
-    end: usize,
-) {
+fn write_by_range(rdr: &mut ExcelReader, wtr: &mut Writer, start: usize, end: usize) {
     for r in rdr.iter().skip(rdr.next_called + start).take(end - start) {
-        let r = datatype_vec_to_string(r);
-        write(wtr, &r);
+        wtr.write_excel_line_unchecked(r);
     }
-}
-
-/// ignore write error, when pipeline are closed
-fn write(wtr: &mut BufWriter<Box<dyn Write>>, data: &str) {
-    if wtr.write_all(data.as_bytes()).is_err() {
-        process::exit(0)
-    };
-    if wtr.write_all(TERMINATOR).is_err() {
-        process::exit(0)
-    };
 }

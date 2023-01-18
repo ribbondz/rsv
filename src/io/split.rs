@@ -1,12 +1,12 @@
 use crate::utils::cli_result::CliResult;
-use crate::utils::constants::TERMINATOR;
-use crate::utils::filename::{new_file, str_clean_as_filename};
+use crate::utils::filename::{dir_file, new_file, str_to_filename};
 use crate::utils::util::datetime_str;
+use crate::utils::writer::Writer;
 use dashmap::DashMap;
 use rayon::prelude::*;
 use std::error::Error;
-use std::fs::{create_dir, OpenOptions};
-use std::io::{stdin, BufRead, BufWriter, Write};
+use std::fs::create_dir;
+use std::io::{stdin, BufRead};
 use std::path::Path;
 
 struct Args {
@@ -96,25 +96,10 @@ fn sequential_task_handle(
     let mut out = dir.to_owned();
     out.push(format!("split{}.csv", args.chunk));
 
-    // open file
-    let f = OpenOptions::new()
-        .write(true)
-        .append(true)
-        .create(true)
-        .open(out)?;
-    let mut wtr = BufWriter::new(f);
-
-    // header
-    if !first_row.is_empty() {
-        wtr.write_all(first_row.as_bytes())?;
-        wtr.write_all(TERMINATOR)?;
-    }
-
-    // content
-    lines.iter().for_each(|r| {
-        wtr.write_all(r.as_bytes()).unwrap();
-        wtr.write_all(TERMINATOR).unwrap();
-    });
+    // write
+    let mut wtr = Writer::append_to(&out)?;
+    wtr.write_header(first_row)?;
+    wtr.write_lines(&lines)?;
 
     Ok(())
 }
@@ -147,8 +132,8 @@ fn col_split_task_handle(
         .into_iter()
         .collect::<Vec<(_, _)>>()
         .par_iter()
-        .for_each(|(a, b)| {
-            save_to_disk(args, dir, a, b, header_inserted, first_row).unwrap();
+        .for_each(|(field, rows)| {
+            save_to_disk(args, dir, field, rows, header_inserted, first_row).unwrap();
         });
 
     Ok(())
@@ -163,30 +148,16 @@ fn save_to_disk(
     first_row: &str,
 ) -> Result<(), Box<dyn Error>> {
     // file path
-    let filename = str_clean_as_filename(field, None);
-    let mut path = dir.to_path_buf();
-    path.push(&filename);
+    let filename = str_to_filename(field) + ".csv";
+    let out = dir_file(dir, &filename);
 
-    // open file
-    let f = OpenOptions::new()
-        .write(true)
-        .append(true)
-        .create(true)
-        .open(&path)?;
-    let mut wtr = BufWriter::new(f);
-
-    // header
+    // write
+    let mut wtr = Writer::append_to(&out)?;
     if !args.no_header && !header_inserted.contains_key(&filename) {
         header_inserted.insert(filename, true);
-        wtr.write_all(first_row.as_bytes())?;
-        wtr.write_all(TERMINATOR)?;
+        wtr.write_line(first_row)?;
     }
-
-    // content
-    rows.iter().for_each(|&r| {
-        wtr.write_all(r.as_bytes()).unwrap();
-        wtr.write_all(TERMINATOR).unwrap();
-    });
+    wtr.write_lines(rows)?;
 
     Ok(())
 }

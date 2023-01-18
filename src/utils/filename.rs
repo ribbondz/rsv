@@ -2,15 +2,6 @@ use std::path::{Path, PathBuf};
 
 const BAD_FILENAME_CHARACTERS: [char; 9] = ['<', '>', ':', '\\', '/', '\\', '"', '?', '*'];
 
-pub fn str_clean_as_filename(name: &str, extension: Option<&str>) -> String {
-    let f = name.to_owned().replace(BAD_FILENAME_CHARACTERS, "");
-
-    match extension {
-        Some(e) => f + "." + e,
-        None => f + ".csv",
-    }
-}
-
 pub fn new_path(path: &Path, suffix: &str) -> PathBuf {
     let p = path.with_file_name(format!(
         "{}{}",
@@ -30,6 +21,17 @@ pub fn new_file(name: &str) -> PathBuf {
     path.push(name);
 
     path
+}
+
+pub fn str_to_filename(s: &str) -> String {
+    s.replace(BAD_FILENAME_CHARACTERS, "")
+}
+
+pub fn dir_file(dir: &Path, name: &str) -> PathBuf {
+    let mut out = dir.to_path_buf();
+    out.push(&name);
+
+    out
 }
 
 pub fn full_path(f: &str) -> PathBuf {

@@ -1,11 +1,10 @@
 use crate::utils::cli_result::CliResult;
-use crate::utils::file::file_or_stdout_wtr;
 use crate::utils::filename::new_path;
+use crate::utils::writer::Writer;
 use std::fs::File;
+use std::io::BufRead;
 use std::io::BufReader;
-use std::io::{BufRead, BufWriter, Write};
 use std::path::Path;
-use std::process;
 
 pub fn run(
     path: &Path,
@@ -20,8 +19,7 @@ pub fn run(
     let out_path = new_path(path, "-slice");
 
     // open file
-    let f = file_or_stdout_wtr(export, &out_path)?;
-    let mut wtr = BufWriter::new(f);
+    let mut wtr = Writer::file_or_stdout(export, &out_path)?;
     let mut rdr = BufReader::new(File::open(path)?);
 
     // header
@@ -30,7 +28,7 @@ pub fn run(
         if rdr.read_until(b'\n', &mut buf).is_err() {
             return Ok(());
         };
-        write_bytes(&mut wtr, &buf);
+        wtr.write_bytes_unchecked(&buf);
     }
 
     // slice
@@ -51,7 +49,7 @@ pub fn run(
     Ok(())
 }
 
-fn write_by_index(rdr: &mut BufReader<File>, wtr: &mut BufWriter<Box<dyn Write>>, index: usize) {
+fn write_by_index(rdr: &mut BufReader<File>, wtr: &mut Writer, index: usize) {
     let mut buf = vec![];
     let mut n = 0;
 
@@ -61,7 +59,7 @@ fn write_by_index(rdr: &mut BufReader<File>, wtr: &mut BufWriter<Box<dyn Write>>
         }
 
         if n == index {
-            write_bytes(wtr, &buf[..bytes]);
+            wtr.write_bytes_unchecked(&buf[..bytes]);
             break;
         }
 
@@ -70,12 +68,7 @@ fn write_by_index(rdr: &mut BufReader<File>, wtr: &mut BufWriter<Box<dyn Write>>
     }
 }
 
-fn write_by_range(
-    rdr: &mut BufReader<File>,
-    wtr: &mut BufWriter<Box<dyn Write>>,
-    start: usize,
-    end: usize,
-) {
+fn write_by_range(rdr: &mut BufReader<File>, wtr: &mut Writer, start: usize, end: usize) {
     let mut buf = vec![];
     let mut n = 0;
 
@@ -85,17 +78,10 @@ fn write_by_range(
         }
 
         if n >= start && n < end {
-            write_bytes(wtr, &buf[..bytes])
+            wtr.write_bytes_unchecked(&buf[..bytes]);
         }
 
         buf.clear();
         n += 1;
-    }
-}
-
-/// ignore write error in case pipeline is early closed.
-fn write_bytes(wtr: &mut BufWriter<Box<dyn Write>>, data: &[u8]) {
-    if wtr.write_all(data).is_err() {
-        process::exit(0)
     }
 }

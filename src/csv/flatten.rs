@@ -11,16 +11,15 @@ pub fn run(path: &Path, no_header: bool, sep: &str, delimiter: &str, n: i32) -> 
 
     // header
     let columns: Vec<String> = if no_header {
-        let column_n = file::column_n(path, sep)?;
-        (1..=column_n)
-            .map(|i| "col".to_owned() + &i.to_string())
-            .collect::<Vec<_>>()
+        match file::column_n(path, sep)? {
+            Some(n) => (1..=n)
+                .map(|i| "col".to_owned() + &i.to_string())
+                .collect::<Vec<_>>(),
+            None => return Ok(()),
+        }
     } else {
         match rdr.next() {
-            Some(r) => match r {
-                Ok(v) => v.split(sep).map(|i| i.to_string()).collect::<Vec<_>>(),
-                Err(_) => return Ok(()),
-            },
+            Some(r) => r?.split(sep).map(|i| i.to_string()).collect::<Vec<_>>(),
             None => return Ok(()),
         }
     };
@@ -30,6 +29,7 @@ pub fn run(path: &Path, no_header: bool, sep: &str, delimiter: &str, n: i32) -> 
     let mut rdr = rdr.take(n).peekable();
     while let Some(l) = rdr.next() {
         let l = l?;
+        
         let r = l
             .split(sep)
             .zip(&columns)

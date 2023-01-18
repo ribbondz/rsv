@@ -14,7 +14,7 @@ pub fn run(path: &Path, no_header: bool, sep: &str, n: usize, tabled: bool) -> C
         .collect::<Vec<_>>();
 
     // tabled or not
-    if tabled && !r.is_empty() {
+    if tabled {
         print_as_table(r, sep, no_header);
     } else {
         r.iter().for_each(|i| println!("{}", i));
@@ -24,6 +24,10 @@ pub fn run(path: &Path, no_header: bool, sep: &str, n: usize, tabled: bool) -> C
 }
 
 pub fn print_as_table(records: Vec<String>, sep: &str, no_header: bool) {
+    if records.is_empty() {
+        return;
+    }
+
     let mut rdr = records.iter();
     let mut builder = Builder::default();
 

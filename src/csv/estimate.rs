@@ -19,7 +19,13 @@ pub fn run(path: &Path) -> CliResult {
     }
 
     // estimate line count
-    let estimate_n = filesize / ((total_bytes as f64) / (n as f64));
+    let mut estimate_n = filesize / ((total_bytes as f64) / (n as f64));
+
+    // default to have a header
+    if estimate_n > 1.0 {
+        estimate_n -= 1.0;
+    }
+
     println!("{}", estimate_n as usize);
 
     Ok(())

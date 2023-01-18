@@ -51,20 +51,25 @@ impl Filter {
         self.items.push(FilterItem { col, values })
     }
 
+    // todo
     pub fn record_is_valid(&self, row: &[&str]) -> bool {
-        if self.is_empty() {
-            return true;
-        }
-
         self.items
             .iter()
             .all(|item| item.values.iter().any(|i| i.as_str() == row[item.col]))
     }
 
-    pub fn record_valid_map<'a>(&self, row: &'a str, sep: &str) -> Option<Vec<&'a str>> {
-        let row = row.split(sep).collect::<Vec<_>>();
-        if self.record_is_valid(&row) {
-            Some(row)
+    pub fn record_valid_map<'a>(
+        &self,
+        row: &'a str,
+        sep: &str,
+    ) -> Option<(Option<&'a str>, Option<Vec<&'a str>>)> {
+        if self.is_empty() {
+            return Some((Some(row), None));
+        }
+
+        let v = row.split(sep).collect::<Vec<_>>();
+        if self.record_is_valid(&v) {
+            Some((Some(row), Some(v)))
         } else {
             None
         }
