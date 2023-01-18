@@ -18,7 +18,7 @@ pub fn is_tab(sep: &str) -> bool {
 }
 
 pub fn print_tabled(records: Vec<Vec<String>>) {
-    if !records.is_empty() {
+    if records.is_empty() {
         return;
     }
 
