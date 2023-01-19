@@ -10,7 +10,7 @@ pub fn run(path: &Path, sep: &str) -> CliResult {
     if let Some(r) = rdr.next() {
         r?.split(sep)
             .enumerate()
-            .for_each(|(i, v)| println!("{i:<5}{v}"));
+            .for_each(|(i, v)| println!(" {i:<5}{v}"));
     };
 
     Ok(())
