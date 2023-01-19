@@ -1,4 +1,4 @@
-use crate::utils::{cli_result::CliResult, excel_reader::ExcelReader, util::print_tabled};
+use crate::utils::{cli_result::CliResult, excel_reader::ExcelReader, table::Table};
 use std::path::Path;
 
 pub fn run(path: &Path, no_header: bool, sheet: usize, delimiter: &str, n: i32) -> CliResult {
@@ -27,7 +27,7 @@ pub fn run(path: &Path, no_header: bool, sheet: usize, delimiter: &str, n: i32) 
             .zip(&columns)
             .map(|(v, k)| vec![k.to_owned(), v.to_string()])
             .collect::<Vec<_>>();
-        print_tabled(r);
+        Table::from_records(r).print_blank()?;
 
         if rdr.peek().is_some() {
             println!(" {delimiter}");

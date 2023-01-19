@@ -1,9 +1,8 @@
-use std::path::Path;
-
 use crate::utils::cli_result::CliResult;
 use crate::utils::excel::datatype_vec_to_string_vec;
 use crate::utils::excel_reader::ExcelReader;
-use crate::utils::util::print_tabled;
+use crate::utils::table::Table;
+use std::path::Path;
 
 pub fn run(path: &Path, sheet: usize, no_header: bool, n: usize, tabled: bool) -> CliResult {
     let range = ExcelReader::new(path, sheet)?;
@@ -17,7 +16,7 @@ pub fn run(path: &Path, sheet: usize, no_header: bool, n: usize, tabled: bool) -
 
     // tabled print
     if tabled {
-        print_tabled(r);
+        Table::from_records(r).print_blank()?;
     } else {
         r.iter().for_each(|i| println!("{}", i.join(",")))
     }

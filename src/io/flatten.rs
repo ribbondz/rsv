@@ -1,4 +1,4 @@
-use crate::utils::{cli_result::CliResult, util::print_tabled};
+use crate::utils::{cli_result::CliResult, table::Table};
 use std::io::{stdin, BufRead};
 
 pub fn run(no_header: bool, sep: &str, delimiter: &str, n: i32) -> CliResult {
@@ -36,7 +36,7 @@ pub fn run(no_header: bool, sep: &str, delimiter: &str, n: i32) -> CliResult {
             .zip(&columns)
             .map(|(v, k)| vec![k.to_owned(), v.to_owned()])
             .collect::<Vec<_>>();
-        print_tabled(r);
+        Table::from_records(r).print_blank()?;
 
         if rdr.peek().is_some() {
             println!(" {delimiter}");

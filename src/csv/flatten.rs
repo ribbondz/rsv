@@ -1,6 +1,6 @@
 use crate::utils::cli_result::CliResult;
 use crate::utils::file;
-use crate::utils::util::print_tabled;
+use crate::utils::table::Table;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
@@ -29,13 +29,13 @@ pub fn run(path: &Path, no_header: bool, sep: &str, delimiter: &str, n: i32) -> 
     let mut rdr = rdr.take(n).peekable();
     while let Some(l) = rdr.next() {
         let l = l?;
-        
+
         let r = l
             .split(sep)
             .zip(&columns)
             .map(|(v, k)| vec![k.to_owned(), v.to_owned()])
             .collect::<Vec<_>>();
-        print_tabled(r);
+        Table::from_records(r).print_blank()?;
 
         if rdr.peek().is_some() {
             println!(" {delimiter}");

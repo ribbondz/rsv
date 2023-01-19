@@ -1,4 +1,4 @@
-use crate::utils::{cli_result::CliResult, util::print_tabled};
+use crate::utils::{cli_result::CliResult, table::Table};
 use std::{
     fs::File,
     io::{BufRead, BufReader},
@@ -16,9 +16,7 @@ pub fn run(path: &Path, sep: &str) -> CliResult {
         .map(|r| r.split(sep).map(|i| i.to_owned()).collect::<Vec<_>>())
         .collect::<Vec<_>>();
 
-    if !rows.is_empty() {
-        print_tabled(rows);
-    }
+    Table::from_records(rows).print_blank()?;
 
     Ok(())
 }

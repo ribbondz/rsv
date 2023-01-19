@@ -1,8 +1,5 @@
-use crate::utils::writer::Writer;
 use chrono;
 use std::io::{stdout, BufWriter, Write};
-use tabled::builder::Builder;
-use tabled::Style;
 
 pub fn datetime_str() -> String {
     let t = chrono::offset::Local::now();
@@ -15,26 +12,6 @@ pub fn is_null(s: &str) -> bool {
 
 pub fn is_tab(sep: &str) -> bool {
     sep == "\\t" || sep == "'\\t'" || sep == "\"\\t\""
-}
-
-pub fn print_tabled(records: Vec<Vec<String>>) {
-    if records.is_empty() {
-        return;
-    }
-
-    let mut builder = Builder::default();
-
-    records.iter().for_each(|r| {
-        builder.add_record(r);
-    });
-
-    // build
-    let mut table = builder.build();
-
-    // style
-    table.with(Style::blank());
-
-    Writer::one_time_to_stdout(&table.to_string());
 }
 
 /// early return when pipeline closed

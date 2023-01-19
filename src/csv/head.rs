@@ -1,9 +1,9 @@
 use crate::utils::cli_result::CliResult;
+use crate::utils::table::Table;
+use crate::utils::writer::Writer;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
-use tabled::builder::Builder;
-use tabled::Style;
 
 pub fn run(path: &Path, no_header: bool, sep: &str, n: usize, tabled: bool) -> CliResult {
     // show head n
@@ -15,41 +15,11 @@ pub fn run(path: &Path, no_header: bool, sep: &str, n: usize, tabled: bool) -> C
 
     // tabled or not
     if tabled {
-        print_as_table(r, sep, no_header);
+        Table::from_rows(&r, sep).print_blank()?;
     } else {
-        r.iter().for_each(|i| println!("{}", i));
+        let mut wtr = Writer::stdout()?;
+        wtr.write_lines_unchecked(&r);
     }
 
     Ok(())
-}
-
-pub fn print_as_table(records: Vec<String>, sep: &str, no_header: bool) {
-    if records.is_empty() {
-        return;
-    }
-
-    let mut rdr = records.iter();
-    let mut builder = Builder::default();
-
-    // header
-    if !no_header {
-        if let Some(row) = rdr.next() {
-            let col = row.split(sep).collect::<Vec<_>>();
-            builder.set_columns(col);
-        }
-    }
-
-    // content
-    for row in rdr {
-        let r = row.split(sep).collect::<Vec<_>>();
-        builder.add_record(r);
-    }
-
-    // build
-    let mut table = builder.build();
-
-    // style
-    table.with(Style::blank());
-
-    println!("{table}");
 }

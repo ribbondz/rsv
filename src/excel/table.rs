@@ -1,4 +1,4 @@
-use crate::utils::{cli_result::CliResult, excel_reader::ExcelReader, util::print_tabled};
+use crate::utils::{cli_result::CliResult, excel_reader::ExcelReader, table::Table};
 use std::path::Path;
 
 pub fn run(path: &Path, sheet: usize) -> CliResult {
@@ -10,9 +10,7 @@ pub fn run(path: &Path, sheet: usize) -> CliResult {
         .map(|r| r.iter().map(|i| i.to_string()).collect::<Vec<_>>())
         .collect::<Vec<_>>();
 
-    if !rows.is_empty() {
-        print_tabled(rows);
-    }
+    Table::from_records(rows).print_blank()?;
 
     Ok(())
 }

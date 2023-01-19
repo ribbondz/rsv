@@ -16,10 +16,9 @@ impl Writer {
         Ok(Writer(wtr))
     }
 
-    pub fn one_time_to_stdout(buf: &str) {
-        let mut wtr = BufWriter::new(stdout());
-        wtr.write_all(buf.as_bytes()).unwrap();
-        wtr.write_all(TERMINATOR).unwrap();
+    pub fn stdout() -> Result<Self, Error> {
+        let wtr = Box::new(BufWriter::new(stdout()));
+        Ok(Writer(wtr))
     }
 
     pub fn file_or_stdout(export: bool, path: &Path) -> Result<Self, Error> {

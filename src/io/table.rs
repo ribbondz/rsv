@@ -1,4 +1,4 @@
-use crate::utils::{cli_result::CliResult, util::print_tabled};
+use crate::utils::{cli_result::CliResult, table::Table};
 use std::io::{self, BufRead};
 
 pub fn run(sep: &str) -> CliResult {
@@ -9,9 +9,7 @@ pub fn run(sep: &str) -> CliResult {
         rows.push(l);
     }
 
-    if !rows.is_empty() {
-        print_tabled(rows);
-    }
+    Table::from_records(rows).print_blank()?;
 
     Ok(())
 }

@@ -1,5 +1,4 @@
-use crate::csv::head::print_as_table;
-use crate::utils::cli_result::CliResult;
+use crate::utils::{cli_result::CliResult, table::Table};
 use std::io::{stdin, BufRead};
 
 pub fn run(no_header: bool, sep: &str, n: usize, tabled: bool) -> CliResult {
@@ -13,7 +12,7 @@ pub fn run(no_header: bool, sep: &str, n: usize, tabled: bool) -> CliResult {
 
     // tabled or not
     if tabled {
-        print_as_table(r, sep, no_header);
+        Table::from_rows(&r, sep).print_blank()?;
     } else {
         r.iter().for_each(|i| println!("{}", i));
     }
