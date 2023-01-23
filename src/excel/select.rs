@@ -80,7 +80,7 @@ fn handle_task(
 
     // write
     filtered.iter().for_each(|r| match cols.all {
-        true => wtr.write_line_by_field_unchecked(&r, None),
+        true => wtr.write_line_by_field_unchecked(r, None),
         false => {
             let r = cols.iter().map(|&i| &r[i]).collect::<Vec<_>>();
             wtr.write_line_by_field_unchecked(&r, None);

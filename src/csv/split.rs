@@ -56,11 +56,7 @@ pub fn run(path: &Path, no_header: bool, sep: &str, col: usize, size: &Option<us
     match is_sequential_split {
         true => {
             let stem = path.file_stem().unwrap().to_string_lossy();
-            let extension = path
-                .extension()
-                .and_then(|i| i.to_str())
-                .or(Some(""))
-                .unwrap();
+            let extension = path.extension().and_then(|i| i.to_str()).unwrap_or("");
 
             for task in rx {
                 let mut out = dir.to_owned();

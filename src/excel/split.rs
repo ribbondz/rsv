@@ -52,11 +52,7 @@ pub fn run(
 
     let (tx, rx) = bounded(1);
     // read
-    let buffer_size = if is_sequential_split {
-        size.clone()
-    } else {
-        None
-    };
+    let buffer_size = if is_sequential_split { *size } else { None };
     thread::spawn(move || range.send_to_channel_in_line_chunks(tx, buffer_size));
 
     // process batch work

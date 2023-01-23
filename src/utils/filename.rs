@@ -29,7 +29,7 @@ pub fn str_to_filename(s: &str) -> String {
 
 pub fn dir_file(dir: &Path, name: &str) -> PathBuf {
     let mut out = dir.to_path_buf();
-    out.push(&name);
+    out.push(name);
 
     out
 }

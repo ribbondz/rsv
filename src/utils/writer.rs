@@ -99,7 +99,7 @@ impl Writer {
     ) -> CliResult {
         let mut l = line.iter().peekable();
         while let Some(f) = l.next() {
-            self.0.write(f.as_ref().as_bytes())?;
+            self.0.write_all(f.as_ref().as_bytes())?;
             self.0.write_all(if l.peek().is_none() {
                 TERMINATOR
             } else {
@@ -141,11 +141,11 @@ impl Writer {
     pub fn write_excel_line(&mut self, line: &[DataType]) -> CliResult {
         let mut l = line.iter().peekable();
         while let Some(f) = l.next() {
-            self.0.write(f.to_string().as_bytes())?;
+            self.0.write_all(f.to_string().as_bytes())?;
             if l.peek().is_some() {
-                self.0.write(b",")?;
+                self.0.write_all(b",")?;
             } else {
-                self.0.write(TERMINATOR)?;
+                self.0.write_all(TERMINATOR)?;
             }
         }
 

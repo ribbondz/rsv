@@ -49,7 +49,7 @@ impl<'a> ExcelReader {
     }
 
     pub fn send_to_channel_in_line_chunks(self, tx: Sender<ExcelChunkTask>, size: Option<usize>) {
-        let line_buffer_n = size.or(Some(1000)).unwrap();
+        let line_buffer_n = size.unwrap_or(1000);
         let mut lines = Vec::with_capacity(line_buffer_n);
         let mut n = 0;
         let mut chunk = 1;

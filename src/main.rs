@@ -36,7 +36,7 @@ trait ValidFileSep {
 
 impl ValidFileSep for String {
     fn valid(&self) -> String {
-        match is_tab(&self) {
+        match is_tab(self) {
             true => '\t'.to_string(),
             false => self.to_owned(),
         }
