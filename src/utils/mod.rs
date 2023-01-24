@@ -12,6 +12,7 @@ pub mod filename;
 pub mod filter;
 pub mod progress;
 pub mod regex;
+pub mod sort;
 pub mod table;
 pub mod util;
 pub mod writer;

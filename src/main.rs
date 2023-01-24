@@ -101,6 +101,11 @@ enum Commands {
     )]
     Search(Search),
     #[command(
+        about = "Sort column(s)",
+        // override_help = STATS_DESC
+    )]
+    Sort(Sort),
+    #[command(
         about = "Statistics for column(s), including min, max, mean, unique, null.",
         override_help = STATS_DESC
     )]
@@ -357,6 +362,28 @@ struct Search {
     /// Whether the file has a header
     #[arg(long, default_value_t = false)]
     no_header: bool,
+    /// Get the nth worksheet of EXCEL file
+    #[arg(short = 'S', long, default_value_t = 0)]
+    sheet: usize,
+    /// Export to a file named current-file-searched.csv?
+    #[arg(short = 'E', long, default_value_t = false)]
+    export: bool,
+}
+
+#[derive(Debug, Args)]
+struct Sort {
+    /// File to open
+    filename: Option<String>,
+    /// Separator
+    #[arg(short, long, default_value_t = String::from(","))]
+    sep: String,
+    /// Whether the file has a header
+    #[arg(long, default_value_t = false)]
+    no_header: bool,
+    /// Columns to sort by, support syntax 0 (first column),
+    /// "-0" (descending), "-0N" (as numeric) or "0N,-1" (two columns)
+    #[arg(short, long, default_value_t = String::from("0"))]
+    cols: String,
     /// Get the nth worksheet of EXCEL file
     #[arg(short = 'S', long, default_value_t = 0)]
     sheet: usize,
@@ -673,6 +700,31 @@ fn main() {
                 }
             }
             None => io::search::run(&option.pattern, option.no_header, option.export).handle_err(),
+        },
+        Commands::Sort(option) => match &option.filename {
+            Some(f) => {
+                let path = full_path(f);
+                match is_excel(&path) {
+                    true => excel::sort::run(
+                        &path,
+                        option.sheet,
+                        option.no_header,
+                        &option.cols,
+                        option.export,
+                    )
+                    .handle_err(),
+                    false => csv::sort::run(
+                        &path,
+                        option.no_header,
+                        &option.sep,
+                        &option.cols,
+                        option.export,
+                    )
+                    .handle_err(),
+                }
+            }
+            None => io::sort::run(option.no_header, &option.sep, &option.cols, option.export)
+                .handle_err(),
         },
     }
 }
