@@ -222,16 +222,17 @@ rsv slice -s 10 -e 15 data.csv | rsv table      # convert result to an aligned t
 ```shell
 rsv search "^\d{4}-\d{2}-\d{2}$" data.csv | rsv table     # search date and print in an aligned table
 rsv select -f 0=a,b data.csv | rsv frequency -c 0         # filter rows and get its frequency table
-rsv select -f "0=a,b&2=c" data.csv | rsv head -n 5        # filter rows, and show head 5 records
-rsv select -f "0=a,b&2=c" -c 0-4 data.csv | rsv stats     # filter rows, select columns and make statistics
+rsv select -f "0!=&2N>10" data.csv | rsv head -n 5        # filter rows, and show head 5 records
+rsv select -f "2N=10,20" -c 0-4 data.csv | rsv stats      # filter rows, select columns and make statistics
+rsv select -f "2N=10,20" -c 0-4 data.csv | rsv sort -c 2  # filter rows, select columns and sort data
 ```
 
 - **more commands pipelined**
 
 ```shell
-rsv search pattern1 data.csv | rsv sort -c 1ND | rsv table        # search, sort and print
-rsv select -f 0=a,b data.csv | rsv search pattern | rsv stats     # select, search, and make statistics
-rsv select -f 0=a,b data.csv | rsv search pattern | rsv table     # select, search, and print in a table
+rsv search pattern1 data.csv | rsv sort -c 1ND | rsv table             # search, sort and print
+rsv select -f 1=a,b data.csv | rsv search pattern | rsv stats          # select, search, and make statistics
+rsv select -f "0N>=10&0N<20" data.csv | rsv search pattern | rsv table # select, search, and print in a table
 ```
 
 ## Bug report and suggestion
