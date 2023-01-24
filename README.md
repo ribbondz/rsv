@@ -25,7 +25,7 @@ download **rsv.exe** from release tab, and append the file directory to system p
 - **flatten** - Prints flattened records to view records one by one.
 - **slice** - Prints a slice of rows from file.
 - **search** - Search with regexes :running: :star:.
-- **sort** - Sort data by column(s) :star:.
+- **sort** - In-memory data sorting, support for at most two columns :star:.
 - **stats** - Statistics for column(s), including min, max, mean, unique, null :running: :star:.
 - **excel2csv** - Convert excel to csv.
 - **table** - Format data as an aligned table.

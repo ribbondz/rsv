@@ -350,8 +350,9 @@ Options:
   -h, --help           Print help information
 ";
 
-pub const SORT_DESC: &str = "Sort data by column(s). The command support sorting for at most
-two columns. 
+pub const SORT_DESC: &str =
+    "Sort data by column(s). The sort is performed in-memory, so that it cannot
+support large data files. The command supports sorting for at most two columns. 
 
 The default is ascending sort. Descending sort can be specified with the 
 -c 0D flag, where D stands for Descending Sort.  
