@@ -349,3 +349,36 @@ Options:
   -E, --export         Export to a file named current-file-searched.csv?
   -h, --help           Print help information
 ";
+
+pub const SORT_DESC: &str = "Sort data by column(s). The command support sorting for at most
+two columns. 
+
+The default is ascending sort. Descending sort can be specified with the 
+-c 0D flag, where D stands for Descending Sort.  
+
+The default is string sorting. Numeric sorting can be specified with the
+-c 0N flag, where N stands for Numeric Sorting.
+
+D (descending) and N (numeric) can be placed in arbitrary order, e.g., 
+-c 0DN or -c 0ND.
+
+Usage: 
+  rsv sort [OPTIONS] [FILENAME]
+  rsv sort -c 0 data.csv        # default to sort first column in ascending
+  rsv sort -c 0D data.csv       # descending sort
+  rsv sort -c 0DN data.csv      # sort as numeric values
+  rsv sort -c 0DN,2N data.csv   # sort two columns
+  rsv sort -E data.csv          # export result
+  rsv sort data.xlsx            # sort EXCEL file
+
+Arguments:
+  [FILENAME]  File to open
+
+Options:
+  -s, --sep <SEP>      Separator [default: ,]
+      --no-header      Whether the file has a header
+  -c, --cols <COLS>    Columns to sort by, e.g., -c 0, -c 0N, -c 0ND [default: 0]
+  -S, --sheet <SHEET>  Get the nth worksheet of EXCEL file [default: 0]
+  -E, --export         Export to a file named current-file-sorted.csv?
+  -h, --help           Print help
+";

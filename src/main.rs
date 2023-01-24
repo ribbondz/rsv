@@ -3,8 +3,8 @@ use utils::{
     cli_result::E,
     cmd_desc::{
         CLEAN_DESC, COUNT_DESC, ESTIMATE_DESC, EXCEL2CSV_DESC, FLATTEN_DESC, FREQUENCY_DESC,
-        HEADER_DESC, HEAD_DESC, SEARCH_DESC, SELECT_DESC, SLICE_DESC, SPLIT_DESC, STATS_DESC,
-        TABLE_DESC,
+        HEADER_DESC, HEAD_DESC, SEARCH_DESC, SELECT_DESC, SLICE_DESC, SORT_DESC, SPLIT_DESC,
+        STATS_DESC, TABLE_DESC,
     },
     file::is_excel,
     filename::full_path,
@@ -91,7 +91,7 @@ enum Commands {
     )]
     Select(Select),
     #[command(
-        about = "Extract a slice of rows from file.",
+        about = "Extract a slice of rows from file",
         override_help = SLICE_DESC
     )]
     Slice(Slice),
@@ -101,12 +101,12 @@ enum Commands {
     )]
     Search(Search),
     #[command(
-        about = "Sort column(s)",
-        // override_help = STATS_DESC
+        about = "Sort data by column(s)",
+        override_help = SORT_DESC
     )]
     Sort(Sort),
     #[command(
-        about = "Statistics for column(s), including min, max, mean, unique, null.",
+        about = "Statistics for column(s), including min, max, mean, unique, null",
         override_help = STATS_DESC
     )]
     Stats(Stats),

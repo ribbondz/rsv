@@ -25,6 +25,7 @@ download **rsv.exe** from release tab, and append the file directory to system p
 - **flatten** - Prints flattened records to view records one by one.
 - **slice** - Prints a slice of rows from file.
 - **search** - Search with regexes :running: :star:.
+- **sort** - Sort data by column(s) :star:.
 - **stats** - Statistics for column(s), including min, max, mean, unique, null :running: :star:.
 - **excel2csv** - Convert excel to csv.
 - **table** - Format data as an aligned table.
@@ -176,6 +177,17 @@ rsv search PATTERN data.xlsx               # search EXCEL file
 rsv slice --help                           # help info on all flags
 ```
 
+- **rsv sort**
+
+```shell
+rsv sort -c 0 data.csv        # default to sort by first column in ascending
+rsv sort -c 0D data.csv       # descending sort
+rsv sort -c 0DN data.csv      # sort as numeric values
+rsv sort -c 0DN,2N data.csv   # sort two columns
+rsv sort -E data.csv          # export result
+rsv sort data.xlsx            # sort EXCEL file
+```
+
 - **rsv stats**
 
 ```shell
@@ -216,7 +228,7 @@ rsv select -f "0=a,b&2=c" -c 0-4 data.csv | rsv stats     # filter rows, select 
 - **more commands pipelined**
 
 ```shell
-rsv search pattern1 data.csv | rsv search pattern2 | rsv count    # two searches and count
+rsv search pattern1 data.csv | rsv sort -c 1ND | rsv table        # search, sort and print
 rsv select -f 0=a,b data.csv | rsv search pattern | rsv stats     # select, search, and make statistics
 rsv select -f 0=a,b data.csv | rsv search pattern | rsv table     # select, search, and print in a table
 ```
