@@ -12,7 +12,7 @@ pub fn run(path: &Path, sheet: usize, no_header: bool, cols: &str, export: bool)
     let mut wtr = Writer::file_or_stdout(export, &out)?;
 
     // cols
-    let cols = SortColumns::from(cols);
+    let cols = SortColumns::from(cols)?;
 
     // header
     if !no_header {

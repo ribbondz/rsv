@@ -1,7 +1,6 @@
 use super::{cli_result::CliResult, writer::Writer};
-use crate::utils::util::werr;
 use rayon::prelude::*;
-use std::process;
+use std::error::Error;
 
 pub struct SortColumns(Vec<SortColumn>);
 
@@ -12,54 +11,46 @@ pub struct SortColumn {
 }
 
 impl SortColumns {
-    pub fn from(cols: &str) -> Self {
+    pub fn from(cols: &str) -> Result<Self, Box<dyn Error>> {
         let mut r = SortColumns(vec![]);
 
-        cols.split(',').for_each(|i| {
+        for i in cols.split(',') {
             let mut j = i.replace(' ', "");
-            if j.is_empty() {
-                return;
-            }
+
             (0..2).for_each(|_| {
                 if j.ends_with(['n', 'N', 'd', 'D']) {
                     j.pop();
                 }
             });
 
-            let col = j.parse::<usize>().unwrap_or_else(|_| {
-                werr!(
-                    "{}",
-                    "Error: column syntax should be something like:
--c 0: first column ascending,
--c 0D: first column descending, 
--c 0DN: first column as numeric values,
--c 0,2N: multiple columns.
+            if j.is_empty() {
+                continue;
+            }
 
-The command supports sorting by at most two columns."
+            if let Ok(col) = j.parse::<usize>() {
+                r.0.push(SortColumn {
+                    col,
+                    ascending: !i.contains(['d', 'D']),
+                    numeric: i.contains(['n', 'N']),
+                });
+            } else {
+                let e = format!(
+                    "column syntax error for <-c {}>. Run <rsv sort -h> for syntax examples.",
+                    i
                 );
-                process::exit(1)
-            });
-            r.0.push(SortColumn {
-                col,
-                ascending: !i.contains(['d', 'D']),
-                numeric: i.contains(['n', 'N']),
-            });
-        });
+                return Err(e.into());
+            }
+        }
 
         if r.0.is_empty() {
-            werr!("{}", "Error: no column is specified.");
-            process::exit(1)
+            return Err("no column is specified.".into());
         }
 
         if r.0.len() > 2 {
-            werr!(
-                "{}",
-                "Error: sort by more than two columns is not supported."
-            );
-            process::exit(1)
+            return Err("sort by more than two columns is not supported.".into());
         }
 
-        r
+        Ok(r)
     }
 
     fn col_at(&self, n: usize) -> usize {

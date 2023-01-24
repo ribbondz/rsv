@@ -13,7 +13,7 @@ pub fn run(path: &Path, no_header: bool, sep: &str, cols: &str, export: bool) ->
     let mut wtr = Writer::file_or_stdout(export, &out)?;
 
     // cols
-    let cols = SortColumns::from(cols);
+    let cols = SortColumns::from(cols)?;
 
     // header
     if !no_header {
