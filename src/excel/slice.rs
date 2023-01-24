@@ -18,7 +18,7 @@ pub fn run(
     export: bool,
 ) -> CliResult {
     // out file
-    let out_path = new_path(path, "-slice");
+    let out_path = new_path(path, "-slice").with_extension("csv");
 
     // open file
     let mut wtr = Writer::file_or_stdout(export, &out_path)?;

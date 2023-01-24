@@ -19,7 +19,7 @@ pub fn run(
     export: bool,
 ) -> CliResult {
     // out path
-    let out_path = new_path(path, "-selected");
+    let out_path = new_path(path, "-selected").with_extension("csv");
 
     // filters and cols
     let filter = Filter::new(filter);
@@ -58,7 +58,7 @@ pub fn run(
     if export {
         println!("\nSaved to file: {}", out_path.display())
     }
-    
+
     Ok(())
 }
 

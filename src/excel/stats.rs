@@ -89,7 +89,7 @@ pub fn run(path: &Path, sheet: usize, no_header: bool, cols: &str, export: bool)
 
     // print
     if export {
-        let out = new_path(path, "-stats");
+        let out = new_path(path, "-stats").with_extension("csv");
         let mut wtr = BufWriter::new(File::create(&out)?);
         wtr.write_all(stat.to_string().as_bytes())?;
         println!("Saved to file: {}", out.display());
