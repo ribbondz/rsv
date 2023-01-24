@@ -31,16 +31,17 @@ pub fn run(
 
     // header
     if !no_header {
-        match range.next() {
-            Some(r) => match cols.all {
-                true => wtr.write_excel_line_unchecked(r),
-                false => {
-                    let r = cols.iter().map(|&i| r[i].to_string()).collect::<Vec<_>>();
-                    wtr.write_line_by_field_unchecked(&r, None);
-                }
-            },
+        let r = match range.next() {
+            Some(r) => r,
             None => return Ok(()),
         };
+        match cols.all {
+            true => wtr.write_excel_line_unchecked(r),
+            false => {
+                let r = cols.iter().map(|&i| r[i].to_string()).collect::<Vec<_>>();
+                wtr.write_line_by_field_unchecked(&r, None);
+            }
+        }
     }
 
     // task queue

@@ -124,21 +124,22 @@ rsv split --help                  # help info on all flags
 - **rsv select**
 
 ```shell
-rsv select -f 0=a,b,c data.csv               # first column has values of a, b, or c
-rsv select -f 0=a,b,c data.xlsx              # EXCEL file, sheet can be specified with the --sheet flag
-rsv select -f "0=a,b&1=c" data.csv           # first column is a or b, AND the second column equals c
-rsv select -f "0=a,b&1=c" --export data.csv  # export result
-rsv select -s \\t -f 0=a,b data.csv          # tab separator
-rsv select -c 0-4 -f 0=a,b data.csv          # select column
-rsv select --help                            # help info on other options
+rsv select -f 0=a,b,c data.csv          # first column has values of a, b, or c
+rsv select -f 0=a,b,c data.xlsx         # EXCEL file, sheet can be specified with the --sheet flag
+rsv select -f "0N>10&1=c" data.csv      # first column > 10 numerically, AND the second column equals c
+rsv select -f 0!= --export data.csv     # export result, in which the first column is non-empty
+rsv select --help                       # help info on other options
 
-filter syntax:
-0=a,b,c         -->  the first column has values of a, b, or c
-0=a,b&1=c       -->  the first column is a or b, **AND** the second column equals c
+Filter syntax, support =, !=, >, >=, <, <= and &:
+-f 0=a,b,c         -->  first column is a, b, or c
+-f 0N=1,2          -->  first column numerically equals to 1 or 2
+-f 0!=             -->  first column is not empty
+-f 0>=2022-01-21   -->  first column equal to or bigger than 2022-01-21, lexicographically
+-f 0N>10           -->  first column > 10 numerically
+-f 0N>10&2=pattern -->  first column > 10 numerically, AND the third column equals to <pattern>
 
-NOTE: 1. filters are all treated as strings.
-      2. only & (AND) operation is supported, | (OR) operation is not supported.
-      3. The filter option can be omitted to select all rows.
+NOTE: 1. only & (AND) operation is supported, | (OR) operation is not supported.
+      2. The filter option can be omitted to select all rows.
 
 column selection syntax:
 -c 0,1,2,5   -->    cols [0,1,2,5]

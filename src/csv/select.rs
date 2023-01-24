@@ -35,14 +35,10 @@ pub fn run(
 
     // header
     if !no_header {
-        let r = rdr.next();
-
-        if r.is_none() {
-            return Ok(());
-        }
-
-        let r = r.unwrap()?;
-
+        let r = match rdr.next() {
+            Some(r) => r?,
+            None => return Ok(()),
+        };
         match cols.all {
             true => wtr.write_line_unchecked(&r),
             false => {

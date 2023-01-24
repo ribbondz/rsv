@@ -239,24 +239,15 @@ Column-based Split Options:
   -h, --help           Print help information
 ";
 
-pub const SELECT_DESC: &str = "Select rows and columns by filter. The row filter is either
-0=a,b,c (meaning the first column has values of a, b, or c) or 0=a,b&1=c
-(meaning the first column is a or b, AND the second column equals c).
-Right now, only & (AND) operation is supported, | (OR) operation is not 
-supported.
-
-The columns to select are specified with the --cols or -c flag, supporting
-syntax's like -c 0,1,2,5 or -c 0-2,5.
-
-Output can be exported with the --export flag.
+pub const SELECT_DESC: &str = "Select rows and columns by filter. Row and column filter syntaxes
+are listed as below. Output can be exported with the --export flag.
 
 Usage: 
   rsv.exe select [OPTIONS] <FILENAME>
-  rsv select -f 0=a,b,c data.csv             # first column has values of a, b, or c
-  rsv select -f 0=a,b&1=c data.csv           # first column is a or b, AND the second column equals c
-  rsv select -f 0=a,b&1=c --export data.csv  # export result
-  rsv select -s \\t -f 0=a,b data.csv         # tab as separator
-  rsv select -f 0=a,b data.xlsx              # EXCEL file
+  rsv select -f 0=a,b,c data.csv      # first column has values of a, b, or c
+  rsv select -f \"0N>10&1=c\" data.csv  # first column > 10 numerically, AND the second column equals c
+  rsv select -f 0!= --export data.csv # export result, in which the first column is non-empty
+  rsv select -f 0=a,b data.xlsx       # apply to EXCEL file
 
 Arguments:
   <FILENAME>  File to open
@@ -264,15 +255,23 @@ Arguments:
 Options:
   -s, --sep <SEP>        Separator [default: ,]
       --no-header        Whether the file has a header
-  -c, --cols <COLS>      Columns to select, support syntax 0,1,3 or 0-4, including 4; Default to select all columns
-  -f, --filter <FILTER>  Row filter, support syntax 0=a,b,c or 0=a,b&1=c,d; Default to None
+  -c, --cols <COLS>      Columns to select, see column select syntax below; Default to select ALL
+  -f, --filter <FILTER>  Row filter, see row filter syntax below; Default to NONE
   -E, --export           Export results to a file named current-file-selected.csv?
   -S, --sheet <SHEET>    Get the nth worksheet of EXCEL file [default: 0]
   -h, --help             Print help information
 
+Filter syntax, support =, !=, >, >=, <, <= and &:
+-f 0=a,b,c         -->  first column is a, b, or c
+-f 0N=1,2          -->  first column numerically equals to 1 or 2
+-f 0!=             -->  first column is not empty
+-f 0>=2022-01-21   -->  first column equal to or bigger than 2022-01-21, lexicographically
+-f 0N>10           -->  first column > 10 numerically
+-f 0N>10&2=pattern -->  first column > 10 numerically, AND the third column equals to <pattern>
+
 Column selection syntax:
--c 0,1,2,5   -->    cols [0,1,2,5]
--c 0-2,5     -->    same as cols [0,1,2,5]
+-c 0,1,2,5         -->  cols [0,1,2,5]
+-c 0-2,5           -->  same as cols [0,1,2,5]
 ";
 
 pub const STATS_DESC: &str = "Statistics for every column, including min, max, mean, unique, null.
