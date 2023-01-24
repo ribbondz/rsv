@@ -201,6 +201,9 @@ struct Head {
     /// Get the nth worksheet of EXCEL file
     #[arg(short = 'S', long, default_value_t = 0)]
     sheet: usize,
+    /// Export to a file named current-file-head.csv?
+    #[arg(short = 'E', long, default_value_t = false)]
+    export: bool,
 }
 
 #[derive(Debug, Args)]
@@ -418,6 +421,7 @@ fn main() {
                         option.no_header,
                         option.n,
                         option.tabled,
+                        option.export,
                     )
                     .handle_err(),
                     false => csv::head::run(
@@ -426,6 +430,7 @@ fn main() {
                         &option.sep.valid(),
                         option.n,
                         option.tabled,
+                        option.export,
                     )
                     .handle_err(),
                 }
@@ -435,6 +440,7 @@ fn main() {
                 &option.sep.valid(),
                 option.n,
                 option.tabled,
+                option.export,
             )
             .handle_err(),
         },

@@ -1,7 +1,10 @@
-use crate::utils::{cli_result::CliResult, table::Table};
+use crate::utils::{cli_result::CliResult, filename::new_file, table::Table, writer::Writer};
 use std::io::{stdin, BufRead};
 
-pub fn run(no_header: bool, sep: &str, n: usize, tabled: bool) -> CliResult {
+pub fn run(no_header: bool, sep: &str, n: usize, tabled: bool, export: bool) -> CliResult {
+    let out = new_file("sorted.csv");
+    let mut wtr = Writer::file_or_stdout(export, &out)?;
+
     // show head n
     let r = stdin()
         .lock()
@@ -11,10 +14,14 @@ pub fn run(no_header: bool, sep: &str, n: usize, tabled: bool) -> CliResult {
         .collect::<Vec<_>>();
 
     // tabled or not
-    if tabled {
-        Table::from_rows(&r, sep).print_blank()?;
+    if export || !tabled {
+        wtr.write_lines_unchecked(&r);
     } else {
-        r.iter().for_each(|i| println!("{}", i));
+        Table::from_rows(&r, sep).print_blank()?;
+    }
+
+    if export {
+        println!("Saved to file: {}", out.display())
     }
 
     Ok(())

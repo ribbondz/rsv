@@ -16,11 +16,6 @@ impl Writer {
         Ok(Writer(wtr))
     }
 
-    pub fn stdout() -> Result<Self, Error> {
-        let wtr = Box::new(BufWriter::new(stdout()));
-        Ok(Writer(wtr))
-    }
-
     pub fn file_or_stdout(export: bool, path: &Path) -> Result<Self, Error> {
         let wtr = match export {
             true => Box::new(BufWriter::new(File::create(path)?)) as Box<dyn Write>,
