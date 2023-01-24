@@ -52,7 +52,7 @@ for example, rsv frequency --help.
 rsv head data.csv                   # print as the file is
 rsv head --tabled data.csv          # tabled
 rsv head -t data.csv                # tabled too
-rsv head -s \\t -t data.csv         # CSV file with a tab separator
+rsv head -s \t data.csv             # CSV file with a tab separator
 rsv head data.xlsx                  # EXCEL file
 rsv head --help                     # help info on all flags
 ```
@@ -114,9 +114,9 @@ column selection syntax:
 ```shell
 rsv split data.csv                # default to first column and field separator of ,
 rsv split data.xlsx               # EXCEL file
-rsv split -s \\t data.csv         # tab separator
+rsv split -s \t data.csv          # tab separator
 rsv split -c 1 data.csv           # split based on second column
-rsv split -c 0 -s \\t data.csv    # first column, \t separator
+rsv split -c 0 -s \t data.csv     # first column, \t separator
 rsv split --size 1000 data.xlsx   # Sequential split, 1000 records in a file.
 rsv split --help                  # help info on all flags
 ```
@@ -131,12 +131,12 @@ rsv select -f 0!= --export data.csv     # export result, in which the first colu
 rsv select --help                       # help info on other options
 
 Filter syntax, support =, !=, >, >=, <, <= and &:
--f 0=a,b,c         -->  first column is a, b, or c
--f 0N=1,2          -->  first column numerically equals to 1 or 2
--f 0!=             -->  first column is not empty
--f 0>=2022-01-21   -->  first column equal to or bigger than 2022-01-21, lexicographically
--f 0N>10           -->  first column > 10 numerically
--f 0N>10&2=pattern -->  first column > 10 numerically, AND the third column equals to <pattern>
+-f 0=a,b,c           -->  first column is a, b, or c
+-f 0N=1,2            -->  first column numerically equals to 1 or 2
+-f 0!=               -->  first column is not empty
+-f "0>=2022-01-21"   -->  first column equal to or bigger than 2022-01-21, lexicographically
+-f "0N>10"           -->  first column > 10 numerically
+-f "0N>10&2=pattern" -->  first column > 10 numerically, AND the third column equals to <pattern>
 
 NOTE: 1. only & (AND) operation is supported, | (OR) operation is not supported.
       2. The filter option can be omitted to select all rows.
