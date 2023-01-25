@@ -58,13 +58,13 @@ pub fn run(sep: &str, no_header: bool, cols: &str, export: bool) -> CliResult {
 
     // stats holder
     let mut stat = ColumnStats::new(&typ, &names);
-    stat.rows += row_with_selected_cols.len();
     row_with_selected_cols.iter().for_each(|r| {
         r.par_iter()
             .zip(&mut stat.stat)
             .for_each(|(v, c)| c.parse(v))
     });
 
+    stat.rows += row_with_selected_cols.len();
     stat.cal_unique_and_mean();
 
     if export {
@@ -85,44 +85,22 @@ fn col_type(v: &[Vec<String>]) -> Vec<ColumnType> {
 
     (0..v[0].len())
         .into_par_iter()
-        .map(|i| {
-            let mut typ = ColumnType::Null;
-            for r in v {
-                if typ.is_string() {
-                    break;
-                }
-                let f = &r[i];
-                if is_null(f) {
-                    continue;
-                }
-                match typ {
-                    ColumnType::Null => {
-                        if f.parse::<i64>().is_ok() {
-                            typ = ColumnType::Int
-                        } else if f.parse::<f64>().is_ok() {
-                            typ = ColumnType::Float
-                        } else {
-                            typ = ColumnType::String
-                        }
-                    }
-                    ColumnType::Int => {
-                        if f.parse::<i64>().is_err() {
-                            typ = if f.parse::<f64>().is_ok() {
-                                ColumnType::Float
-                            } else {
-                                ColumnType::String
-                            }
-                        }
-                    }
-                    ColumnType::Float => {
-                        if f.parse::<f64>().is_err() {
-                            typ = ColumnType::String
-                        }
-                    }
-                    _ => {}
-                }
-            }
-            typ
-        })
+        .map(|n| parse_col_type_at(n, v))
         .collect::<Vec<_>>()
+}
+
+fn parse_col_type_at(n: usize, v: &[Vec<String>]) -> ColumnType {
+    let mut ctype = ColumnType::Null;
+    for r in v {
+        if ctype.is_string() {
+            break;
+        }
+        let f = &r[n];
+        if is_null(f) {
+            continue;
+        }
+        ctype.update(f);
+    }
+
+    ctype
 }

@@ -1,6 +1,6 @@
-use calamine::DataType;
-
+use super::{excel_reader::ExcelReader, file, util::is_null};
 use crate::utils::column;
+use calamine::DataType;
 use std::{
     error::Error,
     fmt::Display,
@@ -9,8 +9,6 @@ use std::{
     path::Path,
     process,
 };
-
-use super::{excel_reader::ExcelReader, file, util::is_null};
 
 #[derive(Debug)]
 pub struct ColumnTypes(Vec<CType>);
@@ -21,7 +19,7 @@ pub struct CType {
     pub col_type: ColumnType,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ColumnType {
     Int,
     Float,
@@ -62,22 +60,6 @@ impl ColumnTypes {
 
     fn col_index_at(&self, n: usize) -> usize {
         self.0[n].col_index
-    }
-
-    fn col_type_at(&self, n: usize) -> ColumnType {
-        self.0[n].col_type
-    }
-
-    fn set_as_string(&mut self, n: usize) {
-        self.0[n].col_type = ColumnType::String
-    }
-
-    fn set_as_float(&mut self, n: usize) {
-        self.0[n].col_type = ColumnType::Float
-    }
-
-    fn set_as_int(&mut self, n: usize) {
-        self.0[n].col_type = ColumnType::Int
     }
 
     pub fn iter(&self) -> impl Iterator<Item = &CType> {
@@ -124,15 +106,12 @@ impl ColumnTypes {
         };
 
         for l in rdr.take(5000) {
-            let l = l.unwrap();
-
+            let l = l?;
             let v = l.split(sep).collect::<Vec<_>>();
-
             // ignore bad line
             if cols.max() >= v.len() {
                 continue;
             }
-
             // parse
             (0..guess.len()).for_each(|n| guess.parse_csv_row(n, v[guess.col_index_at(n)]))
         }
@@ -141,36 +120,11 @@ impl ColumnTypes {
     }
 
     fn parse_csv_row(&mut self, n: usize, v: &str) {
-        if is_null(v) {
+        let ctype = &mut self.0[n].col_type;
+        if ctype.is_string() || is_null(v) {
             return;
         }
-
-        match self.col_type_at(n) {
-            ColumnType::Null => {
-                if v.parse::<i64>().is_ok() {
-                    self.set_as_int(n)
-                } else if v.parse::<f64>().is_ok() {
-                    self.set_as_float(n)
-                } else {
-                    self.set_as_string(n)
-                }
-            }
-            ColumnType::Int => {
-                if v.parse::<i64>().is_err() {
-                    if v.parse::<f64>().is_ok() {
-                        self.set_as_float(n)
-                    } else {
-                        self.set_as_string(n)
-                    }
-                }
-            }
-            ColumnType::Float => {
-                if v.parse::<f64>().is_err() {
-                    self.set_as_string(n)
-                }
-            }
-            ColumnType::String => {}
-        }
+        ctype.update(v);
     }
 
     pub fn guess_from_excel(
@@ -213,36 +167,11 @@ impl ColumnTypes {
     }
 
     fn parse_excel_row(&mut self, n: usize, v: &DataType) {
-        if v.is_empty() {
+        let ctype = &mut self.0[n].col_type;
+        if ctype.is_string() || v.is_empty() {
             return;
         }
-
-        match self.col_type_at(n) {
-            ColumnType::Null => {
-                if v.is_int() {
-                    self.set_as_int(n)
-                } else if v.is_float() {
-                    self.set_as_float(n)
-                } else {
-                    self.set_as_string(n)
-                }
-            }
-            ColumnType::Int => {
-                if !v.is_int() {
-                    if v.is_float() {
-                        self.set_as_float(n)
-                    } else {
-                        self.set_as_string(n)
-                    }
-                }
-            }
-            ColumnType::Float => {
-                if !v.is_float() {
-                    self.set_as_string(n)
-                }
-            }
-            ColumnType::String => {}
-        }
+        ctype.update_by_excel_cell(v);
     }
 }
 
@@ -262,5 +191,63 @@ impl Display for ColumnType {
 impl ColumnType {
     pub fn is_string(&self) -> bool {
         self == &ColumnType::String
+    }
+
+    pub fn update(&mut self, f: &str) {
+        match self {
+            ColumnType::Null => {
+                *self = if f.parse::<i64>().is_ok() {
+                    ColumnType::Int
+                } else if f.parse::<f64>().is_ok() {
+                    ColumnType::Float
+                } else {
+                    ColumnType::String
+                }
+            }
+            ColumnType::Int => {
+                if f.parse::<i64>().is_err() {
+                    *self = if f.parse::<f64>().is_ok() {
+                        ColumnType::Float
+                    } else {
+                        ColumnType::String
+                    }
+                }
+            }
+            ColumnType::Float => {
+                if f.parse::<f64>().is_err() {
+                    *self = ColumnType::String
+                }
+            }
+            _ => {}
+        }
+    }
+
+    pub fn update_by_excel_cell(&mut self, f: &DataType) {
+        match self {
+            ColumnType::Null => {
+                *self = if f.is_int() {
+                    ColumnType::Int
+                } else if f.is_float() {
+                    ColumnType::Float
+                } else {
+                    ColumnType::String
+                };
+            }
+            ColumnType::Int => {
+                if !f.is_int() {
+                    *self = if f.is_float() {
+                        ColumnType::Float
+                    } else {
+                        ColumnType::String
+                    }
+                };
+            }
+            ColumnType::Float => {
+                if !f.is_float() {
+                    *self = ColumnType::String;
+                }
+            }
+            _ => {}
+        }
     }
 }

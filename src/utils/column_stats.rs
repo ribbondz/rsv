@@ -42,7 +42,7 @@ impl ColumnStats {
         };
         col_type
             .iter()
-            .for_each(|c| s.push(c.col_index, c.col_type, &col_name[c.col_index]));
+            .for_each(|c| s.push(c.col_index, c.col_type.clone(), &col_name[c.col_index]));
 
         s
     }
@@ -176,7 +176,7 @@ impl Clone for ColumnStats {
         };
 
         self.iter()
-            .for_each(|c| o.push(c.col_index, c.col_type, &c.name));
+            .for_each(|c| o.push(c.col_index, c.col_type.clone(), &c.name));
 
         o
     }

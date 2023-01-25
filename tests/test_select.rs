@@ -25,6 +25,7 @@ fn end_row_of_cmd(cmd: &str, file: &str) -> String {
         .to_owned()
 }
 
+// csv
 #[test]
 fn test_select_csv_filter0() {
     let cmd = "rsv select file";
@@ -79,6 +80,7 @@ fn test_select_csv_column_filter3() {
     );
 }
 
+// excel
 #[test]
 fn test_select_excel_filter0() {
     let cmd = "rsv select file";
@@ -133,6 +135,7 @@ fn test_select_excel_column_filter3() {
     );
 }
 
+// io
 #[test]
 fn test_select_io_filter0() {
     let cmd = "rsv slice file | rsv select";
