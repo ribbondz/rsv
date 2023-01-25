@@ -91,7 +91,10 @@ fn handle_task(
         match cols.all {
             true => wtr.write_line_unchecked(r.unwrap()),
             false => {
-                let f = f.unwrap();
+                let f = match f {
+                    Some(v) => v,
+                    None => r.unwrap().split(sep).collect(),
+                };
                 let row = cols.iter().map(|&i| f[i]).collect::<Vec<_>>();
                 wtr.write_line_by_field_unchecked(&row, Some(sep_bytes));
             }
