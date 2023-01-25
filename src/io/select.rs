@@ -21,38 +21,31 @@ pub fn run(no_header: bool, sep: &str, cols: &str, filter: &str, export: bool) -
 
     // header
     if !no_header {
-        let r = match rdr.next() {
-            Some(v) => v?,
-            None => return Ok(()),
-        };
-        match cols.all {
-            true => wtr.write_line_unchecked(&r),
-            false => {
+        match (rdr.next(), cols.all) {
+            (Some(r), true) => wtr.write_line_unchecked(&r?),
+            (Some(r), false) => {
+                let r = r?;
                 let mut r = r.split(sep).collect::<Vec<_>>();
                 r = cols.iter().map(|&i| r[i]).collect();
                 wtr.write_line_by_field_unchecked(&r, Some(sep_bytes));
             }
-        }
+            (None, _) => return Ok(()),
+        };
     }
 
     for r in rdr {
         let r = r?;
-
         if filter.is_empty() && cols.all {
             wtr.write_line_unchecked(r);
             continue;
         }
-
         let mut f = r.split(sep).collect::<Vec<_>>();
-
         if !filter.is_empty() && !filter.record_is_valid(&f) {
             continue;
         }
-
         if !cols.all {
             f = cols.iter().map(|&i| f[i]).collect();
         }
-
         wtr.write_line_by_field_unchecked(&f, Some(sep_bytes));
     }
 

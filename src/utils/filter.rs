@@ -53,12 +53,13 @@ impl Filter {
             werr!("Error: Filter syntax is wrong, run <rsv select -h> for help.");
             process::exit(1);
         }
+
+        // parse column
         let mut col = v[0].to_owned();
         let is_numeric = col.ends_with(['n', 'N']);
         if is_numeric {
             col.pop();
         }
-
         let col = col.parse::<usize>().unwrap_or_else(|_| {
             werr!("Error: <{}> is not a column.", col);
             process::exit(1)
@@ -74,7 +75,7 @@ impl Filter {
             str_values: vec![],
         };
 
-        // the matching order is important
+        // parse filter, the matching order is important
         match is_numeric {
             true => {
                 if one.contains("!=") {
@@ -168,7 +169,7 @@ impl Filter {
 fn str_to_f64(s: &str) -> f64 {
     s.parse::<f64>().unwrap_or_else(|_| {
         werr!(
-            "Error: <{}> is not a valid float or int, run <rsv select -h> for help.",
+            "Error: <{}> is not a valid number, run <rsv select -h> for help.",
             s
         );
         process::exit(1)
@@ -180,7 +181,7 @@ fn str_to_f64_vec(s: &str) -> Vec<f64> {
         .map(|i| {
             i.parse::<f64>().unwrap_or_else(|_| {
                 werr!(
-                    "Error: <{}> is not a float or integer, run <rsv select -h> for help.",
+                    "Error: <{}> is not a number, run <rsv select -h> for help.",
                     i
                 );
                 process::exit(1);

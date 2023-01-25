@@ -35,17 +35,15 @@ pub fn run(
 
     // header
     if !no_header {
-        let r = match rdr.next() {
-            Some(r) => r?,
-            None => return Ok(()),
-        };
-        match cols.all {
-            true => wtr.write_line_unchecked(&r),
-            false => {
+        match (rdr.next(), cols.all) {
+            (Some(r), true) => wtr.write_line_unchecked(&r?),
+            (Some(r), false) => {
+                let r = r?;
                 let mut r = r.split(sep).collect::<Vec<_>>();
                 r = cols.iter().map(|&i| r[i]).collect();
                 wtr.write_line_by_field_unchecked(&r, Some(sep_bytes));
             }
+            (None, _) => return Ok(()),
         };
     }
 

@@ -35,7 +35,7 @@ impl SortColumns {
                 });
             } else {
                 let e = format!(
-                    "column syntax error for <-c {}>. Run <rsv sort -h> for syntax examples.",
+                    "column syntax error for <-c {}>. Run <rsv sort -h> for help.",
                     i
                 );
                 return Err(e.into());

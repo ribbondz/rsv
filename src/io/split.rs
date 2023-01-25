@@ -43,10 +43,9 @@ pub fn run(no_header: bool, sep: &str, col: usize, size: &Option<usize>) -> CliR
 
     let header_inserted: DashMap<String, bool> = DashMap::new();
     let mut n = 0;
-    let buffer = if is_sequential_split {
-        size.unwrap()
-    } else {
-        10000
+    let buffer = match is_sequential_split {
+        true => size.unwrap(),
+        false => 10000,
     };
     let mut lines = Vec::with_capacity(buffer);
     for r in rdr {

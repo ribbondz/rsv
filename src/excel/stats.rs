@@ -26,10 +26,7 @@ pub fn run(path: &Path, sheet: usize, no_header: bool, cols: &str, export: bool)
         cols.artificial_n_cols(column_n)
     } else {
         match range.next() {
-            Some(v) => match cols.all {
-                true => v.iter().map(|i| i.to_string()).collect::<Vec<_>>(),
-                false => cols.iter().map(|&i| v[i].to_string()).collect::<Vec<_>>(),
-            },
+            Some(v) => v.iter().map(|i| i.to_string()).collect::<Vec<_>>(),
             None => return Ok(()),
         }
     };

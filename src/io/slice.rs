@@ -31,8 +31,8 @@ pub fn run(
         Some(index) => write_by_index(&mut rdr, &mut wtr, index),
         None => {
             let e = end
-                .or_else(|| length.map(|l| start + l).or(Some(usize::MAX)))
-                .unwrap();
+                .or_else(|| length.map(|l| start + l))
+                .unwrap_or(usize::MAX - 10);
             write_by_range(&mut rdr, &mut wtr, start, e);
         }
     }

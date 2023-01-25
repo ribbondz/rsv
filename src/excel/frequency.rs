@@ -30,9 +30,7 @@ pub fn run(
     } else {
         let first_row = match rdr.next() {
             Some(v) => v.iter().map(|i| i.to_string()).collect::<Vec<_>>(),
-            None => {
-                return Ok(());
-            }
+            None => return Ok(()),
         };
         if col.max() >= first_row.len() {
             println!("[info] ignore a bad line # {:?}!", first_row);
