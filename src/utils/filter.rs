@@ -44,10 +44,9 @@ impl Filter {
     }
 
     fn parse(&mut self, one: &str) {
-        let one = one.replace(' ', "");
         // the matching order is important
         let re = Regex::new("!=|>=|<=|=|>|<").unwrap();
-        let v = re.split(&one).collect::<Vec<_>>();
+        let v = re.split(one).collect::<Vec<_>>();
 
         if v.len() != 2 {
             werr!("Error: Filter syntax is wrong, run <rsv select -h> for help.");
