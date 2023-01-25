@@ -1,14 +1,19 @@
-use std::process::Command;
+use execute::shell;
 mod common;
+use crate::common::{data_path, rsv};
 
-fn end_row_of_head(file: &str, no_header: bool) -> String {
-    let mut output = Command::new(common::RSV_COMMAND);
-    output.arg("head").arg("-n").arg("10");
-    if no_header {
-        output.arg("--no-header");
-    }
+fn end_row_of_head(file: &str, no_header: bool, io: bool) -> String {
+    let rsv = rsv();
+    let cmd = match (no_header, io) {
+        (true, false) => format!("{rsv} head -n 10 --no-header {file}"),
+        (false, false) => format!("{rsv} head -n 10 {file}"),
+        (true, true) => format!("{rsv} slice -l 10 {file} | {rsv} head -n 2 --no-header"),
+        (false, true) => format!("{rsv} slice -l 10 {file} | {rsv} head -n 2"),
+    };
 
-    let output = output.arg(file).output().unwrap();
+    // println!("111111 {:?}", cmd);
+    let mut cmd = shell(cmd);
+    let output = cmd.output().unwrap();
 
     String::from_utf8(output.stdout)
         .unwrap()
@@ -20,17 +25,17 @@ fn end_row_of_head(file: &str, no_header: bool) -> String {
 }
 
 #[test]
-fn test_head_csv_no_header() {
-    let r = end_row_of_head("D:\\code\\rsv\\tests\\data\\hotel_reservation.csv", false);
-    assert_eq!(
-        r.as_str(),
-        "INN00010,2,0,Meal Plan 1,Room_Type 4,Online,133.44,3"
-    );
-}
-
-#[test]
 fn test_head_csv_header() {
-    let r = end_row_of_head("D:\\code\\rsv\\tests\\data\\hotel_reservation.csv", true);
+    let r = end_row_of_head(&data_path("hotel_reservation.csv"), false, false);
+    assert_eq!(
+        r.as_str(),
+        "INN00010,2,0,Meal Plan 1,Room_Type 4,Online,133.44,3"
+    );
+}
+
+#[test]
+fn test_head_csv_no_header() {
+    let r = end_row_of_head(&data_path("hotel_reservation.csv"), true, false);
     assert_eq!(
         r.as_str(),
         "INN00009,3,0,Meal Plan 1,Room_Type 1,Offline,96.9,1"
@@ -38,8 +43,8 @@ fn test_head_csv_header() {
 }
 
 #[test]
-fn test_head_excel_no_header() {
-    let r = end_row_of_head("D:\\code\\rsv\\tests\\data\\hotel_reservation.xlsx", false);
+fn test_head_excel_header() {
+    let r = end_row_of_head(&data_path("hotel_reservation.xlsx"), false, false);
     assert_eq!(
         r.as_str(),
         "INN00010,2,0,Meal Plan 1,Room_Type 4,Online,133.44,3"
@@ -47,10 +52,28 @@ fn test_head_excel_no_header() {
 }
 #[test]
 
-fn test_head_excel_header() {
-    let r = end_row_of_head("D:\\code\\rsv\\tests\\data\\hotel_reservation.xlsx", true);
+fn test_head_excel_no_header() {
+    let r = end_row_of_head(&data_path("hotel_reservation.xlsx"), true, false);
     assert_eq!(
         r.as_str(),
         "INN00009,3,0,Meal Plan 1,Room_Type 1,Offline,96.9,1"
+    );
+}
+
+#[test]
+fn test_head_io_header() {
+    let r = end_row_of_head(&data_path("hotel_reservation.csv"), false, true);
+    assert_eq!(
+        r.as_str(),
+        "INN00002,2,0,Not Selected,Room_Type 1,Online,106.68,1"
+    );
+}
+#[test]
+
+fn test_head_io_no_header() {
+    let r = end_row_of_head(&data_path("hotel_reservation.csv"), true, true);
+    assert_eq!(
+        r.as_str(),
+        "INN00001,2,0,Meal Plan 1,Room_Type 1,Offline,65,0"
     );
 }
