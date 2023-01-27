@@ -1,7 +1,11 @@
 [package]
-name = "rsv"
+name = "csv-txt-excel-parallel-toolkit"
 version = "0.4.5"
 edition = "2021"
+authors = ["zhuang dai <ribbondz@163.com>"]
+description = "A parallel and fast command line toolkit for small and large (>10G) CSV, TXT, and EXCEL files, with a unified api."
+license = "GPL-3.0 license"
+repository = "https://github.com/ribbondz/rsv"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -17,3 +21,8 @@ execute = "0.2.11"
 rayon = "1.6.1"
 regex = "1.7.0"
 tabled = "0.10.0"
+
+# to save typing, the binary is renamed to rsv, a combination of Rust+CSV.
+[[bin]]
+name = "rsv"
+path = "src/main.rs"
