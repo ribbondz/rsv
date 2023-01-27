@@ -4,7 +4,7 @@ version = "0.4.5"
 edition = "2021"
 authors = ["zhuang dai <ribbondz@163.com>"]
 description = "A parallel and fast command line toolkit for small and large (>10G) CSV, TXT, and EXCEL files, with a unified api."
-license = "GPL-3.0 license"
+license = "MIT OR Unlicense"
 repository = "https://github.com/ribbondz/rsv"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
