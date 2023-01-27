@@ -21,7 +21,7 @@ mod utils;
 #[derive(Parser)]
 #[command(name = "rsv")]
 #[command(author = "ribbondz@163.com")]
-#[command(version = "0.4.5")]
+#[command(version = "0.4.6")]
 #[command(
     about = "A Rust command line tool to parse small and large (>10G) CSV, TXT, and EXCEL files."
 )]
@@ -120,6 +120,11 @@ enum Commands {
         override_help = TABLE_DESC
     )]
     Table(Table),
+    #[command(
+        about = "Save data to a txt, csv, tsv, xlsx or xls file",
+        // override_help = TABLE_DESC
+    )]
+    To(To),
 }
 
 #[derive(Debug, Args)]
@@ -393,6 +398,26 @@ struct Sort {
     /// Export to a file named current-file-searched.csv?
     #[arg(short = 'E', long, default_value_t = false)]
     export: bool,
+}
+
+#[derive(Debug, Args)]
+struct To {
+    /// Whether the file has a header
+    #[arg(long, default_value_t = false)]
+    no_header: bool,
+    /// Input file Separator
+    #[arg(short, long, default_value_t = String::from(","))]
+    sep: String,
+    /// Output file Separator
+    #[arg(short, long, default_value_t = String::from(","))]
+    outsep: String,
+    /// Get the nth worksheet of EXCEL file
+    #[arg(short = 'S', long, default_value_t = 0)]
+    sheet: usize,
+    /// Output file, a file name or a file format
+    out: String,
+    /// File to open
+    filename: Option<String>,
 }
 
 fn main() {
@@ -722,15 +747,42 @@ fn main() {
                     false => csv::sort::run(
                         &path,
                         option.no_header,
-                        &option.sep,
+                        &option.sep.valid(),
                         &option.cols,
                         option.export,
                     )
                     .handle_err(),
                 }
             }
-            None => io::sort::run(option.no_header, &option.sep, &option.cols, option.export)
-                .handle_err(),
+            None => io::sort::run(
+                option.no_header,
+                &option.sep.valid(),
+                &option.cols,
+                option.export,
+            )
+            .handle_err(),
+        },
+        Commands::To(option) => match &option.filename {
+            Some(f) => {
+                let path = full_path(f);
+                match is_excel(&path) {
+                    true => {
+                        excel::to::run(&path, option.sheet, &option.out, &option.outsep.valid())
+                            .handle_err()
+                    }
+                    false => csv::to::run(
+                        &path,
+                        option.no_header,
+                        &option.out,
+                        &option.sep.valid(),
+                        &option.outsep.valid(),
+                    )
+                    .handle_err(),
+                }
+            }
+            None => {
+                io::to::run(&option.sep.valid(), &option.out, &option.outsep.valid()).handle_err()
+            }
         },
     }
 }

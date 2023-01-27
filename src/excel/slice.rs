@@ -1,4 +1,5 @@
 use crate::utils::cli_result::CliResult;
+use crate::utils::constants::COMMA;
 use crate::utils::excel_reader::ExcelReader;
 use crate::utils::filename::new_path;
 use crate::utils::util::werr;
@@ -27,7 +28,7 @@ pub fn run(
     // header
     if !no_header {
         match rdr.next() {
-            Some(v) => wtr.write_excel_line_unchecked(v),
+            Some(v) => wtr.write_excel_line_unchecked(v, COMMA),
             None => return Ok(()),
         }
     }
@@ -56,12 +57,12 @@ pub fn run(
 
 fn write_by_index(rdr: &mut ExcelReader, wtr: &mut Writer, index: usize) {
     for r in rdr.iter().skip(rdr.next_called + index).take(1) {
-        wtr.write_excel_line_unchecked(r);
+        wtr.write_excel_line_unchecked(r, COMMA);
     }
 }
 
 fn write_by_range(rdr: &mut ExcelReader, wtr: &mut Writer, start: usize, end: usize) {
     for r in rdr.iter().skip(rdr.next_called + start).take(end - start) {
-        wtr.write_excel_line_unchecked(r);
+        wtr.write_excel_line_unchecked(r, COMMA);
     }
 }

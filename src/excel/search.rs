@@ -1,4 +1,5 @@
 use crate::utils::cli_result::CliResult;
+use crate::utils::constants::COMMA;
 use crate::utils::excel_reader::{ExcelChunkTask, ExcelReader};
 use crate::utils::filename::new_path;
 use crate::utils::progress::Progress;
@@ -18,7 +19,7 @@ pub fn run(path: &Path, sheet: usize, pattern: &str, no_header: bool, export: bo
     // header
     if !no_header {
         match range.next() {
-            Some(v) => wtr.write_excel_line_unchecked(v),
+            Some(v) => wtr.write_excel_line_unchecked(v, COMMA),
             None => return Ok(()),
         };
     };

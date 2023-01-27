@@ -60,13 +60,6 @@ pub fn write_frequency_to_csv(path: &PathBuf, names: &Vec<String>, freq: Vec<(St
     }
 }
 
-pub fn first_row(path: &Path) -> Result<Option<String>, Box<dyn Error>> {
-    let mut rdr = BufReader::new(File::open(path)?).lines();
-
-    let r = rdr.next().and_then(|i| i.ok());
-    Ok(r)
-}
-
 pub fn is_excel(p: &Path) -> bool {
     match p.extension() {
         Some(e) => e == "xlsx" || e == "xls",

@@ -1,10 +1,8 @@
 use crate::utils::cli_result::CliResult;
 use crate::utils::column::Columns;
 use crate::utils::column_stats::ColumnStats;
-use crate::utils::column_type::{ColumnType, ColumnTypes};
+use crate::utils::column_type::ColumnTypes;
 use crate::utils::filename::new_file;
-use crate::utils::util::is_null;
-
 use rayon::prelude::*;
 use std::fs::File;
 use std::io::{self, BufRead, BufWriter, Write};
@@ -22,49 +20,46 @@ pub fn run(sep: &str, no_header: bool, cols: &str, export: bool) -> CliResult {
         return Ok(());
     }
 
-    // cols
+    // split rows
     let cols = Columns::new(cols);
+    let rows = rows
+        .par_iter()
+        .map(|r| r.split(sep).collect::<Vec<_>>())
+        .collect::<Vec<_>>();
 
     // header
-    let names = match no_header {
-        true => cols.artificial_n_cols(rows[0].split(sep).count()),
-        false => rows[0].split(sep).map(|i| i.to_owned()).collect::<Vec<_>>(),
-    };
-    let names = match cols.all {
-        true => names,
-        false => cols
+    let names = match (no_header, cols.all) {
+        (true, _) => cols.artificial_n_cols(rows[0].len()),
+        (false, true) => rows[0].iter().map(|&i| i.to_owned()).collect::<Vec<_>>(),
+        (false, false) => cols
             .iter()
-            .map(|&i| names[i].to_owned())
+            .map(|&i| rows[0][i].to_owned())
             .collect::<Vec<_>>(),
     };
 
-    // split rows and select
-    let row_with_selected_cols = rows
-        .par_iter()
-        .skip(1 - no_header as usize)
-        .map(|r| match cols.all {
-            true => r.split(sep).map(|i| i.to_owned()).collect::<Vec<_>>(),
-            false => {
-                let fields = r.split(sep).collect::<Vec<_>>();
-                cols.iter()
-                    .map(|&i| fields[i].to_owned())
-                    .collect::<Vec<_>>()
-            }
-        })
-        .collect::<Vec<_>>();
+    let rows = &rows[(1 - no_header as usize)..];
 
     // column type
-    let typ = ColumnTypes::from(col_type(&row_with_selected_cols))?;
+    let typ = ColumnTypes::guess_from_io(rows, &cols);
 
     // stats holder
     let mut stat = ColumnStats::new(&typ, &names);
-    row_with_selected_cols.iter().for_each(|r| {
-        r.par_iter()
-            .zip(&mut stat.stat)
-            .for_each(|(v, c)| c.parse(v))
+    let chunks = rows.chunks(1000).collect::<Vec<_>>();
+    let r = chunks
+        .into_par_iter()
+        .map(|chunk| {
+            let mut s = stat.clone();
+            for r in chunk {
+                s.parse_line_by_fields(r);
+            }
+            s
+        })
+        .collect::<Vec<_>>();
+    r.into_iter().fold(&mut stat, |s, b| {
+        s.merge(b);
+        s
     });
 
-    stat.rows += row_with_selected_cols.len();
     stat.cal_unique_and_mean();
 
     if export {
@@ -78,29 +73,4 @@ pub fn run(sep: &str, no_header: bool, cols: &str, export: bool) -> CliResult {
     }
 
     Ok(())
-}
-
-fn col_type(v: &[Vec<String>]) -> Vec<ColumnType> {
-    assert!(!v.is_empty());
-
-    (0..v[0].len())
-        .into_par_iter()
-        .map(|n| parse_col_type_at(n, v))
-        .collect::<Vec<_>>()
-}
-
-fn parse_col_type_at(n: usize, v: &[Vec<String>]) -> ColumnType {
-    let mut ctype = ColumnType::Null;
-    for r in v {
-        if ctype.is_string() {
-            break;
-        }
-        let f = &r[n];
-        if is_null(f) {
-            continue;
-        }
-        ctype.update(f);
-    }
-
-    ctype
 }

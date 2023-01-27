@@ -1,13 +1,13 @@
-use super::{excel_reader::ExcelReader, file, util::is_null};
+use super::{column::Columns, excel_reader::ExcelReader, util::is_null};
 use crate::utils::column;
 use calamine::DataType;
+use rayon::prelude::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
 use std::{
     error::Error,
     fmt::Display,
     fs::File,
     io::{BufRead, BufReader},
     path::Path,
-    process,
 };
 
 #[derive(Debug)]
@@ -28,29 +28,6 @@ pub enum ColumnType {
 }
 
 impl ColumnTypes {
-    pub fn _new(total_col: usize, cols: &column::Columns) -> Result<Self, Box<dyn Error>> {
-        let mut guess = ColumnTypes(vec![]);
-
-        // init to null according to column number
-        if cols.is_empty() {
-            (0..total_col).for_each(|i| guess.push(i, ColumnType::Null))
-        } else {
-            cols.iter().for_each(|&i| guess.push(i, ColumnType::Null))
-        }
-
-        Ok(guess)
-    }
-
-    pub fn from(cols: Vec<ColumnType>) -> Result<Self, Box<dyn Error>> {
-        let mut guess = ColumnTypes(vec![]);
-
-        cols.into_iter()
-            .enumerate()
-            .for_each(|(i, t)| guess.push(i, t));
-
-        Ok(guess)
-    }
-
     fn push(&mut self, col_index: usize, col_type: ColumnType) {
         self.0.push(CType {
             col_index,
@@ -58,16 +35,8 @@ impl ColumnTypes {
         })
     }
 
-    fn col_index_at(&self, n: usize) -> usize {
-        self.0[n].col_index
-    }
-
     pub fn iter(&self) -> impl Iterator<Item = &CType> {
         self.0.iter()
-    }
-
-    pub fn len(&self) -> usize {
-        self.0.len()
     }
 
     pub fn guess_from_csv(
@@ -76,103 +45,110 @@ impl ColumnTypes {
         no_header: bool,
         cols: &column::Columns,
     ) -> Result<Option<Self>, Box<dyn Error>> {
-        let mut guess = ColumnTypes(vec![]);
-
         // reader
-        let mut rdr = BufReader::new(File::open(path)?).lines();
+        let rdr = BufReader::new(File::open(path)?).lines();
+        let lines = rdr
+            .skip(1 - no_header as usize)
+            .take(5000)
+            .filter_map(|i| i.ok())
+            .collect::<Vec<_>>();
 
-        // take first row to analyze the number of column
-        let first_row = if no_header {
-            match file::first_row(path)? {
-                Some(v) => v,
-                None => return Ok(None),
-            }
-        } else {
-            match rdr.next() {
-                Some(r) => r?,
-                None => return Ok(None),
-            }
-        };
-        let first_row = first_row.split(sep).collect::<Vec<_>>();
-
-        // init guess according to column number
-        if cols.is_empty() {
-            first_row
-                .iter()
-                .enumerate()
-                .for_each(|(i, _)| guess.push(i, ColumnType::Null))
-        } else {
-            cols.iter().for_each(|&i| guess.push(i, ColumnType::Null))
-        };
-
-        for l in rdr.take(5000) {
-            let l = l?;
-            let v = l.split(sep).collect::<Vec<_>>();
-            // ignore bad line
-            if cols.max() >= v.len() {
-                continue;
-            }
-            // parse
-            (0..guess.len()).for_each(|n| guess.parse_csv_row(n, v[guess.col_index_at(n)]))
+        if lines.is_empty() {
+            return Ok(None);
         }
+
+        // split
+        let lines = lines
+            .par_iter()
+            .map(|r| r.split(sep).collect::<Vec<_>>())
+            .collect::<Vec<_>>();
+
+        let cols_vec = match cols.all {
+            true => (0..lines[0].len()).collect::<Vec<_>>(),
+            false => cols.iter().copied().collect::<Vec<_>>(),
+        };
+        let types = cols_vec
+            .into_par_iter()
+            .map(|i| (i, parse_col_type_at(i, &lines)))
+            .collect::<Vec<_>>();
+        let guess = types.iter().fold(ColumnTypes(vec![]), |mut a, b| {
+            a.push(b.0, b.1.clone());
+            a
+        });
 
         Ok(Some(guess))
     }
 
-    fn parse_csv_row(&mut self, n: usize, v: &str) {
-        let ctype = &mut self.0[n].col_type;
-        if ctype.is_string() || is_null(v) {
-            return;
+    pub fn from_excel(range: &ExcelReader, no_header: bool, cols: &Columns) -> Option<Self> {
+        let lines = range
+            .iter()
+            .skip(1 - no_header as usize)
+            .collect::<Vec<_>>();
+
+        if lines.is_empty() {
+            return None;
         }
-        ctype.update(v);
-    }
 
-    pub fn guess_from_excel(
-        path: &Path,
-        sheet: usize,
-        no_header: bool,
-        cols: &column::Columns,
-    ) -> Result<Self, Box<dyn Error>> {
-        let mut guess = ColumnTypes(vec![]);
-
-        // reader
-        let mut range = ExcelReader::new(path, sheet)?;
-
-        // take first row to analyze the number of column
-        let first_row = match range.next() {
-            Some(v) => v,
-            None => process::exit(0),
+        let cols_vec = match cols.all {
+            true => (0..lines[0].len()).collect::<Vec<_>>(),
+            false => cols.iter().copied().collect::<Vec<_>>(),
         };
+        let types = cols_vec
+            .into_par_iter()
+            .map(|i| (i, parse_excel_col_type_at(i, &lines)))
+            .collect::<Vec<_>>();
 
-        // init guess according to column number
-        if cols.is_empty() {
-            first_row
-                .iter()
-                .enumerate()
-                .for_each(|(i, _)| guess.push(i, ColumnType::Null))
-        } else {
-            cols.iter().for_each(|&i| guess.push(i, ColumnType::Null))
+        let guess = types.iter().fold(ColumnTypes(vec![]), |mut a, b| {
+            a.push(b.0, b.1.clone());
+            a
+        });
+
+        Some(guess)
+    }
+
+    pub fn guess_from_io(v: &[Vec<&str>], cols: &Columns) -> Self {
+        let cols_vec = match cols.all {
+            true => (0..v[0].len()).collect::<Vec<_>>(),
+            false => cols.iter().copied().collect::<Vec<_>>(),
         };
+        let types = cols_vec
+            .into_par_iter()
+            .map(|i| (i, parse_col_type_at(i, v)))
+            .collect::<Vec<_>>();
 
-        for l in range.iter().skip(1 - no_header as usize).take(5000) {
-            // ignore bad line
-            if cols.max() >= l.len() {
-                continue;
-            }
-            // parse
-            (0..guess.len()).for_each(|n| guess.parse_excel_row(n, &l[guess.col_index_at(n)]))
+        types.iter().fold(ColumnTypes(vec![]), |mut a, b| {
+            a.push(b.0, b.1.clone());
+            a
+        })
+    }
+}
+
+fn parse_col_type_at(n: usize, v: &[Vec<&str>]) -> ColumnType {
+    let mut ctype = ColumnType::Null;
+    for r in v {
+        if ctype.is_string() {
+            break;
         }
-
-        Ok(guess)
+        let f = r[n];
+        if is_null(f) {
+            continue;
+        }
+        ctype.update(f);
     }
 
-    fn parse_excel_row(&mut self, n: usize, v: &DataType) {
-        let ctype = &mut self.0[n].col_type;
-        if ctype.is_string() || v.is_empty() {
-            return;
+    ctype
+}
+
+fn parse_excel_col_type_at(n: usize, v: &[&[DataType]]) -> ColumnType {
+    let mut ctype = ColumnType::Null;
+    for &r in v {
+        if ctype.is_string() {
+            break;
         }
-        ctype.update_by_excel_cell(v);
+        ctype.update_by_excel_cell(&r[n]);
     }
+
+    ctype
 }
 
 impl Display for ColumnType {
@@ -191,6 +167,10 @@ impl Display for ColumnType {
 impl ColumnType {
     pub fn is_string(&self) -> bool {
         self == &ColumnType::String
+    }
+
+    pub fn is_number(&self) -> bool {
+        self == &ColumnType::Int || self == &ColumnType::Float
     }
 
     pub fn update(&mut self, f: &str) {

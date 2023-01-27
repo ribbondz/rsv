@@ -14,5 +14,6 @@ pub mod progress;
 pub mod regex;
 pub mod sort;
 pub mod table;
+pub mod to;
 pub mod util;
 pub mod writer;

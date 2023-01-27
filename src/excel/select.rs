@@ -1,5 +1,6 @@
 use crate::utils::cli_result::CliResult;
 use crate::utils::column::Columns;
+use crate::utils::constants::COMMA;
 use crate::utils::excel_reader::{ExcelChunkTask, ExcelReader};
 use crate::utils::filename::new_path;
 use crate::utils::filter::Filter;
@@ -32,7 +33,7 @@ pub fn run(
     // header
     if !no_header {
         match (range.next(), cols.all) {
-            (Some(r), true) => wtr.write_excel_line_unchecked(r),
+            (Some(r), true) => wtr.write_excel_line_unchecked(r, COMMA),
             (Some(r), false) => {
                 let r = cols.iter().map(|&i| r[i].to_string()).collect::<Vec<_>>();
                 wtr.write_line_by_field_unchecked(&r, None);

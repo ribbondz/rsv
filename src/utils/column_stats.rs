@@ -70,32 +70,35 @@ impl ColumnStats {
         }
     }
 
-    pub fn parse_line(&mut self, line: &str, sep: &str) {
-        let v = line.split(sep).collect::<Vec<_>>();
-
+    pub fn parse_line_by_fields(&mut self, v: &[&str]) {
         if self.max_col >= v.len() {
             println!("[info] ignore a bad line: {:?}", v);
             return;
         }
 
-        let v = self.cols.iter().map(|&i| v[i]).collect::<Vec<_>>();
-        v.iter().zip(&mut self.stat).for_each(|(&i, c)| c.parse(i));
+        self.cols
+            .iter()
+            .zip(&mut self.stat)
+            .for_each(|(&i, c)| c.parse(v[i]));
 
         self.rows += 1;
     }
 
-    pub fn parse_excel_row(&mut self, v: Vec<DataType>) {
+    pub fn parse_line(&mut self, line: &str, sep: &str) {
+        let v = line.split(sep).collect::<Vec<_>>();
+        self.parse_line_by_fields(&v);
+    }
+
+    pub fn parse_excel_row(&mut self, v: &[DataType]) {
         if self.max_col >= v.len() {
             println!("[info] ignore a bad line: {:?}", v);
             return;
         }
 
-        let v = self
-            .cols
+        self.cols
             .iter()
-            .map(|&i| v[i].to_string())
-            .collect::<Vec<_>>();
-        v.iter().zip(&mut self.stat).for_each(|(i, c)| c.parse(i));
+            .zip(&mut self.stat)
+            .for_each(|(&i, c)| c.parse(&v[i].to_string()));
 
         self.rows += 1;
     }
@@ -128,7 +131,7 @@ impl ColumnStats {
             .stat
             .into_par_iter()
             .zip(&mut self.stat)
-            .for_each(|(o, c)| c.merge(o))
+            .for_each(|(o, c)| c.merge(o));
     }
 
     fn print_table_vertical(&self) -> Table {

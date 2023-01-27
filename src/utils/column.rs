@@ -20,10 +20,6 @@ fn parse_col_usize(col: &str) -> usize {
 }
 
 impl Columns {
-    pub fn is_empty(&self) -> bool {
-        self.cols.len() == 0
-    }
-
     pub fn new(raw: &str) -> Self {
         let mut cols = Columns {
             cols: vec![],

@@ -1,4 +1,5 @@
 use crate::utils::cli_result::CliResult;
+use crate::utils::constants::COMMA;
 use crate::utils::excel_reader::{ExcelChunkTask, ExcelReader};
 use crate::utils::filename::{dir_file, str_to_filename};
 use crate::utils::progress::Progress;
@@ -101,7 +102,7 @@ fn sequential_task_handle(
     // write
     let mut wtr = Writer::append_to(out)?;
     wtr.write_header(first_row)?;
-    wtr.write_excel_lines(&task.lines)?;
+    wtr.write_excel_lines(&task.lines, COMMA)?;
 
     prog.print();
 
@@ -167,7 +168,7 @@ fn save_to_disk(
         header_inserted.insert(filename, true);
         wtr.write_line(first_row)?;
     }
-    wtr.write_excel_lines_by_ref(rows)?;
+    wtr.write_excel_lines_by_ref(rows, COMMA)?;
 
     Ok(())
 }

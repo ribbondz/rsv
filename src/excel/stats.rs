@@ -2,83 +2,52 @@ use crate::utils::cli_result::CliResult;
 use crate::utils::column::Columns;
 use crate::utils::column_stats::ColumnStats;
 use crate::utils::column_type::ColumnTypes;
-use crate::utils::excel_reader::{ExcelChunkTask, ExcelReader};
+use crate::utils::excel_reader::ExcelReader;
 use crate::utils::filename::new_path;
-use crate::utils::progress::Progress;
-use crossbeam_channel::{bounded, unbounded, Sender};
-
-use rayon::ThreadPoolBuilder;
+use rayon::prelude::*;
 use std::fs::File;
 use std::io::{BufWriter, Write};
 use std::path::Path;
 
 pub fn run(path: &Path, sheet: usize, no_header: bool, cols: &str, export: bool) -> CliResult {
-    // file
-    let mut range = ExcelReader::new(path, sheet)?;
-    let column_n = range.column_n();
+    // read file
+    let range = ExcelReader::new(path, sheet)?;
+    let lines = range.iter().collect::<Vec<_>>();
 
-    // Column filter
+    // too few lines
+    if lines.len() <= 1 - no_header as usize {
+        return Ok(());
+    }
+
+    // Column type
     let cols = Columns::new(cols);
-    let col_type = ColumnTypes::guess_from_excel(path, sheet, no_header, &cols)?;
+    let col_type = ColumnTypes::from_excel(&range, no_header, &cols).unwrap();
 
     // header
-    let name = if no_header {
-        cols.artificial_n_cols(column_n)
-    } else {
-        match range.next() {
-            Some(v) => v.iter().map(|i| i.to_string()).collect::<Vec<_>>(),
-            None => return Ok(()),
-        }
+    let name = match (no_header, cols.all) {
+        (true, _) => cols.artificial_n_cols(lines[0].len()),
+        (false, true) => lines[0].iter().map(|i| i.to_string()).collect::<Vec<_>>(),
+        (false, false) => cols.iter().map(|&i| lines[0][i].to_string()).collect(),
     };
+
+    let lines = &lines[(1 - no_header as usize)..];
 
     // stats holder
     let mut stat = ColumnStats::new(&col_type, &name);
-    let empty_stat = stat.clone();
-
-    // parallel channels
-    let (tx_chunk, rx_chunk) = bounded(2);
-    let (tx_chunk_n_control, rx_chunk_n_control) = bounded(200);
-    let (tx_result, rx_result) = unbounded();
-
-    // progress bar
-    let mut prog = Progress::new();
-
-    // threadpool
-    let pool = ThreadPoolBuilder::new().build().unwrap();
-
-    // read
-    pool.spawn(move || range.send_to_channel_in_line_chunks(tx_chunk, None));
-
-    // parallel process
-    pool.scope(|s| {
-        // add chunk to threadpool for process
-        s.spawn(|_| {
-            for task in rx_chunk {
-                tx_chunk_n_control.send(0).unwrap();
-
-                let tx = tx_result.clone();
-                let st = empty_stat.clone();
-                // println!("dispatch........");
-                pool.spawn(move || parse_chunk(task, tx, st));
+    let segs = lines.chunks(1000).collect::<Vec<_>>();
+    let r = segs
+        .into_par_iter()
+        .map(|chunk| {
+            let mut s = stat.clone();
+            for &r in chunk {
+                s.parse_excel_row(r);
             }
-
-            drop(tx_result);
-            drop(tx_chunk_n_control);
-        });
-
-        // receive result
-        for ExcelChunkResult { n, stat: o } in rx_result {
-            rx_chunk_n_control.recv().unwrap();
-            // println!("result-----------");
-            // this is bottleneck, merge two hashset is very slow.
-            stat.merge(o);
-
-            prog.add_lines(n);
-            prog.add_chunks(1);
-            prog.print_lines();
-        }
-
-        prog.clear();
+            s
+        })
+        .collect::<Vec<_>>();
+    r.into_iter().fold(&mut stat, |s, b| {
+        s.merge(b);
+        s
     });
 
     // refine result
@@ -95,19 +64,6 @@ pub fn run(path: &Path, sheet: usize, no_header: bool, cols: &str, export: bool)
     }
 
     println!("Total rows: {}", stat.rows);
-    prog.print_elapsed_time();
 
     Ok(())
-}
-
-struct ExcelChunkResult {
-    n: usize,
-    stat: ColumnStats,
-}
-
-fn parse_chunk(task: ExcelChunkTask, tx: Sender<ExcelChunkResult>, mut stat: ColumnStats) {
-    let ExcelChunkTask { lines, n, chunk: _ } = task;
-    lines.into_iter().for_each(|i| stat.parse_excel_row(i));
-
-    tx.send(ExcelChunkResult { n, stat }).unwrap()
 }
