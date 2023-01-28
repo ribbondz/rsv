@@ -28,13 +28,9 @@ pub fn run(sep: &str, no_header: bool, cols: &str, export: bool) -> CliResult {
         .collect::<Vec<_>>();
 
     // header
-    let names = match (no_header, cols.all) {
-        (true, _) => cols.artificial_n_cols(rows[0].len()),
-        (false, true) => rows[0].iter().map(|&i| i.to_owned()).collect::<Vec<_>>(),
-        (false, false) => cols
-            .iter()
-            .map(|&i| rows[0][i].to_owned())
-            .collect::<Vec<_>>(),
+    let names = match no_header {
+        true => cols.artificial_n_cols(rows[0].len()),
+        false => rows[0].iter().map(|&i| i.to_owned()).collect::<Vec<_>>(),
     };
 
     let rows = &rows[(1 - no_header as usize)..];

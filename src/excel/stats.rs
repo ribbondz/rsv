@@ -24,10 +24,9 @@ pub fn run(path: &Path, sheet: usize, no_header: bool, cols: &str, export: bool)
     let col_type = ColumnTypes::guess_from_excel(&range, no_header, &cols).unwrap();
 
     // header
-    let name = match (no_header, cols.all) {
-        (true, _) => cols.artificial_n_cols(lines[0].len()),
-        (false, true) => lines[0].iter().map(|i| i.to_string()).collect::<Vec<_>>(),
-        (false, false) => cols.iter().map(|&i| lines[0][i].to_string()).collect(),
+    let name = match no_header {
+        true => cols.artificial_n_cols(lines[0].len()),
+        false => lines[0].iter().map(|i| i.to_string()).collect::<Vec<_>>(),
     };
 
     let lines = &lines[(1 - no_header as usize)..];
