@@ -28,6 +28,7 @@ download **rsv.exe** from release tab, and append the file directory to system p
 - **sort** - In-memory data sorting, support for at most two columns :star:.
 - **stats** - Statistics for column(s), including min, max, mean, unique, null :running: :star:.
 - **excel2csv** - Convert excel to csv.
+- **to** - Save command output data to disk, can be one of TXT, CSV, TSV, XLSX or XLS.
 - **table** - Format data as an aligned table.
 
 Tips 1:
@@ -233,6 +234,26 @@ rsv select -f "2N=10,20" -c 0-4 data.csv | rsv sort -c 2  # filter rows, select 
 rsv search pattern1 data.csv | rsv sort -c 1ND | rsv table             # search, sort and print
 rsv select -f 1=a,b data.csv | rsv search pattern | rsv stats          # select, search, and make statistics
 rsv select -f "0N>=10&0N<20" data.csv | rsv search pattern | rsv table # select, search, and print in a table
+```
+
+## Data export
+
+- **method 1: by the --export or -E flag, support exporting to csv file only**
+
+```shell
+rsv slice -s 1000 -e 2000 --export data.csv           # the data export flag
+rsv slice -s 1000 -e 2000 -E data.csv                 # same as above
+rsv search --export pattern data.xlsx                 # export search data
+rsv select -f "0N>=10" --export pattern data.xlsx     # export select data
+```
+
+- **method 2: by "rsv to" subcommand, support csv, txt, tsv, excel**
+
+```shell
+rsv slice -s 1000 -e 2000 data.csv | rsv to out.csv          # export to CSV
+rsv slice -s 1000 -e 2000 data.csv | rsv to out.xlsx         # export to EXCEL
+rsv search pattern data.xlsx | rsv to out.tsv                # export to TSV
+rsv select -f "0N>=10" pattern data.xlsx | rsv to out.txt    # export to TXT
 ```
 
 ## Bug report and suggestion
