@@ -6,7 +6,7 @@ authors = ["zhuang dai <ribbondz@163.com>"]
 description = "A parallel and fast command line toolkit for small and large (>10G) CSV, TXT, and EXCEL files, with a unified api."
 license = "MIT OR Unlicense"
 repository = "https://github.com/ribbondz/rsv"
-categories = ["command-line-utilities", "Command-line interface"]
+categories = ["command-line-utilities"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
