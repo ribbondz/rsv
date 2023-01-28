@@ -88,6 +88,7 @@ pub fn csv_to_excel(path: &Path, sep: &str, out: &str, no_header: bool) -> CliRe
         Some(v) => v,
         None => return Ok(()),
     };
+    ctypes.update_excel_column_width(&mut sheet)?;
 
     // copy
     for (n, r) in rdr.lines().enumerate() {
@@ -123,14 +124,7 @@ pub fn io_to_excel(sep: &str, no_header: bool, out: &str) -> CliResult {
     //  wtr
     let workbook = Workbook::new(out.to_str().unwrap())?;
     let mut sheet = workbook.add_worksheet(None)?;
-    for c in ctypes.iter() {
-        sheet.set_column(
-            c.col_index as u16,
-            c.col_index as u16,
-            c.excel_col_width(),
-            None,
-        )?;
-    }
+    ctypes.update_excel_column_width(&mut sheet)?;
 
     // copy
     for (n, r) in lines.iter().enumerate() {

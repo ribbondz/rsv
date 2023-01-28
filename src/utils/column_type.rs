@@ -1,4 +1,4 @@
-use super::{column::Columns, excel_reader::ExcelReader, util::is_null};
+use super::{cli_result::CliResult, column::Columns, excel_reader::ExcelReader, util::is_null};
 use crate::utils::column;
 use calamine::DataType;
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
@@ -9,6 +9,7 @@ use std::{
     io::{BufRead, BufReader},
     path::Path,
 };
+use xlsxwriter::Worksheet;
 
 #[derive(Debug)]
 pub struct ColumnTypes(Vec<CType>);
@@ -111,6 +112,19 @@ impl ColumnTypes {
         }
 
         guess
+    }
+
+    pub fn update_excel_column_width(&self, sheet: &mut Worksheet) -> CliResult {
+        for c in self.iter() {
+            sheet.set_column(
+                c.col_index as u16,
+                c.col_index as u16,
+                c.excel_col_width(),
+                None,
+            )?;
+        }
+
+        Ok(())
     }
 }
 
