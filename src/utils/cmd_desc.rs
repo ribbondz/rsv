@@ -382,3 +382,27 @@ Options:
   -E, --export         Export to a file named current-file-sorted.csv?
   -h, --help           Print help
 ";
+
+pub const TO_DESC: &str = "Save data to disk, can be one of TXT, CSV, TSV, XLSX or XLS. 
+Usually applied to save medium results in a command line chain.
+
+When export to xlsx, column width in excel is fitted automatically.
+
+Usage:
+  rsv to [OPTIONS] <OUT> [FILENAME]
+  rsv head data | rsv to out.csv
+  rsv head data | rsv to out.txt
+  rsv head data | rsv to out.tsv
+  rsv head data | rsv to out.xlsx
+
+Arguments:
+  <OUT>       Output file, a file name or a file format
+  [FILENAME]  File to open
+
+Options:
+      --no-header        Whether the file has a header
+  -s, --sep <SEP>        Input file Separator [default: ,]
+  -o, --outsep <OUTSEP>  Output file Separator [default: ,]
+  -S, --sheet <SHEET>    Get the nth worksheet of EXCEL file [default: 0]
+  -h, --help             Print help
+";

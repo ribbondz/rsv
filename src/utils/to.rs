@@ -1,6 +1,5 @@
-use crate::utils::{column::Columns, column_type::ColumnTypes};
-
 use super::{cli_result::CliResult, excel_reader::ExcelReader, filename::new_file, writer::Writer};
+use crate::utils::{column::Columns, column_type::ColumnTypes};
 use regex::bytes::Regex;
 use std::{
     fs::File,
@@ -21,12 +20,15 @@ pub fn is_valid_excel(f: &str) -> bool {
     f.ends_with("xlsx") || f.ends_with("xls")
 }
 
-pub fn csv_to_csv(path: &Path, sep: &str, outsep: &str, out: &str) -> CliResult {
+pub fn csv_or_io_to_csv(path: Option<&Path>, sep: &str, outsep: &str, out: &str) -> CliResult {
     // out path
     let out = out_filename(out);
 
     // rdr and wtr
-    let mut rdr = BufReader::new(File::open(path)?);
+    let mut rdr = match path {
+        Some(f) => Box::new(BufReader::new(File::open(f)?)) as Box<dyn BufRead>,
+        None => Box::new(BufReader::new(stdin())) as Box<dyn BufRead>,
+    };
     let mut wtr = BufWriter::new(File::create(&out)?);
 
     // copy
@@ -45,6 +47,25 @@ pub fn csv_to_csv(path: &Path, sep: &str, outsep: &str, out: &str) -> CliResult 
         }
 
         buf.clear();
+    }
+
+    println!("Saved to file: {}", out.display());
+
+    Ok(())
+}
+
+pub fn excel_to_csv(path: &Path, sheet: usize, sep: &str, out: &str) -> CliResult {
+    // out path
+    let out = out_filename(out);
+
+    // rdr and wtr
+    let range = ExcelReader::new(path, sheet)?;
+    let mut wtr = Writer::new(Path::new(&out))?;
+
+    // excel2csv
+    let sep_bytes = sep.as_bytes();
+    for r in range.iter() {
+        wtr.write_excel_line(r, sep_bytes)?;
     }
 
     println!("Saved to file: {}", out.display());
@@ -80,6 +101,57 @@ pub fn csv_to_excel(path: &Path, sep: &str, out: &str, no_header: bool) -> CliRe
     Ok(())
 }
 
+pub fn io_to_excel(sep: &str, no_header: bool, out: &str) -> CliResult {
+    // out path
+    let out = out_filename(out);
+
+    // rdr
+    let lines = stdin()
+        .lock()
+        .lines()
+        .filter_map(|i| i.ok())
+        .collect::<Vec<_>>();
+    let lines = lines
+        .iter()
+        .map(|i| i.split(sep).collect::<Vec<_>>())
+        .collect::<Vec<_>>();
+
+    // column type
+    let cols = Columns::new("");
+    let ctypes = ColumnTypes::guess_from_io(&lines[(1 - no_header as usize)..], &cols);
+
+    //  wtr
+    let workbook = Workbook::new(out.to_str().unwrap())?;
+    let mut sheet = workbook.add_worksheet(None)?;
+    for c in ctypes.iter() {
+        sheet.set_column(
+            c.col_index as u16,
+            c.col_index as u16,
+            c.excel_col_width(),
+            None,
+        )?;
+    }
+
+    // copy
+    for (n, r) in lines.iter().enumerate() {
+        write_excel_line(&mut sheet, n, r, &ctypes)?;
+    }
+
+    println!("Saved to file: {}", out.display());
+
+    Ok(())
+}
+
+fn out_filename(out: &str) -> PathBuf {
+    let f = if is_file_suffix(out) {
+        format!("export.{}", out)
+    } else {
+        out.to_owned()
+    };
+
+    new_file(&f)
+}
+
 fn write_excel_line(
     sheet: &mut Worksheet,
     row: usize,
@@ -97,85 +169,4 @@ fn write_excel_line(
     }
 
     Ok(())
-}
-
-pub fn excel_to_csv(path: &Path, sheet: usize, sep: &str, out: &str) -> CliResult {
-    // out path
-    let out = out_filename(out);
-
-    // rdr and wtr
-    let range = ExcelReader::new(path, sheet)?;
-    let mut wtr = Writer::new(Path::new(&out))?;
-
-    // excel2csv
-    let sep_bytes = sep.as_bytes();
-    for r in range.iter() {
-        wtr.write_excel_line(r, sep_bytes)?;
-    }
-
-    println!("Saved to file: {}", out.display());
-
-    Ok(())
-}
-
-pub fn io_to_csv(sep: &str, outsep: &str, out: &str) -> CliResult {
-    // out path
-    let out = out_filename(out);
-
-    // wtr
-    let mut rdr = BufReader::new(stdin());
-    let mut wtr = BufWriter::new(File::create(&out)?);
-
-    // copy
-    let re = Regex::new(sep)?;
-    let outsep_bytes = outsep.as_bytes();
-    let mut buf = vec![];
-    while let Ok(bytes) = rdr.read_until(b'\n', &mut buf) {
-        if bytes == 0 {
-            break;
-        }
-        if sep == outsep {
-            wtr.write_all(&buf[..bytes])?;
-        } else {
-            let str = re.replace_all(&buf[..bytes], outsep_bytes);
-            wtr.write_all(&str)?;
-        }
-
-        buf.clear();
-    }
-
-    println!("Saved to file: {}", out.display());
-
-    Ok(())
-}
-
-pub fn io_to_excel(sep: &str, out: &str) -> CliResult {
-    // out path
-    let out = out_filename(out);
-
-    // rdr and wtr
-    let rdr = BufReader::new(stdin());
-    let workbook = Workbook::new(out.to_str().unwrap())?;
-    let mut sheet = workbook.add_worksheet(None)?;
-
-    // copy
-    for (n, r) in rdr.lines().enumerate() {
-        r?.split(sep)
-            .enumerate()
-            .for_each(|(c, v)| sheet.write_string(n as u32, c as u16, v, None).unwrap());
-    }
-
-    println!("Saved to file: {}", out.display());
-
-    Ok(())
-}
-
-fn out_filename(out: &str) -> PathBuf {
-    let f = if is_file_suffix(out) {
-        format!("export.{}", out)
-    } else {
-        out.to_owned()
-    };
-
-    new_file(&f)
 }

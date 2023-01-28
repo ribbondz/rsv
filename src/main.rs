@@ -4,7 +4,7 @@ use utils::{
     cmd_desc::{
         CLEAN_DESC, COUNT_DESC, ESTIMATE_DESC, EXCEL2CSV_DESC, FLATTEN_DESC, FREQUENCY_DESC,
         HEADER_DESC, HEAD_DESC, SEARCH_DESC, SELECT_DESC, SLICE_DESC, SORT_DESC, SPLIT_DESC,
-        STATS_DESC, TABLE_DESC,
+        STATS_DESC, TABLE_DESC, TO_DESC,
     },
     file::is_excel,
     filename::full_path,
@@ -121,8 +121,8 @@ enum Commands {
     )]
     Table(Table),
     #[command(
-        about = "Save data to a txt, csv, tsv, xlsx or xls file",
-        // override_help = TABLE_DESC
+        about = "Save data to disk, can be one of TXT, CSV, TSV, XLSX or XLS",
+        override_help = TO_DESC
     )]
     To(To),
 }
@@ -780,9 +780,13 @@ fn main() {
                     .handle_err(),
                 }
             }
-            None => {
-                io::to::run(&option.sep.valid(), &option.out, &option.outsep.valid()).handle_err()
-            }
+            None => io::to::run(
+                &option.sep.valid(),
+                option.no_header,
+                &option.out,
+                &option.outsep.valid(),
+            )
+            .handle_err(),
         },
     }
 }

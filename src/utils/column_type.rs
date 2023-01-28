@@ -1,7 +1,7 @@
 use super::{column::Columns, excel_reader::ExcelReader, util::is_null};
 use crate::utils::column;
 use calamine::DataType;
-use rayon::prelude::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
+use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 use std::{
     error::Error,
     fmt::Display,
@@ -17,6 +17,7 @@ pub struct ColumnTypes(Vec<CType>);
 pub struct CType {
     pub col_index: usize,
     pub col_type: ColumnType,
+    pub max_length: usize, // for excel export
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -28,10 +29,11 @@ pub enum ColumnType {
 }
 
 impl ColumnTypes {
-    fn push(&mut self, col_index: usize, col_type: ColumnType) {
+    fn push(&mut self, col_index: usize, col_type: ColumnType, max_length: usize) {
         self.0.push(CType {
             col_index,
             col_type,
+            max_length,
         })
     }
 
@@ -39,6 +41,7 @@ impl ColumnTypes {
         self.0.iter()
     }
 
+    // parallel guess based on columns
     pub fn guess_from_csv(
         path: &Path,
         sep: &str,
@@ -59,67 +62,55 @@ impl ColumnTypes {
 
         // split
         let lines = lines
-            .par_iter()
+            .iter()
             .map(|r| r.split(sep).collect::<Vec<_>>())
             .collect::<Vec<_>>();
 
-        let cols_vec = match cols.all {
-            true => (0..lines[0].len()).collect::<Vec<_>>(),
-            false => cols.iter().copied().collect::<Vec<_>>(),
-        };
-        let types = cols_vec
+        let guess = cols
+            .col_vec_or_length_of(lines[0].len())
             .into_par_iter()
-            .map(|i| (i, parse_col_type_at(i, &lines)))
-            .collect::<Vec<_>>();
-        let guess = types.iter().fold(ColumnTypes(vec![]), |mut a, b| {
-            a.push(b.0, b.1.clone());
-            a
-        });
+            .map(|n| (n, parse_col_type_at(n, &lines), max_length_at(n, &lines)))
+            .collect::<Vec<_>>()
+            .iter()
+            .fold(ColumnTypes(vec![]), |mut a, b| {
+                a.push(b.0, b.1.clone(), b.2);
+                a
+            });
 
         Ok(Some(guess))
     }
 
-    pub fn from_excel(range: &ExcelReader, no_header: bool, cols: &Columns) -> Option<Self> {
+    // sequential guess given that excel is usually small
+    pub fn guess_from_excel(range: &ExcelReader, no_header: bool, cols: &Columns) -> Option<Self> {
         let lines = range
             .iter()
             .skip(1 - no_header as usize)
+            .take(5000)
             .collect::<Vec<_>>();
 
         if lines.is_empty() {
             return None;
         }
 
-        let cols_vec = match cols.all {
-            true => (0..lines[0].len()).collect::<Vec<_>>(),
-            false => cols.iter().copied().collect::<Vec<_>>(),
-        };
-        let types = cols_vec
-            .into_par_iter()
-            .map(|i| (i, parse_excel_col_type_at(i, &lines)))
-            .collect::<Vec<_>>();
-
-        let guess = types.iter().fold(ColumnTypes(vec![]), |mut a, b| {
-            a.push(b.0, b.1.clone());
-            a
-        });
+        let mut guess = ColumnTypes(vec![]);
+        for c in cols.col_vec_or_length_of(lines[0].len()) {
+            // max_length is meaningless for excel, so set default to 0
+            guess.push(c, parse_excel_col_type_at(c, &lines), 0)
+        }
 
         Some(guess)
     }
 
+    // sequential guess given that io is usually small
     pub fn guess_from_io(v: &[Vec<&str>], cols: &Columns) -> Self {
-        let cols_vec = match cols.all {
-            true => (0..v[0].len()).collect::<Vec<_>>(),
-            false => cols.iter().copied().collect::<Vec<_>>(),
-        };
-        let types = cols_vec
-            .into_par_iter()
-            .map(|i| (i, parse_col_type_at(i, v)))
-            .collect::<Vec<_>>();
+        let v = if v.len() < 5000 { v } else { &v[..5000] };
 
-        types.iter().fold(ColumnTypes(vec![]), |mut a, b| {
-            a.push(b.0, b.1.clone());
-            a
-        })
+        let mut guess = ColumnTypes(vec![]);
+        for c in cols.col_vec_or_length_of(v[0].len()) {
+            guess.push(c, parse_col_type_at(c, v), max_length_at(c, v))
+        }
+
+        guess
     }
 }
 
@@ -149,6 +140,10 @@ fn parse_excel_col_type_at(n: usize, v: &[&[DataType]]) -> ColumnType {
     }
 
     ctype
+}
+
+fn max_length_at(n: usize, v: &[Vec<&str>]) -> usize {
+    v.iter().map(|r| r[n].len()).max().unwrap_or(0)
 }
 
 impl Display for ColumnType {
@@ -229,5 +224,13 @@ impl ColumnType {
             }
             _ => {}
         }
+    }
+}
+
+impl CType {
+    pub fn excel_col_width(&self) -> f64 {
+        let w = self.max_length as f64;
+        // set min-width and max-width
+        w.clamp(6.0, 60.0)
     }
 }

@@ -21,7 +21,7 @@ pub fn run(path: &Path, sheet: usize, no_header: bool, cols: &str, export: bool)
 
     // Column type
     let cols = Columns::new(cols);
-    let col_type = ColumnTypes::from_excel(&range, no_header, &cols).unwrap();
+    let col_type = ColumnTypes::guess_from_excel(&range, no_header, &cols).unwrap();
 
     // header
     let name = match (no_header, cols.all) {

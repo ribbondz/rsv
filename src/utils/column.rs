@@ -125,4 +125,11 @@ impl Columns {
             .chain(std::iter::once("n".to_owned()))
             .collect::<Vec<_>>()
     }
+
+    pub fn col_vec_or_length_of(&self, n: usize) -> Vec<usize> {
+        match self.all {
+            true => (0..n).collect::<Vec<_>>(),
+            false => self.cols.clone(),
+        }
+    }
 }
