@@ -13,7 +13,7 @@ pub fn run(path: &Path, no_header: bool, out: &str, sep: &str, outsep: &str) -> 
     match out.as_str() {
         v if is_valid_plain_text(v) => csv_or_io_to_csv(Some(path), sep, &outsep, &out)?,
         v if is_valid_excel(v) => csv_to_excel(path, sep, &out, no_header)?,
-        _ => return Err(format!("output file format <{}> is un-recognized.", out).into()),
+        _ => return Err(format!("output file format <{out}> is un-recognized.").into()),
     };
 
     Ok(())

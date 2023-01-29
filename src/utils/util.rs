@@ -23,7 +23,7 @@ pub fn print_frequency_table(names: &[String], freq: Vec<(String, usize)>) {
     };
 
     for (k, n) in &freq {
-        if writeln!(wtr, "{},{}", k, n).is_err() {
+        if writeln!(wtr, "{k},{n}").is_err() {
             return;
         }
     }

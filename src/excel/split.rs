@@ -127,7 +127,7 @@ fn task_handle(
     let batch_work = DashMap::new();
     task.lines.par_iter().for_each(|r| {
         if col >= r.len() {
-            println!("[info] ignore a bad line, content is: {:?}!", r);
+            println!("[info] ignore a bad line, content is: {r:?}!");
         } else {
             batch_work
                 .entry(r[col].to_string())

@@ -34,10 +34,7 @@ impl SortColumns {
                     numeric: i.contains(['n', 'N']),
                 });
             } else {
-                let e = format!(
-                    "column syntax error for <-c {}>. Run <rsv sort -h> for help.",
-                    i
-                );
+                let e = format!("column syntax error for <-c {i}>. Run <rsv sort -h> for help.");
                 return Err(e.into());
             }
         }

@@ -138,7 +138,7 @@ pub fn io_to_excel(sep: &str, no_header: bool, out: &str) -> CliResult {
 
 fn out_filename(out: &str) -> PathBuf {
     let f = if is_file_suffix(out) {
-        format!("export.{}", out)
+        format!("export.{out}")
     } else {
         out.to_owned()
     };

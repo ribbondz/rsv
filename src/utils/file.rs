@@ -56,7 +56,7 @@ pub fn write_frequency_to_csv(path: &PathBuf, names: &Vec<String>, freq: Vec<(St
 
     // content
     for (k, v) in freq {
-        writeln!(f, "{},{}", k, v).unwrap();
+        writeln!(f, "{k},{v}").unwrap();
     }
 }
 

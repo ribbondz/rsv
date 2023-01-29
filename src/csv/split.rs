@@ -125,7 +125,7 @@ fn task_handle(
     task.lines.par_iter().for_each(|r| {
         let seg = r.split(sep).collect::<Vec<_>>();
         if col >= r.len() {
-            println!("[info] ignore a bad line, content is: {:?}!", r);
+            println!("[info] ignore a bad line, content is: {r:?}!");
         } else {
             batch_work.entry(seg[col]).or_insert_with(Vec::new).push(r);
         }

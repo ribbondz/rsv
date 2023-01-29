@@ -10,7 +10,7 @@ pub fn run(no_header: bool) -> CliResult {
         n -= 1;
     }
 
-    println!("{}", n);
+    println!("{n}");
 
     Ok(())
 }

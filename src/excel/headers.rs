@@ -9,7 +9,7 @@ pub fn run(path: &Path, sheet: usize) -> CliResult {
     if let Some(r) = range.next() {
         r.iter()
             .enumerate()
-            .for_each(|(u, r)| println!(" {:<5}{}", u, r));
+            .for_each(|(u, r)| println!(" {u:<5}{r}"));
     }
 
     Ok(())

@@ -54,7 +54,7 @@ pub fn run(path: &Path, sheet: usize, pattern: &str, no_header: bool, export: bo
     }
 
     if export {
-        println!("\nMatched rows: {}", matched);
+        println!("\nMatched rows: {matched}");
         println!("Saved to file: {}", out_path.display());
     }
 

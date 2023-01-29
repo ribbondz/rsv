@@ -6,7 +6,7 @@ pub fn run(sep: &str) -> CliResult {
     if let Some(r) = stdin().lock().lines().next() {
         r?.split(sep)
             .enumerate()
-            .for_each(|(u, r)| println!(" {:<5}{}", u, r));
+            .for_each(|(u, r)| println!(" {u:<5}{r}"));
     }
 
     Ok(())

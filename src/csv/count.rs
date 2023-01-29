@@ -41,7 +41,7 @@ fn count_file_lines(path: &Path, no_header: bool) -> Result<(), Box<dyn Error>> 
         n -= 1;
     }
 
-    println!("{}", n);
+    println!("{n}");
     prog.print_elapsed_time();
 
     Ok(())

@@ -118,7 +118,7 @@ fn col_split_task_handle(
     lines.par_iter().for_each(|r| {
         let seg = r.split(sep).collect::<Vec<_>>();
         match args.col >= r.len() {
-            true => println!("[info] ignore a bad line, content is: {:?}!", r),
+            true => println!("[info] ignore a bad line, content is: {r:?}!"),
             false => batch_work
                 .entry(seg[args.col])
                 .or_insert_with(Vec::new)

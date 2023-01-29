@@ -16,7 +16,7 @@ pub fn run(path: &Path, sheet: usize, no_header: bool) -> CliResult {
         n -= 1;
     }
 
-    println!("{}", n);
+    println!("{n}");
     prog.print_elapsed_time();
 
     Ok(())

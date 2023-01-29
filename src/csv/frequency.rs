@@ -33,7 +33,7 @@ pub fn run(
                 let r = r?;
                 let r = r.split(sep).collect::<Vec<_>>();
                 if col.max() >= r.len() {
-                    println!("[info] ignore a bad line # {:?}!", r);
+                    println!("[info] ignore a bad line # {r:?}!");
                     col.artificial_cols_with_appended_n()
                 } else {
                     col.select_owned_vector_and_append_n(&r)
@@ -55,7 +55,7 @@ pub fn run(
         task.lines.par_iter().for_each(|r| {
             let r = r.split(sep).collect::<Vec<_>>();
             if col.max() >= r.len() {
-                println!("[info] ignore a bad line # {:?}!", r);
+                println!("[info] ignore a bad line # {r:?}!");
             } else {
                 let r = col.select_owned_string(&r);
                 *freq.entry(r).or_insert(0) += 1;

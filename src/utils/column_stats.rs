@@ -72,7 +72,7 @@ impl ColumnStats {
 
     pub fn parse_line_by_fields(&mut self, v: &[&str]) {
         if self.max_col >= v.len() {
-            println!("[info] ignore a bad line: {:?}", v);
+            println!("[info] ignore a bad line: {v:?}");
             return;
         }
 
@@ -91,7 +91,7 @@ impl ColumnStats {
 
     pub fn parse_excel_row(&mut self, v: &[DataType]) {
         if self.max_col >= v.len() {
-            println!("[info] ignore a bad line: {:?}", v);
+            println!("[info] ignore a bad line: {v:?}");
             return;
         }
 

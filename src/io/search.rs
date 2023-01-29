@@ -30,7 +30,7 @@ pub fn run(pattern: &str, no_header: bool, export: bool) -> CliResult {
     }
 
     if export {
-        println!("Matched rows: {}", matched);
+        println!("Matched rows: {matched}");
         println!("Saved to file: {}", out.display())
     }
 
