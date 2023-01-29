@@ -262,12 +262,12 @@ Options:
   -h, --help             Print help information
 
 Filter syntax, support =, !=, >, >=, <, <= and &:
--f 0=a,b,c         -->  first column is a, b, or c
--f 0N=1,2          -->  first column numerically equals to 1 or 2
--f 0!=             -->  first column is not empty
--f 0>=2022-01-21   -->  first column equal to or bigger than 2022-01-21, lexicographically
--f 0N>10           -->  first column > 10 numerically
--f 0N>10&2=pattern -->  first column > 10 numerically, AND the third column equals to <pattern>
+-f 0=a,b,c           -->  first column is a, b, or c
+-f 0N=1,2            -->  first column numerically equals to 1 or 2
+-f 0!=               -->  first column is not empty
+-f \"0>=2022-01-21\"   -->  first column equal to or bigger than 2022-01-21, lexicographically
+-f \"0N>10\"           -->  first column > 10 numerically
+-f \"0N>10&2=pattern\" -->  first column > 10 numerically, AND the third column equals to <pattern>
 
 Column selection syntax:
 -c 0,1,2,5         -->  cols [0,1,2,5]
