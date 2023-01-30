@@ -2,6 +2,7 @@ use super::{cli_result::CliResult, constants::TERMINATOR};
 use std::{
     borrow::Cow,
     io::{stdout, BufWriter, Write},
+    process,
 };
 use tabled::{builder::Builder, Style};
 
@@ -90,5 +91,11 @@ impl<'a> Table<'a> {
         wtr.write_all(TERMINATOR)?;
 
         Ok(())
+    }
+
+    pub fn print_blank_unchecked(self) {
+        if self.print_blank().is_err() {
+            process::exit(0)
+        }
     }
 }

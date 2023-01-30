@@ -10,6 +10,7 @@ pub mod excel_reader;
 pub mod file;
 pub mod filename;
 pub mod filter;
+pub mod priority_queue;
 pub mod progress;
 pub mod regex;
 pub mod sort;

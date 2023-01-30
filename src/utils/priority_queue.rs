@@ -1,0 +1,76 @@
+use std::collections::BinaryHeap;
+use std::hash::Hash;
+
+pub struct Item<T> {
+    pub line_n: usize,
+    pub priority: f64,
+    pub item: T,
+}
+
+impl<T> PartialEq for Item<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.priority == other.priority
+    }
+}
+
+impl<T> Eq for Item<T> {}
+
+impl<T> PartialOrd for Item<T> {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.priority.partial_cmp(&other.priority)
+    }
+}
+
+impl<T> Ord for Item<T> {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.priority.partial_cmp(&other.priority).unwrap()
+    }
+}
+
+pub struct PriorityQueue<T: Hash + Eq> {
+    pub max_priority: f64,
+    pub capacity: usize,
+    pub count: usize,
+    pub v: BinaryHeap<Item<T>>,
+}
+
+impl<T> PriorityQueue<T>
+where
+    T: Hash + Eq + Clone,
+{
+    pub fn with_capacity(n: usize) -> Self {
+        PriorityQueue {
+            max_priority: 0.0,
+            capacity: n,
+            count: 0,
+            v: BinaryHeap::new(),
+        }
+    }
+
+    pub fn can_insert(&self, priority: f64) -> bool {
+        // println!("{},{}", self.capacity, self.count);
+        priority <= self.max_priority || self.count < self.capacity
+    }
+
+    pub fn push(&mut self, line_n: usize, priority: f64, item: T) {
+        self.v.push(Item {
+            line_n,
+            priority,
+            item,
+        });
+
+        if self.max_priority < priority {
+            self.max_priority = priority;
+        }
+
+        if self.count >= self.capacity {
+            self.v.pop();
+        } else {
+            self.count += 1;
+        }
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = &Item<T>> {
+        self.v.iter()
+    }
+}

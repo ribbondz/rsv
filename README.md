@@ -26,6 +26,7 @@ download **rsv.exe** from release tab, and append the file directory to system p
 - **slice** - Prints a slice of rows from file.
 - **search** - Search with regexes :running: :star:.
 - **sort** - In-memory data sorting, support for at most two columns :star:.
+- **sample** - Data sampling based on priority queue.
 - **stats** - Statistics for column(s), including min, max, mean, unique, null :running: :star:.
 - **excel2csv** - Convert excel to csv.
 - **to** - Save command output data to disk, can be one of TXT, CSV, TSV, XLSX or XLS.
@@ -177,6 +178,18 @@ rsv search "^\d{4}-\d{2}-\d{2}$" data.csv  # search dates
 rsv search --export PATTERN data.csv       # export result
 rsv search PATTERN data.xlsx               # search EXCEL file
 rsv slice --help                           # help info on all flags
+```
+
+- **rsv sample**
+
+```shell
+rsv sample data.csv                 # default to sample 10 records
+rsv sample --no-header data.csv     # no-header
+rsv sample -n 20 data.csv           # pull more
+rsv sample -n 20 data.xlsx          # EXCEL file
+rsv sample --seed 100 data.xlsx     # set a seed
+rsv sample --time-limit 2 data.xlsx # set time limit to 2 seconds for large file
+rsv sample -n 20 --export data.xlsx # data export
 ```
 
 - **rsv sort**

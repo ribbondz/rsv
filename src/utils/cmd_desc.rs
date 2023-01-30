@@ -406,3 +406,29 @@ Options:
   -S, --sheet <SHEET>    Get the nth worksheet of EXCEL file [default: 0]
   -h, --help             Print help
 ";
+
+pub const SAMPLE_DESC: &str = "Data sampling based on priority queue. The command processes 
+the file sequentially.
+
+Usage: 
+  rsv sample [OPTIONS] [FILENAME]
+  rsv sample data.csv                  # default to sample 10 records
+  rsv sample --no-header data.csv      # no-header
+  rsv sample -n 20 data.csv            # pull more
+  rsv sample -n 20 data.xlsx           # EXCEL file
+  rsv sample --seed 100 data.xlsx      # set a seed
+  rsv sample --time-limit 2 data.xlsx  # set time limit to 2 seconds for large file
+  rsv sample -n 20 --export data.xlsx  # data export
+
+Arguments:
+  [FILENAME]  File to open
+
+Options:
+  --no-header                Whether the file has a header
+  -S, --sheet <SHEET>            Get the nth worksheet of EXCEL file [default: 0]
+  -n, --n <N>                    Sample size [default: 10]
+      --seed <SEED>              Get the nth worksheet of EXCEL file
+  -E, --export                   Export to a file named current-file-searched.csv?
+  -t, --time-limit <TIME_LIMIT>  Time limit [default: infinity]
+  -h, --help                     Print help
+";

@@ -3,8 +3,8 @@ use utils::{
     cli_result::E,
     cmd_desc::{
         CLEAN_DESC, COUNT_DESC, ESTIMATE_DESC, EXCEL2CSV_DESC, FLATTEN_DESC, FREQUENCY_DESC,
-        HEADER_DESC, HEAD_DESC, SEARCH_DESC, SELECT_DESC, SLICE_DESC, SORT_DESC, SPLIT_DESC,
-        STATS_DESC, TABLE_DESC, TO_DESC,
+        HEADER_DESC, HEAD_DESC, SAMPLE_DESC, SEARCH_DESC, SELECT_DESC, SLICE_DESC, SORT_DESC,
+        SPLIT_DESC, STATS_DESC, TABLE_DESC, TO_DESC,
     },
     file::is_excel,
     filename::full_path,
@@ -21,7 +21,7 @@ mod utils;
 #[derive(Parser)]
 #[command(name = "rsv")]
 #[command(author = "ribbondz@163.com")]
-#[command(version = "0.4.6")]
+#[command(version = "0.4.7")]
 #[command(
     about = "A Rust command line tool to parse small and large (>10G) CSV, TXT, and EXCEL files."
 )]
@@ -125,6 +125,11 @@ enum Commands {
         override_help = TO_DESC
     )]
     To(To),
+    #[command(
+        about = "Data sampling",
+        override_help = SAMPLE_DESC
+    )]
+    Sample(Sample),
 }
 
 #[derive(Debug, Args)]
@@ -398,6 +403,30 @@ struct Sort {
     /// Export to a file named current-file-searched.csv?
     #[arg(short = 'E', long, default_value_t = false)]
     export: bool,
+}
+
+#[derive(Debug, Args)]
+struct Sample {
+    /// File to open
+    filename: Option<String>,
+    /// Whether the file has a header
+    #[arg(long, default_value_t = false)]
+    no_header: bool,
+    /// Get the nth worksheet of EXCEL file
+    #[arg(short = 'S', long, default_value_t = 0)]
+    sheet: usize,
+    /// Sample size
+    #[arg(short, long, default_value_t = 10)]
+    n: usize,
+    /// Get the nth worksheet of EXCEL file
+    #[arg(long)]
+    seed: Option<usize>,
+    /// Export to a file named current-file-searched.csv?
+    #[arg(short = 'E', long, default_value_t = false)]
+    export: bool,
+    /// Time limit
+    #[arg(short, long, default_value_t = 0.0)]
+    time_limit: f32,
 }
 
 #[derive(Debug, Args)]
@@ -785,6 +814,41 @@ fn main() {
                 option.no_header,
                 &option.out,
                 &option.outsep.valid(),
+            )
+            .handle_err(),
+        },
+        // decrease time limit by 0.7 for responsiveness
+        Commands::Sample(option) => match &option.filename {
+            Some(f) => {
+                let path = full_path(f);
+                match is_excel(&path) {
+                    true => excel::sample::run(
+                        &path,
+                        option.sheet,
+                        option.no_header,
+                        option.n,
+                        option.seed,
+                        option.export,
+                        (option.time_limit - 0.7).clamp(0.0, f32::MAX),
+                    )
+                    .handle_err(),
+                    false => csv::sample::run(
+                        &path,
+                        option.no_header,
+                        option.n,
+                        option.seed,
+                        option.export,
+                        (option.time_limit - 0.7).clamp(0.0, f32::MAX),
+                    )
+                    .handle_err(),
+                }
+            }
+            None => io::sample::run(
+                option.no_header,
+                option.n,
+                option.seed,
+                option.export,
+                (option.time_limit - 0.7).clamp(0.0, f32::MAX),
             )
             .handle_err(),
         },
