@@ -27,6 +27,11 @@ impl<T> Ord for Item<T> {
     }
 }
 
+impl<T> Item<T> {
+    pub fn line_n_as_string(&self) -> String {
+        self.line_n.to_string()
+    }
+}
 pub struct PriorityQueue<T: Hash + Eq> {
     pub max_priority: f64,
     pub capacity: usize,
@@ -70,7 +75,9 @@ where
         }
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = &Item<T>> {
-        self.v.iter()
+    pub fn into_sorted_items(self) -> Vec<Item<T>> {
+        let mut v = self.v.into_vec();
+        v.sort_by_key(|a| a.line_n);
+        v
     }
 }

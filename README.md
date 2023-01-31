@@ -89,7 +89,7 @@ rsv estimate --help                 # help info on all flags
 
 ```shell
 rsv clean data.csv                               # default to clean escape char "
-rsv clean -e \"content-to-delete\" data.csv      # escape is a str, clean str to empty
+rsv clean -e "content-to-delete" data.csv        # escape is a str, clean str to empty
 rsv clean -o new-file.csv data.csv               # save to new-file.csv, the default is data-cleaned.csv
 rsv clean --help                                 # help info on all flags
 ```
@@ -140,8 +140,9 @@ Filter syntax, support =, !=, >, >=, <, <= and &:
 -f "0N>10"           -->  first column > 10 numerically
 -f "0N>10&2=pattern" -->  first column > 10 numerically, AND the third column equals to <pattern>
 
-NOTE: 1. only & (AND) operation is supported, | (OR) operation is not supported.
-      2. The filter option can be omitted to select all rows.
+NOTE: 1. only & (AND) operation is supported, | (OR) operation is not supported;
+      2. quotes are needed when the filter contains special chars, e.g., &, > or <;
+      3. The filter option can be omitted to select all rows.
 
 column selection syntax:
 -c 0,1,2,5   -->    cols [0,1,2,5]
@@ -154,7 +155,7 @@ column selection syntax:
 rsv flatten data.csv                       # default to show first 5 records
 rsv flatten -n 50 data.csv                 # show 50 records
 rsv flatten data.xls                       # EXCEL file
-rsv flatten --delimiter \"--\" data.csv    # change line delimiter to anything
+rsv flatten --delimiter "--" data.csv      # change line delimiter to anything
 rsv flatten --help                         # help info on all flags
 ```
 

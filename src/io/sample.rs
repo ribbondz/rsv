@@ -68,7 +68,7 @@ fn write_to_file(header: Option<String>, queue: PriorityQueue<String>) -> CliRes
     if let Some(r) = header {
         wtr.write_line_unchecked(r);
     }
-    for r in queue.iter() {
+    for r in queue.into_sorted_items() {
         wtr.write_line_unchecked(&r.item);
     }
 
@@ -78,14 +78,21 @@ fn write_to_file(header: Option<String>, queue: PriorityQueue<String>) -> CliRes
 }
 
 fn print_to_stdout(header: Option<String>, queue: PriorityQueue<String>) {
-    let mut sample = vec![];
-    if let Some(r) = header {
-        sample.push(vec!["#".to_owned(), "".to_owned(), r])
+    let mut table = Table::new();
+
+    let header = header.unwrap_or_default();
+    if !header.is_empty() {
+        table.add_record(vec!["#", "", &header]);
     }
 
-    for r in queue.v {
-        sample.push(vec![r.line_n.to_string(), "->".to_owned(), r.item])
-    }
+    let v = queue
+        .into_sorted_items()
+        .into_iter()
+        .map(|i| (i.line_n_as_string(), i))
+        .collect::<Vec<_>>();
 
-    Table::from_records(sample).print_blank_unchecked();
+    v.iter()
+        .for_each(|(line_n, r)| table.add_record(vec![line_n.as_str(), "->", r.item.as_str()]));
+
+    table.print_blank_unchecked();
 }

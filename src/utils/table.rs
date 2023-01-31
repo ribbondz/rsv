@@ -13,7 +13,7 @@ pub struct Table<'a> {
 
 impl<'a> Table<'a> {
     #[allow(dead_code)]
-    fn new() -> Self {
+    pub fn new() -> Self {
         Table {
             builder: Builder::default(),
             n: 0,
@@ -25,7 +25,7 @@ impl<'a> Table<'a> {
     }
 
     #[allow(dead_code)]
-    fn add_record<R, T>(&mut self, row: R)
+    pub fn add_record<R, T>(&mut self, row: R)
     where
         R: IntoIterator<Item = T>,
         T: Into<Cow<'a, str>>,
@@ -35,7 +35,7 @@ impl<'a> Table<'a> {
     }
 
     #[allow(dead_code)]
-    fn add_records<R, T>(&mut self, rows: Vec<R>)
+    pub fn add_records<R, T>(&mut self, rows: Vec<R>)
     where
         R: IntoIterator<Item = T>,
         T: Into<Cow<'a, str>>,

@@ -27,14 +27,11 @@ pub fn run(
     let header = match no_header {
         true => None,
         false => match rdr.read_until(b'\n', &mut buf) {
-            Ok(_) => {
-                let r = String::from_utf8_lossy(&buf).trim_end().to_string();
-                buf.clear();
-                Some(r)
-            }
+            Ok(_) => Some(String::from_utf8_lossy(&buf).trim_end().to_string()),
             Err(_) => return Ok(()),
         },
     };
+    buf.clear();
 
     // seed
     let mut rng = match seed {
@@ -66,21 +63,21 @@ pub fn run(
     }
 
     match export {
-        true => write_to_file(path, export, header, queue),
+        true => write_to_file(path, header, queue),
         false => print_to_stdout(header, queue),
     }
 
     Ok(())
 }
 
-fn write_to_file(path: &Path, export: bool, header: Option<String>, queue: PriorityQueue<Vec<u8>>) {
+fn write_to_file(path: &Path, header: Option<String>, queue: PriorityQueue<Vec<u8>>) {
     // new file
     let out = new_path(path, "-sampled");
-    let mut wtr = Writer::file_or_stdout(export, &out).unwrap();
+    let mut wtr = Writer::new(&out).unwrap();
     if let Some(r) = header {
         wtr.write_line_unchecked(r);
     }
-    for r in queue.iter() {
+    for r in queue.into_sorted_items() {
         wtr.write_bytes_unchecked(&r.item);
     }
 
@@ -88,18 +85,26 @@ fn write_to_file(path: &Path, export: bool, header: Option<String>, queue: Prior
 }
 
 fn print_to_stdout(header: Option<String>, queue: PriorityQueue<Vec<u8>>) {
-    let mut sample = vec![];
-    if let Some(r) = header {
-        sample.push(vec!["#".to_owned(), "".to_owned(), r])
+    let mut table = Table::new();
+
+    let header = header.unwrap_or_default();
+    if !header.is_empty() {
+        table.add_record(vec!["#", "", &header]);
     }
 
-    for r in queue.iter() {
-        sample.push(vec![
-            r.line_n.to_string(),
-            "->".to_owned(),
-            String::from_utf8_lossy(&r.item).trim_end().to_owned(),
-        ])
-    }
+    let v = queue
+        .into_sorted_items()
+        .into_iter()
+        .map(|i| {
+            (
+                i.line_n_as_string(),
+                String::from_utf8_lossy(&i.item).to_string(),
+            )
+        })
+        .collect::<Vec<_>>();
 
-    Table::from_records(sample).print_blank_unchecked();
+    v.iter()
+        .for_each(|(line_n, r)| table.add_record(vec![line_n.as_str(), "->", r]));
+
+    table.print_blank_unchecked();
 }

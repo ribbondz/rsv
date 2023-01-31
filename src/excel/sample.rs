@@ -8,6 +8,7 @@ use crate::utils::writer::Writer;
 use rand::rngs::StdRng;
 use rand::thread_rng;
 use rand::{Rng, SeedableRng};
+use std::borrow::Cow;
 use std::path::Path;
 use std::time::Instant;
 
@@ -27,10 +28,7 @@ pub fn run(
     let header = match no_header {
         true => None,
         false => match range.next() {
-            Some(r) => {
-                let r = datatype_vec_to_string_vec(r);
-                Some(r)
-            }
+            Some(r) => Some(datatype_vec_to_string_vec(r)),
             None => return Ok(()),
         },
     };
@@ -57,26 +55,21 @@ pub fn run(
     }
 
     match export {
-        true => write_to_file(path, export, header, queue),
+        true => write_to_file(path, header, queue),
         false => print_to_stdout(header, queue),
     }
 
     Ok(())
 }
 
-fn write_to_file(
-    path: &Path,
-    export: bool,
-    header: Option<Vec<String>>,
-    queue: PriorityQueue<Vec<String>>,
-) {
+fn write_to_file(path: &Path, header: Option<Vec<String>>, queue: PriorityQueue<Vec<String>>) {
     // new file
     let out = new_path(path, "-sampled").with_extension("csv");
-    let mut wtr = Writer::file_or_stdout(export, &out).unwrap();
+    let mut wtr = Writer::new(&out).unwrap();
     if let Some(r) = header {
         wtr.write_line_by_field_unchecked(&r, None);
     }
-    for r in queue.iter() {
+    for r in queue.into_sorted_items() {
         wtr.write_line_by_field_unchecked(&r.item, None);
     }
 
@@ -84,18 +77,25 @@ fn write_to_file(
 }
 
 fn print_to_stdout(header: Option<Vec<String>>, queue: PriorityQueue<Vec<String>>) {
-    let mut sample = vec![];
-    if let Some(r) = header {
-        sample.push(vec!["#".to_owned(), "".to_owned(), r.join(",")])
+    let mut table = Table::new();
+
+    // header
+    let header = match header {
+        Some(v) => Cow::Owned(v.join(",")),
+        None => Cow::Borrowed(""),
+    };
+    if !header.is_empty() {
+        table.add_record(vec!["#", "", &header]);
     }
 
-    for r in queue.iter() {
-        sample.push(vec![
-            r.line_n.to_string(),
-            "->".to_owned(),
-            r.item.join(","),
-        ])
-    }
+    // samples
+    let v = queue
+        .into_sorted_items()
+        .into_iter()
+        .map(|i| (i.line_n_as_string(), i.item.join(",")))
+        .collect::<Vec<_>>();
+    v.iter()
+        .for_each(|(line_n, r)| table.add_record(vec![line_n.as_str(), "->", r]));
 
-    Table::from_records(sample).print_blank_unchecked();
+    table.print_blank_unchecked();
 }
