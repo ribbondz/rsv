@@ -1,8 +1,9 @@
 use std::error::Error;
+use std::io::BufWriter;
 use std::{
     fs::File,
-    io::{BufRead, BufReader, BufWriter, Write},
-    path::{Path, PathBuf},
+    io::{BufRead, BufReader, Write},
+    path::Path,
 };
 
 use super::constants::MB_USIZE;
@@ -46,7 +47,7 @@ pub fn estimate_line_count_by_mb(path: &Path, mb: Option<usize>) -> usize {
     }
 }
 
-pub fn write_frequency_to_csv(path: &PathBuf, names: &Vec<String>, freq: Vec<(String, usize)>) {
+pub fn write_frequency_to_csv(path: &Path, names: &Vec<String>, freq: Vec<(String, usize)>) {
     let mut f = BufWriter::new(File::create(path).unwrap());
 
     // header
