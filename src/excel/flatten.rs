@@ -9,7 +9,7 @@ pub fn run(path: &Path, no_header: bool, sheet: usize, delimiter: &str, n: i32) 
     let columns: Vec<String> = if no_header {
         let column_n = range.column_n();
         (1..=column_n)
-            .map(|i| "col".to_owned() + &i.to_string())
+            .map(|i| format!("col{i}"))
             .collect::<Vec<_>>()
     } else {
         match range.next() {

@@ -27,7 +27,6 @@ pub fn run(
             Some(r) => {
                 let r = r?;
                 let r = r.split(sep).collect::<Vec<_>>();
-
                 if col.max() >= r.len() {
                     println!("[info] ignore a bad line # {r:?}!");
                     col.artificial_cols_with_appended_n()
@@ -45,10 +44,8 @@ pub fn run(
     let mut lines = Vec::with_capacity(buffer);
 
     for r in rdr {
-        let r = r?;
-
         n += 1;
-        lines.push(r);
+        lines.push(r?);
 
         if n >= buffer {
             task_handle(lines, &freq, &col, sep);
@@ -61,7 +58,7 @@ pub fn run(
         task_handle(lines, &freq, &col, sep);
     }
 
-    let mut freq: Vec<(String, usize)> = freq.into_iter().collect::<Vec<(_, _)>>();
+    let mut freq = freq.into_iter().collect::<Vec<(_, _)>>();
     if ascending {
         freq.sort_by(|a, b| a.1.cmp(&b.1));
     } else {

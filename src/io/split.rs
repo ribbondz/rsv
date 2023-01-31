@@ -26,7 +26,7 @@ pub fn run(no_header: bool, sep: &str, col: usize, size: &Option<usize>) -> CliR
     };
 
     // new directory
-    let dir = "split-".to_owned() + &datetime_str();
+    let dir = format!("split-{}", datetime_str());
     let dir = new_file(&dir);
     create_dir(&dir)?;
 

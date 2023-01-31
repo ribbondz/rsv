@@ -69,7 +69,7 @@ pub fn run(
         }
     }
 
-    let mut freq: Vec<(String, usize)> = freq.into_iter().collect::<Vec<(_, _)>>();
+    let mut freq = freq.into_iter().collect::<Vec<(_, _)>>();
     if ascending {
         freq.sort_by(|a, b| a.1.cmp(&b.1));
     } else {

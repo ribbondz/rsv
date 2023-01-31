@@ -1,4 +1,4 @@
-use crate::utils::chunk_reader::{ChunkReader, Task};
+use crate::utils::chunk_reader::ChunkReader;
 use crate::utils::cli_result::CliResult;
 use crate::utils::file::estimate_line_count_by_mb;
 use crate::utils::filename::new_path;
@@ -12,9 +12,8 @@ use std::thread;
 
 pub fn run(path: &Path, pattern: &str, no_header: bool, export: bool) -> CliResult {
     // wtr and rdr
-    let out_path = new_path(path, "-searched");
-
-    let mut wtr = Writer::file_or_stdout(export, &out_path)?;
+    let out = new_path(path, "-searched");
+    let mut wtr = Writer::file_or_stdout(export, &out)?;
     let mut rdr = ChunkReader::new(path)?;
 
     // header
@@ -35,15 +34,12 @@ pub fn run(path: &Path, pattern: &str, no_header: bool, export: bool) -> CliResu
 
     // regex search
     let re = Re::new(pattern)?;
-    for Task {
-        lines,
-        bytes,
-        chunk: _,
-    } in rx
-    {
-        let lines = lines
-            .into_par_iter()
-            .filter(|i| re.is_match(i))
+    let mut matched_n = 0;
+    for task in rx {
+        let lines = task
+            .lines
+            .par_iter()
+            .filter(|&i| re.is_match(i))
             .collect::<Vec<_>>();
 
         // pipeline could be closed, e.g., when rsv head take enough items
@@ -51,16 +47,16 @@ pub fn run(path: &Path, pattern: &str, no_header: bool, export: bool) -> CliResu
         wtr.write_lines_unchecked(&lines);
 
         if export {
-            prog.add_lines(lines.len());
+            matched_n += lines.len();
             prog.add_chunks(1);
-            prog.add_bytes(bytes);
+            prog.add_bytes(task.bytes);
             prog.print();
         }
     }
 
     if export {
-        println!("\nMatched rows: {}", prog.lines);
-        println!("Saved to file: {}", out_path.display());
+        println!("\nMatched rows: {matched_n}");
+        println!("Saved to file: {}", out.display());
     }
 
     Ok(())

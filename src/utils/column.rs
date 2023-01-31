@@ -1,8 +1,6 @@
-use std::process;
-
-use calamine::DataType;
-
 use super::util::werr;
+use calamine::DataType;
+use std::process;
 
 #[derive(Debug)]
 pub struct Columns {
@@ -32,7 +30,7 @@ impl Columns {
             return cols;
         }
 
-        raw.split(',').for_each(|i| Columns::parse(&mut cols, i));
+        raw.split(',').for_each(|i| cols.parse(i));
         cols.update_status();
 
         cols
@@ -72,15 +70,13 @@ impl Columns {
 
     pub fn artificial_cols_with_appended_n(&self) -> Vec<String> {
         self.iter()
-            .map(|&i| "col".to_owned() + &i.to_string())
+            .map(|&i| format!("col{i}"))
             .chain(std::iter::once("n".to_owned()))
             .collect::<Vec<_>>()
     }
 
     pub fn artificial_n_cols(&self, n: usize) -> Vec<String> {
-        (0..n)
-            .map(|i| "col".to_owned() + &i.to_string())
-            .collect::<Vec<_>>()
+        (0..n).map(|i| format!("col{i}")).collect::<Vec<_>>()
     }
 
     #[allow(dead_code)]
@@ -99,11 +95,6 @@ impl Columns {
             .join(",")
     }
 
-    #[allow(dead_code)]
-    pub fn select_owned_vector(&self, all: &[&str]) -> Vec<String> {
-        self.cols.iter().map(|&i| all[i].to_owned()).collect()
-    }
-
     pub fn select_owned_vector_and_append_n(&self, all: &[&str]) -> Vec<String> {
         self.cols
             .iter()
@@ -115,13 +106,7 @@ impl Columns {
     pub fn select_owned_vector_and_append_n2(&self, all: Vec<String>) -> Vec<String> {
         all.into_iter()
             .enumerate()
-            .filter_map(|(u, i)| {
-                if self.cols.contains(&u) {
-                    Some(i)
-                } else {
-                    None
-                }
-            })
+            .filter_map(|(u, i)| self.cols.contains(&u).then_some(i))
             .chain(std::iter::once("n".to_owned()))
             .collect::<Vec<_>>()
     }

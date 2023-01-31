@@ -29,15 +29,15 @@ pub fn run(path: &Path, no_header: bool, sep: &str, col: usize, size: &Option<us
     let first_row = if no_header {
         "".to_owned()
     } else {
-        let first_row = match rdr.next() {
+        let r = match rdr.next() {
             Some(v) => v?,
             None => return Ok(()),
         };
-        if col >= first_row.split(sep).count() {
+        if col >= r.split(sep).count() {
             werr!("column index out of range!");
             process::exit(1)
         }
-        first_row
+        r
     };
 
     // work pip
@@ -55,7 +55,10 @@ pub fn run(path: &Path, no_header: bool, sep: &str, col: usize, size: &Option<us
     match is_sequential_split {
         true => {
             let stem = path.file_stem().unwrap().to_string_lossy();
-            let extension = path.extension().and_then(|i| i.to_str()).unwrap_or("");
+            let extension = path
+                .extension()
+                .and_then(|i| i.to_str())
+                .unwrap_or_default();
 
             for task in rx {
                 let mut out = dir.to_owned();

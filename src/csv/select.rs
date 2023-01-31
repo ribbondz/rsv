@@ -19,15 +19,13 @@ pub fn run(
     filter: &str,
     export: bool,
 ) -> CliResult {
-    // current file
-    let out_path = new_path(path, "-selected");
-
     // filters and cols
     let filter = Filter::new(filter);
     let cols = Columns::new(cols);
 
-    // open file
-    let mut wtr = Writer::file_or_stdout(export, &out_path)?;
+    // wtr and rdr
+    let out = new_path(path, "-selected");
+    let mut wtr = Writer::file_or_stdout(export, &out)?;
     let mut rdr = ChunkReader::new(path)?;
 
     // const
@@ -63,7 +61,7 @@ pub fn run(
     }
 
     if export {
-        println!("\nSaved to file: {}", out_path.display())
+        println!("\nSaved to file: {}", out.display())
     }
     Ok(())
 }
@@ -88,17 +86,19 @@ fn handle_task(
 
     // write
     for (r, f) in filtered {
-        match cols.all {
-            true => wtr.write_line_unchecked(r.unwrap()),
-            false => {
-                let f = match f {
-                    Some(v) => v,
-                    None => r.unwrap().split(sep).collect(),
-                };
-                let row = cols.iter().map(|&i| f[i]).collect::<Vec<_>>();
-                wtr.write_line_by_field_unchecked(&row, Some(sep_bytes));
-            }
+        // write the line directly
+        if cols.all {
+            wtr.write_line_unchecked(r.unwrap());
+            continue;
         }
+
+        // write by fields
+        let f = match f {
+            Some(v) => v,
+            None => r.unwrap().split(sep).collect(),
+        };
+        let row = cols.iter().map(|&i| f[i]).collect::<Vec<_>>();
+        wtr.write_line_by_field_unchecked(&row, Some(sep_bytes));
     }
 
     if export {

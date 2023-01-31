@@ -9,10 +9,9 @@ use std::path::Path;
 
 pub fn run(path: &Path, escape: &str, new_filename: &str) -> CliResult {
     // new file
-    let new_path = if new_filename.is_empty() {
-        utils::filename::new_path(path, "-cleaned")
-    } else {
-        Path::new(new_filename).into()
+    let new_path = match new_filename.is_empty() {
+        true => utils::filename::new_path(path, "-cleaned"),
+        false => Path::new(new_filename).into(),
     };
 
     // open files
@@ -51,6 +50,6 @@ pub fn run(path: &Path, escape: &str, new_filename: &str) -> CliResult {
     prog.print();
 
     println!("\nSaved to file: {}", new_path.display());
-    
+
     Ok(())
 }

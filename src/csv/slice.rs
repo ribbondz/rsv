@@ -15,11 +15,9 @@ pub fn run(
     index: Option<usize>,
     export: bool,
 ) -> CliResult {
-    // current file
-    let out_path = new_path(path, "-slice");
-
-    // open file
-    let mut wtr = Writer::file_or_stdout(export, &out_path)?;
+    // wtr and rdr
+    let out = new_path(path, "-slice");
+    let mut wtr = Writer::file_or_stdout(export, &out)?;
     let mut rdr = BufReader::new(File::open(path)?);
 
     // header
@@ -43,7 +41,7 @@ pub fn run(
     }
 
     if export {
-        println!("Saved to file: {}", out_path.display())
+        println!("Saved to file: {}", out.display())
     }
 
     Ok(())

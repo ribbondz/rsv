@@ -13,7 +13,7 @@ pub fn run(path: &Path, sep: &str) -> CliResult {
         .lines()
         .into_iter()
         .filter_map(|r| r.ok())
-        .map(|r| r.split(sep).map(|i| i.to_owned()).collect::<Vec<_>>())
+        .map(|r| r.split(sep).map(String::from).collect::<Vec<_>>())
         .collect::<Vec<_>>();
 
     Table::from_records(rows).print_blank()?;

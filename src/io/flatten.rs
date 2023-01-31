@@ -19,13 +19,10 @@ pub fn run(no_header: bool, sep: &str, delimiter: &str, n: i32) -> CliResult {
 
     let columns: Vec<String> = if no_header {
         (1..=lines[0].split(sep).count())
-            .map(|i| "col".to_owned() + &i.to_string())
+            .map(|i| format!("col{i}"))
             .collect::<Vec<_>>()
     } else {
-        lines[0]
-            .split(sep)
-            .map(|i| i.to_owned())
-            .collect::<Vec<_>>()
+        lines[0].split(sep).map(String::from).collect::<Vec<_>>()
     };
 
     // read file

@@ -1,6 +1,6 @@
 use crate::utils::cli_result::CliResult;
 use crate::utils::constants::COMMA;
-use crate::utils::excel_reader::{ExcelChunkTask, ExcelReader};
+use crate::utils::excel_reader::ExcelReader;
 use crate::utils::filename::new_path;
 use crate::utils::progress::Progress;
 use crate::utils::regex::Re;
@@ -34,8 +34,9 @@ pub fn run(path: &Path, sheet: usize, pattern: &str, no_header: bool, export: bo
     // regex search
     let re = Re::new(pattern)?;
     let mut matched = 0;
-    for ExcelChunkTask { lines, n, chunk: _ } in rx {
-        let lines = lines
+    for task in rx {
+        let lines = task
+            .lines
             .par_iter()
             .filter_map(|i| re.verify_excel_row_map(i))
             .collect::<Vec<_>>();
@@ -47,7 +48,7 @@ pub fn run(path: &Path, sheet: usize, pattern: &str, no_header: bool, export: bo
         wtr.write_lines_by_field_unchecked(&lines, None);
 
         if export {
-            prog.add_lines(n);
+            prog.add_lines(task.n);
             prog.add_chunks(1);
             prog.print_lines();
         }

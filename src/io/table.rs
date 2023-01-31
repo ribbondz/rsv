@@ -5,7 +5,7 @@ pub fn run(sep: &str) -> CliResult {
     let mut rows = vec![];
 
     for l in io::stdin().lock().lines() {
-        let l = l?.split(sep).map(|i| i.to_owned()).collect::<Vec<_>>();
+        let l = l?.split(sep).map(String::from).collect::<Vec<_>>();
         rows.push(l);
     }
 

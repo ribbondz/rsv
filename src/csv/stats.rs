@@ -61,7 +61,7 @@ pub fn run(path: &Path, sep: &str, no_header: bool, cols: &str, export: bool) ->
         // add chunk to threadpool for process
         s.spawn(|_| {
             for task in rx_chunk {
-                tx_chunk_n_control.send(0).unwrap();
+                tx_chunk_n_control.send(()).unwrap();
 
                 let tx = tx_result.clone();
                 let st = empty_stat.clone();

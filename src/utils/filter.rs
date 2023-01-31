@@ -100,7 +100,7 @@ impl Filter {
             false => {
                 if one.contains("!=") {
                     item.op = Op::NotEqual;
-                    item.str_values = v[1].split(',').map(|i| i.to_owned()).collect::<Vec<_>>();
+                    item.str_values = v[1].split(',').map(String::from).collect::<Vec<_>>();
                 } else if one.contains(">=") {
                     item.op = Op::Ge;
                     item.str_value = v[1].to_owned();
@@ -109,7 +109,7 @@ impl Filter {
                     item.str_value = v[1].to_owned();
                 } else if one.contains('=') {
                     item.op = Op::Equal;
-                    item.str_values = v[1].split(',').map(|i| i.to_owned()).collect::<Vec<_>>();
+                    item.str_values = v[1].split(',').map(String::from).collect::<Vec<_>>();
                 } else if one.contains('>') {
                     item.op = Op::Gt;
                     item.str_value = v[1].to_owned();
@@ -167,10 +167,7 @@ impl Filter {
 
 fn str_to_f64(s: &str) -> f64 {
     s.parse::<f64>().unwrap_or_else(|_| {
-        werr!(
-            "Error: <{}> is not a valid number, run <rsv select -h> for help.",
-            s
-        );
+        werr!("Error: <{s}> is not a valid number, run <rsv select -h> for help.");
         process::exit(1)
     })
 }
@@ -179,10 +176,7 @@ fn str_to_f64_vec(s: &str) -> Vec<f64> {
     s.split(',')
         .map(|i| {
             i.parse::<f64>().unwrap_or_else(|_| {
-                werr!(
-                    "Error: <{}> is not a number, run <rsv select -h> for help.",
-                    i
-                );
+                werr!("Error: <{i}> is not a number, run <rsv select -h> for help.");
                 process::exit(1);
             })
         })

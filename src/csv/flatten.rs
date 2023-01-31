@@ -12,9 +12,7 @@ pub fn run(path: &Path, no_header: bool, sep: &str, delimiter: &str, n: i32) -> 
     // header
     let columns: Vec<String> = if no_header {
         match file::column_n(path, sep)? {
-            Some(n) => (1..=n)
-                .map(|i| "col".to_owned() + &i.to_string())
-                .collect::<Vec<_>>(),
+            Some(n) => (1..=n).map(|i| format!("col{i}")).collect::<Vec<_>>(),
             None => return Ok(()),
         }
     } else {
