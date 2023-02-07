@@ -20,26 +20,27 @@ pub fn run(
     export: bool,
 ) -> CliResult {
     // out path
-    let out_path = new_path(path, "-selected").with_extension("csv");
+    let out = new_path(path, "-selected").with_extension("csv");
 
     // filters and cols
     let filter = Filter::new(filter);
     let cols = Columns::new(cols);
 
     // open file
-    let mut wtr = Writer::file_or_stdout(export, &out_path)?;
+    let mut wtr = Writer::file_or_stdout(export, &out)?;
     let mut range = ExcelReader::new(path, sheet)?;
 
     // header
     if !no_header {
-        match (range.next(), cols.all) {
-            (Some(r), true) => wtr.write_excel_line_unchecked(r, COMMA),
-            (Some(r), false) => {
-                let r = cols.iter().map(|&i| r[i].to_string()).collect::<Vec<_>>();
-                wtr.write_line_by_field_unchecked(&r, None);
-            }
-            (None, _) => return Ok(()),
+        let Some(r) = range.next() else {
+            return Ok(())
         };
+        if cols.all {
+            wtr.write_excel_line_unchecked(r, COMMA);
+        } else {
+            let r = cols.iter().map(|&i| r[i].to_string()).collect::<Vec<_>>();
+            wtr.write_line_by_field_unchecked(&r, None);
+        }
     }
 
     // task queue
@@ -55,7 +56,7 @@ pub fn run(
     }
 
     if export {
-        println!("\nSaved to file: {}", out_path.display())
+        println!("\nSaved to file: {}", out.display())
     }
 
     Ok(())

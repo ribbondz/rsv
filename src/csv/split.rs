@@ -27,12 +27,12 @@ pub fn run(path: &Path, no_header: bool, sep: &str, col: usize, size: &Option<us
     // open file and header
     let mut rdr = ChunkReader::new(path)?;
     let first_row = if no_header {
-        "".to_owned()
+        String::new()
     } else {
-        let r = match rdr.next() {
-            Some(v) => v?,
-            None => return Ok(()),
+        let Some(r) = rdr.next() else {
+            return Ok(());
         };
+        let r = r?;
         if col >= r.split(sep).count() {
             werr!("column index out of range!");
             process::exit(1)

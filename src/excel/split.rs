@@ -34,7 +34,7 @@ pub fn run(
     // open file and header
     let mut range = ExcelReader::new(path, sheet)?;
     let first_row = if no_header {
-        "".to_owned()
+        String::new()
     } else {
         let first_row = match range.next() {
             Some(v) => v,

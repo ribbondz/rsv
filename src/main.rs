@@ -1,3 +1,4 @@
+use crate::utils::util::is_tab;
 use clap::{Args, Parser, Subcommand};
 use utils::{
     cli_result::E,
@@ -10,8 +11,6 @@ use utils::{
     filename::full_path,
     util::werr,
 };
-
-use crate::utils::util::is_tab;
 
 mod csv;
 mod excel;

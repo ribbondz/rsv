@@ -70,7 +70,7 @@ impl Filter {
             op: Op::NotEqual,
             f64_value: 0.0,
             f64_values: vec![],
-            str_value: "".to_owned(),
+            str_value: String::new(),
             str_values: vec![],
         };
 

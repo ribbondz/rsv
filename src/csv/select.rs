@@ -33,16 +33,18 @@ pub fn run(
 
     // header
     if !no_header {
-        match (rdr.next(), cols.all) {
-            (Some(r), true) => wtr.write_line_unchecked(&r?),
-            (Some(r), false) => {
-                let r = r?;
+        let Some(r) = rdr.next() else {
+            return Ok(())
+        };
+        let r = r?;
+        match cols.all {
+            true => wtr.write_line_unchecked(&r),
+            false => {
                 let mut r = r.split(sep).collect::<Vec<_>>();
                 r = cols.iter().map(|&i| r[i]).collect();
                 wtr.write_line_by_field_unchecked(&r, Some(sep_bytes));
             }
-            (None, _) => return Ok(()),
-        };
+        }
     }
 
     // parallel queue

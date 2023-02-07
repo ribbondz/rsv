@@ -31,7 +31,7 @@ pub fn run(no_header: bool, sep: &str, delimiter: &str, n: i32) -> CliResult {
         let r = l
             .split(sep)
             .zip(&columns)
-            .map(|(v, k)| vec![k.to_owned(), v.to_owned()])
+            .map(|(v, k)| vec![k.as_str(), v])
             .collect::<Vec<_>>();
         Table::from_records(r).print_blank()?;
 

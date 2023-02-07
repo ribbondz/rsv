@@ -1,5 +1,6 @@
 use crate::utils::cli_result::CliResult;
 use crate::utils::column::Columns;
+use crate::utils::excel::datatype_vec_to_string_vec;
 use crate::utils::excel_reader::ExcelReader;
 use crate::utils::file;
 use crate::utils::filename;
@@ -28,15 +29,15 @@ pub fn run(
     let names: Vec<String> = if no_header {
         col.artificial_cols_with_appended_n()
     } else {
-        let first_row = match rdr.next() {
-            Some(v) => v.iter().map(|i| i.to_string()).collect::<Vec<_>>(),
-            None => return Ok(()),
+        let Some(r) = rdr.next() else {
+           return Ok(())
         };
-        if col.max() >= first_row.len() {
-            println!("[info] ignore a bad line # {first_row:?}!");
+        if col.max() >= r.len() {
+            println!("[info] ignore a bad line # {r:?}!");
             col.artificial_cols_with_appended_n()
         } else {
-            col.select_owned_vector_and_append_n2(first_row)
+            let r = datatype_vec_to_string_vec(r);
+            col.select_owned_vector_and_append_n2(r)
         }
     };
 
@@ -64,7 +65,7 @@ pub fn run(
         }
     }
 
-    let mut freq: Vec<(String, usize)> = freq.into_iter().collect::<Vec<(_, _)>>();
+    let mut freq = freq.into_iter().collect::<Vec<(_, _)>>();
     if ascending {
         freq.sort_by(|a, b| a.1.cmp(&b.1));
     } else {

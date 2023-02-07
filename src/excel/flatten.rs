@@ -7,15 +7,14 @@ pub fn run(path: &Path, no_header: bool, sheet: usize, delimiter: &str, n: i32) 
 
     // columns
     let columns: Vec<String> = if no_header {
-        let column_n = range.column_n();
-        (1..=column_n)
+        (1..=range.column_n())
             .map(|i| format!("col{i}"))
             .collect::<Vec<_>>()
     } else {
-        match range.next() {
-            Some(r) => r.iter().map(|i| i.to_string()).collect::<Vec<_>>(),
-            None => return Ok(()),
-        }
+        let Some(r) = range.next() else {
+           return Ok(())
+        };
+        r.iter().map(|i| i.to_string()).collect::<Vec<_>>()
     };
 
     // read file

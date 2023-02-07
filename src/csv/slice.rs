@@ -23,10 +23,10 @@ pub fn run(
     // header
     if !no_header {
         let mut buf = vec![];
-        match rdr.read_until(b'\n', &mut buf) {
-            Ok(_) => wtr.write_bytes_unchecked(&buf),
-            Err(_) => return Ok(()),
+        let Ok(_) = rdr.read_until(b'\n', &mut buf) else {
+            return Ok(())
         };
+        wtr.write_bytes_unchecked(&buf);
     }
 
     // slice

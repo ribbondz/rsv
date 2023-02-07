@@ -10,13 +10,12 @@ pub fn run(path: &Path, sheet: usize, out: &str, outsep: &str) -> CliResult {
         outsep.to_owned()
     };
 
-    match out.as_str() {
-        v if is_valid_plain_text(v) => excel_to_csv(path, sheet, &outsep, &out)?,
-        _ => {
-            let msg = format!("output file format of <{out}> is un-recognized.");
-            return Err(msg.into());
-        }
-    };
+    if !is_valid_plain_text(&out) {
+        let msg = format!("output file format of <{out}> is un-recognized.");
+        return Err(msg.into());
+    }
+
+    excel_to_csv(path, sheet, &outsep, &out)?;
 
     Ok(())
 }

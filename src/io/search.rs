@@ -12,10 +12,10 @@ pub fn run(pattern: &str, no_header: bool, export: bool) -> CliResult {
     let mut handle = io::stdin().lock().lines();
 
     if !no_header {
-        match handle.next() {
-            Some(r) => wtr.write_line(&r?)?,
-            None => return Ok(()),
-        }
+        let Some(r) = handle.next() else {
+           return Ok(())
+        };
+        wtr.write_line(&r?)?;
     }
 
     // regex

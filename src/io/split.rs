@@ -33,19 +33,20 @@ pub fn run(no_header: bool, sep: &str, col: usize, size: &Option<usize>) -> CliR
     // open file and header
     let mut rdr = stdin().lock().lines();
     let first_row = if no_header {
-        "".to_owned()
+        String::new()
     } else {
-        match rdr.next() {
-            Some(v) => v?,
-            None => return Ok(()),
-        }
+        let Some(r) = rdr.next() else {
+           return Ok(())
+        };
+        r?
     };
 
     let header_inserted: DashMap<String, bool> = DashMap::new();
     let mut n = 0;
-    let buffer = match is_sequential_split {
-        true => size.unwrap(),
-        false => 10000,
+    let buffer = if is_sequential_split {
+        size.unwrap()
+    } else {
+        10000
     };
     let mut lines = Vec::with_capacity(buffer);
     for r in rdr {
@@ -117,13 +118,14 @@ fn col_split_task_handle(
 
     lines.par_iter().for_each(|r| {
         let seg = r.split(sep).collect::<Vec<_>>();
-        match args.col >= r.len() {
-            true => println!("[info] ignore a bad line, content is: {r:?}!"),
-            false => batch_work
-                .entry(seg[args.col])
-                .or_insert_with(Vec::new)
-                .push(r),
+        if args.col >= r.len() {
+            println!("[info] ignore a bad line, content is: {r:?}!");
+            return;
         }
+        batch_work
+            .entry(seg[args.col])
+            .or_insert_with(Vec::new)
+            .push(r)
     });
 
     // parallel save to disk

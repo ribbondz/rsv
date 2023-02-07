@@ -17,10 +17,10 @@ pub fn run(path: &Path, sheet: usize, no_header: bool, cols: &str, export: bool)
 
     // header
     if !no_header {
-        match range.next() {
-            Some(v) => wtr.write_excel_line_unchecked(v, COMMA),
-            None => return Ok(()),
-        }
+        let Some(r) = range.next() else {
+           return Ok(())
+        };
+        wtr.write_excel_line_unchecked(r, COMMA);
     }
 
     // lines

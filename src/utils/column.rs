@@ -79,11 +79,6 @@ impl Columns {
         (0..n).map(|i| format!("col{i}")).collect::<Vec<_>>()
     }
 
-    #[allow(dead_code)]
-    pub fn select_str_vector<'a>(&self, all: &[&'a str]) -> Vec<&'a str> {
-        self.cols.iter().map(|&i| all[i]).collect::<Vec<_>>()
-    }
-
     pub fn select_owned_string(&self, all: &[&str]) -> String {
         self.iter().map(|&i| all[i]).collect::<Vec<_>>().join(",")
     }

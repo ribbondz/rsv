@@ -54,8 +54,8 @@ impl ColumnStats {
             name: name.to_owned(),
             min: f64::MAX,
             max: f64::MIN,
-            min_string: "".to_owned(),
-            max_string: "".to_owned(),
+            min_string: String::new(),
+            max_string: String::new(),
             mean: 0.0,
             total: 0.0,
             unique: 0,
@@ -203,10 +203,10 @@ impl CStat {
         match self.col_type {
             ColumnType::Int => {
                 if let Ok(v) = f.parse::<i64>() {
-                    self.update_int_and_float_stat(v as f64)
+                    self.update_number_stat(v as f64)
                 } else if let Ok(v) = f.parse::<f64>() {
                     self.set_as_float();
-                    self.update_int_and_float_stat(v)
+                    self.update_number_stat(v)
                 } else {
                     self.set_as_string();
                     self.update_string_stat(f)
@@ -214,7 +214,7 @@ impl CStat {
             }
             ColumnType::Float => {
                 if let Ok(v) = f.parse::<f64>() {
-                    self.update_int_and_float_stat(v)
+                    self.update_number_stat(v)
                 } else {
                     self.set_as_string();
                     self.update_string_stat(f)
@@ -256,7 +256,7 @@ impl CStat {
         self.col_type == ColumnType::String
     }
 
-    fn update_int_and_float_stat(&mut self, v: f64) {
+    fn update_number_stat(&mut self, v: f64) {
         if v > self.max {
             self.max = v
         }

@@ -14,10 +14,10 @@ pub fn run(no_header: bool, sep: &str, cols: &str, export: bool) -> CliResult {
 
     // header
     if !no_header {
-        match rdr.next() {
-            Some(v) => wtr.write_line_unchecked(v?),
-            None => return Ok(()),
-        }
+        let Some(r) = rdr.next() else {
+            return Ok(())
+        };
+        wtr.write_line_unchecked(r?)
     }
 
     // lines

@@ -28,18 +28,16 @@ pub fn run(
     let names: Vec<String> = if no_header {
         col.artificial_cols_with_appended_n()
     } else {
-        match rdr.next() {
-            Some(r) => {
-                let r = r?;
-                let r = r.split(sep).collect::<Vec<_>>();
-                if col.max() >= r.len() {
-                    println!("[info] ignore a bad line # {r:?}!");
-                    col.artificial_cols_with_appended_n()
-                } else {
-                    col.select_owned_vector_and_append_n(&r)
-                }
-            }
-            None => return Ok(()),
+        let Some(r) = rdr.next() else {
+            return Ok(())
+        };
+        let r = r?;
+        let r = r.split(sep).collect::<Vec<_>>();
+        if col.max() >= r.len() {
+            println!("[info] ignore a bad line # {r:?}!");
+            col.artificial_cols_with_appended_n()
+        } else {
+            col.select_owned_vector_and_append_n(&r)
         }
     };
 

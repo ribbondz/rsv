@@ -2,14 +2,17 @@ use crate::utils::{cli_result::CliResult, table::Table};
 use std::io::{self, BufRead};
 
 pub fn run(sep: &str) -> CliResult {
-    let mut rows = vec![];
+    let lines = io::stdin()
+        .lock()
+        .lines()
+        .filter_map(|i| i.ok())
+        .collect::<Vec<_>>();
+    let lines = lines
+        .iter()
+        .map(|r| r.split(sep).collect::<Vec<_>>())
+        .collect::<Vec<_>>();
 
-    for l in io::stdin().lock().lines() {
-        let l = l?.split(sep).map(String::from).collect::<Vec<_>>();
-        rows.push(l);
-    }
-
-    Table::from_records(rows).print_blank()?;
+    Table::from_records(lines).print_blank()?;
 
     Ok(())
 }

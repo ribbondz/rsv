@@ -12,16 +12,16 @@ use std::thread;
 
 pub fn run(path: &Path, sheet: usize, pattern: &str, no_header: bool, export: bool) -> CliResult {
     // wtr and rdr
-    let out_path = new_path(path, "-searched").with_extension("csv");
-    let mut wtr = Writer::file_or_stdout(export, &out_path)?;
+    let out = new_path(path, "-searched").with_extension("csv");
+    let mut wtr = Writer::file_or_stdout(export, &out)?;
     let mut range = ExcelReader::new(path, sheet)?;
 
     // header
     if !no_header {
-        match range.next() {
-            Some(v) => wtr.write_excel_line_unchecked(v, COMMA),
-            None => return Ok(()),
+        let Some(r) = range.next() else {
+            return Ok(())
         };
+        wtr.write_excel_line_unchecked(r, COMMA)
     };
 
     // read file
@@ -56,7 +56,7 @@ pub fn run(path: &Path, sheet: usize, pattern: &str, no_header: bool, export: bo
 
     if export {
         println!("\nMatched rows: {matched}");
-        println!("Saved to file: {}", out_path.display());
+        println!("Saved to file: {}", out.display());
     }
 
     Ok(())

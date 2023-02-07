@@ -25,16 +25,15 @@ pub fn run(path: &Path, sep: &str, no_header: bool, cols: &str, export: bool) ->
 
     // header
     let name = if no_header {
-        match column_n(path, sep)? {
-            Some(n) => cols.artificial_n_cols(n),
-            None => return Ok(()),
-        }
-    } else {
-        let r = match rdr.next() {
-            Some(r) => r?,
-            None => return Ok(()),
+        let Some(n) = column_n(path, sep)? else {
+            return Ok(())
         };
-        r.split(sep).map(String::from).collect()
+        cols.artificial_n_cols(n)
+    } else {
+        let Some(r) = rdr.next() else {
+           return Ok(())
+        };
+        r?.split(sep).map(String::from).collect()
     };
 
     // stats holder

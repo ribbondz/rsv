@@ -19,18 +19,18 @@ pub fn run(
     export: bool,
 ) -> CliResult {
     // out file
-    let out_path = new_path(path, "-slice").with_extension("csv");
+    let out = new_path(path, "-slice").with_extension("csv");
 
     // open file
-    let mut wtr = Writer::file_or_stdout(export, &out_path)?;
+    let mut wtr = Writer::file_or_stdout(export, &out)?;
     let mut rdr = ExcelReader::new(path, sheet)?;
 
     // header
     if !no_header {
-        match rdr.next() {
-            Some(v) => wtr.write_excel_line_unchecked(v, COMMA),
-            None => return Ok(()),
-        }
+        let Some(r) = rdr.next() else {
+            return Ok(())
+        };
+        wtr.write_excel_line_unchecked(r, COMMA)
     }
 
     // slice
@@ -49,7 +49,7 @@ pub fn run(
     }
 
     if export {
-        println!("Saved to file: {}", out_path.display())
+        println!("Saved to file: {}", out.display())
     }
 
     Ok(())
