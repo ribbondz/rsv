@@ -50,6 +50,11 @@ enum Commands {
     )]
     Head(Head),
     #[command(
+        about = "Show tail n lines",
+        // override_help = HEAD_DESC
+    )]
+    Tail(Head),
+    #[command(
         about = "Show file headers", 
         override_help = HEADER_DESC
     )]
@@ -204,9 +209,6 @@ struct Head {
     /// Number of records to show
     #[arg(short, long, default_value_t = 10)]
     n: usize,
-    /// Print as an aligned table
-    #[arg(short, long, default_value_t = false)]
-    tabled: bool,
     /// Get the nth worksheet of EXCEL file
     #[arg(short = 'S', long, default_value_t = 0)]
     sheet: usize,
@@ -473,29 +475,32 @@ fn main() {
                         option.sheet,
                         option.no_header,
                         option.n,
-                        option.tabled,
                         option.export,
                     )
                     .handle_err(),
-                    false => csv::head::run(
-                        &path,
-                        option.no_header,
-                        &option.sep.valid(),
-                        option.n,
-                        option.tabled,
-                        option.export,
-                    )
-                    .handle_err(),
+                    false => csv::head::run(&path, option.no_header, option.n, option.export)
+                        .handle_err(),
                 }
             }
-            None => io::head::run(
-                option.no_header,
-                &option.sep.valid(),
-                option.n,
-                option.tabled,
-                option.export,
-            )
-            .handle_err(),
+            None => io::head::run(option.no_header, option.n, option.export).handle_err(),
+        },
+        Commands::Tail(option) => match &option.filename {
+            Some(f) => {
+                let path = full_path(f);
+                match is_excel(&path) {
+                    true => excel::tail::run(
+                        &path,
+                        option.sheet,
+                        option.no_header,
+                        option.n,
+                        option.export,
+                    )
+                    .handle_err(),
+                    false => csv::tail::run(&path, option.no_header, option.n, option.export)
+                        .handle_err(),
+                }
+            }
+            None => io::tail::run(option.no_header, option.n, option.export).handle_err(),
         },
         Commands::Headers(option) => match &option.filename {
             Some(f) => {
