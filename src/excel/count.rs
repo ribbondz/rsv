@@ -9,9 +9,9 @@ pub fn run(path: &Path, sheet: usize, no_header: bool) -> CliResult {
 
     // open file and count
     let range = ExcelReader::new(path, sheet)?;
-
     let mut n = range.len();
 
+    // default to have a header
     if !no_header && n > 0 {
         n -= 1;
     }

@@ -36,16 +36,14 @@ pub fn run(
     let first_row = if no_header {
         String::new()
     } else {
-        let first_row = match range.next() {
-            Some(v) => v,
-            None => return Ok(()),
+        let Some(r) = range.next() else {
+            return Ok(())
         };
-        if col >= first_row.len() {
+        if col >= r.len() {
             werr!("Error: column index out of range!");
             process::exit(1);
         };
-        first_row
-            .iter()
+        r.iter()
             .map(|i| i.to_string())
             .collect::<Vec<_>>()
             .join(",")

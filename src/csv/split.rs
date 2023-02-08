@@ -129,9 +129,9 @@ fn task_handle(
         let seg = r.split(sep).collect::<Vec<_>>();
         if col >= r.len() {
             println!("[info] ignore a bad line, content is: {r:?}!");
-        } else {
-            batch_work.entry(seg[col]).or_insert_with(Vec::new).push(r);
+            return;
         }
+        batch_work.entry(seg[col]).or_insert_with(Vec::new).push(r);
     });
 
     // parallel save to disk

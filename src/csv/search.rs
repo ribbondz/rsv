@@ -18,10 +18,10 @@ pub fn run(path: &Path, pattern: &str, no_header: bool, export: bool) -> CliResu
 
     // header
     if !no_header {
-        match rdr.next() {
-            Some(r) => wtr.write_header_unchecked(&r?),
-            None => return Ok(()),
+        let Some(r)= rdr.next() else {
+            return Ok(())
         };
+        wtr.write_header_unchecked(&r?)
     };
 
     // read file

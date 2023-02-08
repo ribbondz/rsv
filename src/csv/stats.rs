@@ -15,9 +15,8 @@ use std::path::Path;
 pub fn run(path: &Path, sep: &str, no_header: bool, cols: &str, export: bool) -> CliResult {
     // Column
     let cols = Columns::new(cols);
-    let col_type = match ColumnTypes::guess_from_csv(path, sep, no_header, &cols)? {
-        Some(v) => v,
-        None => return Ok(()),
+    let Some(col_type) = ColumnTypes::guess_from_csv(path, sep, no_header, &cols)? else {
+        return Ok(())
     };
 
     // open file

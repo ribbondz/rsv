@@ -37,13 +37,12 @@ pub fn run(
             return Ok(())
         };
         let r = r?;
-        match cols.all {
-            true => wtr.write_line_unchecked(&r),
-            false => {
-                let mut r = r.split(sep).collect::<Vec<_>>();
-                r = cols.iter().map(|&i| r[i]).collect();
-                wtr.write_line_by_field_unchecked(&r, Some(sep_bytes));
-            }
+        if cols.all {
+            wtr.write_line_unchecked(&r)
+        } else {
+            let mut r = r.split(sep).collect::<Vec<_>>();
+            r = cols.iter().map(|&i| r[i]).collect();
+            wtr.write_line_by_field_unchecked(&r, Some(sep_bytes));
         }
     }
 
@@ -65,6 +64,7 @@ pub fn run(
     if export {
         println!("\nSaved to file: {}", out.display())
     }
+
     Ok(())
 }
 
@@ -95,10 +95,7 @@ fn handle_task(
         }
 
         // write by fields
-        let f = match f {
-            Some(v) => v,
-            None => r.unwrap().split(sep).collect(),
-        };
+        let f = f.unwrap_or_else(|| r.unwrap().split(sep).collect());
         let row = cols.iter().map(|&i| f[i]).collect::<Vec<_>>();
         wtr.write_line_by_field_unchecked(&row, Some(sep_bytes));
     }
