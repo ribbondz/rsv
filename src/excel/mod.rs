@@ -12,4 +12,5 @@ pub mod sort;
 pub mod split;
 pub mod stats;
 pub mod table;
+pub mod tail;
 pub mod to;
