@@ -2,7 +2,7 @@ use crate::utils::cli_result::CliResult;
 use crate::utils::column::Columns;
 use crate::utils::column_stats::ColumnStats;
 use crate::utils::column_type::ColumnTypes;
-use crate::utils::excel_reader::ExcelReader;
+use crate::utils::reader::ExcelReader;
 use crate::utils::filename::new_path;
 use rayon::prelude::*;
 use std::fs::File;

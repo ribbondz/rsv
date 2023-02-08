@@ -1,5 +1,5 @@
 use crate::utils::{
-    cli_result::CliResult, constants::TERMINATOR, excel_reader::ExcelReader, writer::Writer,
+    cli_result::CliResult, constants::TERMINATOR, reader::ExcelReader, writer::Writer,
 };
 use std::path::Path;
 

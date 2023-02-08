@@ -1,4 +1,4 @@
-use super::{cli_result::CliResult, column::Columns, excel_reader::ExcelReader, util::is_null};
+use super::{cli_result::CliResult, column::Columns, reader::ExcelReader, util::is_null};
 use crate::utils::column;
 use calamine::DataType;
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};

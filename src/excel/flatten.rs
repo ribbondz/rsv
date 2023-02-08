@@ -1,4 +1,4 @@
-use crate::utils::{cli_result::CliResult, excel_reader::ExcelReader, table::Table};
+use crate::utils::{cli_result::CliResult, reader::ExcelReader, table::Table};
 use std::path::Path;
 
 pub fn run(path: &Path, no_header: bool, sheet: usize, delimiter: &str, n: i32) -> CliResult {

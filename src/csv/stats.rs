@@ -1,4 +1,4 @@
-use crate::utils::chunk_reader::{ChunkReader, Task};
+use crate::utils::reader::{ChunkReader, Task};
 use crate::utils::cli_result::CliResult;
 use crate::utils::column::Columns;
 use crate::utils::column_stats::ColumnStats;

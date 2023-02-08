@@ -1,7 +1,7 @@
 use crate::utils::cli_result::CliResult;
 use crate::utils::column::Columns;
 use crate::utils::excel::datatype_vec_to_string_vec;
-use crate::utils::excel_reader::ExcelReader;
+use crate::utils::reader::ExcelReader;
 use crate::utils::file;
 use crate::utils::filename;
 use crate::utils::progress::Progress;

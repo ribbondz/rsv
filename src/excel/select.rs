@@ -1,7 +1,7 @@
 use crate::utils::cli_result::CliResult;
 use crate::utils::column::Columns;
 use crate::utils::constants::COMMA;
-use crate::utils::excel_reader::{ExcelChunkTask, ExcelReader};
+use crate::utils::reader::{ExcelChunkTask, ExcelReader};
 use crate::utils::filename::new_path;
 use crate::utils::filter::Filter;
 use crate::utils::progress::Progress;

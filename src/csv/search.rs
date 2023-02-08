@@ -1,4 +1,4 @@
-use crate::utils::chunk_reader::ChunkReader;
+use crate::utils::reader::ChunkReader;
 use crate::utils::cli_result::CliResult;
 use crate::utils::file::estimate_line_count_by_mb;
 use crate::utils::filename::new_path;

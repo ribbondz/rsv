@@ -1,5 +1,5 @@
 use crate::utils::excel::datatype_vec_to_string_vec;
-use crate::utils::{cli_result::CliResult, excel_reader::ExcelReader, table::Table};
+use crate::utils::{cli_result::CliResult, reader::ExcelReader, table::Table};
 use std::path::Path;
 
 pub fn run(path: &Path, sheet: usize) -> CliResult {
