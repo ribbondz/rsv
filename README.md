@@ -52,10 +52,8 @@ for example, rsv frequency --help.
 
 ```shell
 rsv head data.csv                   # print as the file is
-rsv head --tabled data.csv          # tabled
-rsv head -t data.csv                # tabled too
-rsv head -s \t data.csv             # CSV file with a tab separator
-rsv head data.xlsx                  # EXCEL file
+rsv head data.xlsx                  # EXCEL file, default to first sheet
+rsv head --sheet 1 data.xlsx        # second sheet
 rsv head --help                     # help info on all flags
 ```
 
