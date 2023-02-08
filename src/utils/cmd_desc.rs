@@ -35,17 +35,14 @@ Options:
   -S, --sheet <SHEET>  Get the nth worksheet of EXCEL file [default: 0] 
   -h, --help           Print help information";
 
-pub const HEAD_DESC: &str = "Show head n lines of file. When it is a CSV or TXT file, the result 
-could be formatted as an aligned table by setting the --tabled flag. 
-An EXCEL file is printed in default as an aligned table.
+pub const HEAD_DESC: &str = "Show head n lines of file. The result could be formatted
+in an aligned table by chaining with the <rsv table> command, 
+e.g., rsv head data.csv | rsv table.
 
 Usage: 
   rsv.exe head [OPTIONS] <FILENAME>
   rsv head data.csv                   # print as the file is
-  rsv head --tabled data.csv          # tabled 
-  rsv head -t data.csv                # tabled too
-  rsv head -s \\t -t data.csv          # CSV file with a tab separator
-  rsv head data.xlsx                  # first sheet of EXCEL file
+  rsv head data.xlsx                  # EXCEL file, default to first sheet
   rsv head --sheet 1 data.xlsx        # second sheet
 
 Arguments:
@@ -55,7 +52,6 @@ Options:
   -s, --sep <SEP>      Separator [default: ,]
       --no-header      Whether the file has a header
   -n, --n <N>          Number of records to show [default: 10]
-  -t, --tabled         Print as a table
   -S, --sheet <SHEET>  Get the nth worksheet of EXCEL file [default: 0]
   -h, --help           Print help information
 ";
