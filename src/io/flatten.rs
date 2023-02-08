@@ -1,16 +1,10 @@
-use crate::utils::{cli_result::CliResult, table::Table};
-use std::io::{stdin, BufRead};
+use crate::utils::{cli_result::CliResult, reader::IoReader, table::Table};
 
 pub fn run(no_header: bool, sep: &str, delimiter: &str, n: i32) -> CliResult {
     let n = if n <= 0 { usize::MAX - 10 } else { n as usize };
 
     // open file and header
-    let lines = stdin()
-        .lock()
-        .lines()
-        .take(n + 1 - no_header as usize)
-        .filter_map(|i| i.ok())
-        .collect::<Vec<_>>();
+    let lines = IoReader::new().no_header(no_header).top_n(n).lines();
 
     // too few rows
     if lines.len() <= 1 - no_header as usize {

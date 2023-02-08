@@ -3,17 +3,14 @@ use crate::utils::column::Columns;
 use crate::utils::column_stats::ColumnStats;
 use crate::utils::column_type::ColumnTypes;
 use crate::utils::filename::new_file;
+use crate::utils::reader::IoReader;
 use rayon::prelude::*;
 use std::fs::File;
-use std::io::{self, BufRead, BufWriter, Write};
+use std::io::{BufWriter, Write};
 
 pub fn run(sep: &str, no_header: bool, cols: &str, export: bool) -> CliResult {
     // read
-    let rows = io::stdin()
-        .lock()
-        .lines()
-        .filter_map(|r| r.ok())
-        .collect::<Vec<_>>();
+    let rows = IoReader::new().lines();
 
     // too few rows
     if rows.len() <= 1 - no_header as usize {

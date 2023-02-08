@@ -32,20 +32,20 @@ impl<'a> Table<'a> {
         self.n += 1;
     }
 
-    pub fn from_rows(rows: &'a Vec<String>, sep: &str) -> Self {
-        let r = rows
-            .iter()
-            .map(|i| i.split(sep).collect::<Vec<_>>())
-            .collect::<Vec<_>>();
+    // pub fn from_rows(rows: &'a Vec<String>, sep: &str) -> Self {
+    //     let r = rows
+    //         .iter()
+    //         .map(|i| i.split(sep).collect::<Vec<_>>())
+    //         .collect::<Vec<_>>();
 
-        let mut b = Builder::default();
-        let n = rows.len();
-        for row in r {
-            b.add_record(row);
-        }
+    //     let mut b = Builder::default();
+    //     let n = rows.len();
+    //     for row in r {
+    //         b.add_record(row);
+    //     }
 
-        Table { builder: b, n }
-    }
+    //     Table { builder: b, n }
+    // }
 
     pub fn from_records<R, T>(rows: Vec<R>) -> Self
     where

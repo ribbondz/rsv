@@ -1,12 +1,12 @@
 use crate::utils::cli_result::CliResult;
 use crate::utils::filename::new_file;
 use crate::utils::priority_queue::PriorityQueue;
+use crate::utils::reader::IoReader;
 use crate::utils::table::Table;
 use crate::utils::writer::Writer;
 use rand::rngs::StdRng;
 use rand::thread_rng;
 use rand::{Rng, SeedableRng};
-use std::io::{stdin, BufRead};
 use std::time::Instant;
 
 pub fn run(
@@ -17,11 +17,7 @@ pub fn run(
     time_limit: f32,
 ) -> CliResult {
     // open files
-    let lines = stdin()
-        .lock()
-        .lines()
-        .filter_map(|i| i.ok())
-        .collect::<Vec<_>>();
+    let lines = IoReader::new().lines();
 
     if lines.is_empty() {
         return Ok(());

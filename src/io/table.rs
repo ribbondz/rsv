@@ -1,12 +1,7 @@
-use crate::utils::{cli_result::CliResult, table::Table};
-use std::io::{self, BufRead};
+use crate::utils::{cli_result::CliResult, reader::IoReader, table::Table};
 
 pub fn run(sep: &str) -> CliResult {
-    let lines = io::stdin()
-        .lock()
-        .lines()
-        .filter_map(|i| i.ok())
-        .collect::<Vec<_>>();
+    let lines = IoReader::new().lines();
     let lines = lines
         .iter()
         .map(|r| r.split(sep).collect::<Vec<_>>())
