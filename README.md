@@ -15,6 +15,7 @@ download **rsv.exe** from release tab, and append the file directory to system p
 ## Available commands
 
 - **head** - Show head n lines of CSV, TXT or EXCEL file.
+- **tail** - Show tail n lines of CSV, TXT or EXCEL file.
 - **header** - Show file headers.
 - **count** - Count the number of lines of file :running:.
 - **estimate** - Fast estimate the number of lines.
@@ -51,10 +52,21 @@ for example, rsv frequency --help.
 - **rsv head**
 
 ```shell
-rsv head data.csv                   # print as the file is
+rsv head data.csv                   # default to show head 10 records
+rsv head -n 5 data.csv              # show head 5 records
 rsv head data.xlsx                  # EXCEL file, default to first sheet
 rsv head --sheet 1 data.xlsx        # second sheet
 rsv head --help                     # help info on all flags
+```
+
+- **rsv tail**
+
+```shell
+rsv tail data.csv                   # default to show tail 10 records
+rsv tail -n 5 data.csv              # show tail 5 records
+rsv tail data.xlsx                  # EXCEL file, default to first sheet
+rsv tail --sheet 1 data.xlsx        # second sheet
+rsv tail --help                     # help info on all flags
 ```
 
 - **rsv header**

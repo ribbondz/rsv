@@ -5,7 +5,7 @@ use utils::{
     cmd_desc::{
         CLEAN_DESC, COUNT_DESC, ESTIMATE_DESC, EXCEL2CSV_DESC, FLATTEN_DESC, FREQUENCY_DESC,
         HEADER_DESC, HEAD_DESC, SAMPLE_DESC, SEARCH_DESC, SELECT_DESC, SLICE_DESC, SORT_DESC,
-        SPLIT_DESC, STATS_DESC, TABLE_DESC, TO_DESC,
+        SPLIT_DESC, STATS_DESC, TABLE_DESC, TAIL_DESC, TO_DESC,
     },
     file::is_excel,
     filename::full_path,
@@ -20,7 +20,7 @@ mod utils;
 #[derive(Parser)]
 #[command(name = "rsv")]
 #[command(author = "ribbondz@163.com")]
-#[command(version = "0.4.7")]
+#[command(version = "0.4.8")]
 #[command(
     about = "A Rust command line tool to parse small and large (>10G) CSV, TXT, and EXCEL files."
 )]
@@ -51,7 +51,7 @@ enum Commands {
     Head(Head),
     #[command(
         about = "Show tail n lines",
-        // override_help = HEAD_DESC
+        override_help = TAIL_DESC
     )]
     Tail(Head),
     #[command(

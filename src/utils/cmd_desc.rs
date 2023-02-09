@@ -41,7 +41,8 @@ e.g., rsv head data.csv | rsv table.
 
 Usage: 
   rsv.exe head [OPTIONS] <FILENAME>
-  rsv head data.csv                   # print as the file is
+  rsv head data.csv                   # default to show head 10
+  rsv head -n 5 data.csv              # show head 5
   rsv head data.xlsx                  # EXCEL file, default to first sheet
   rsv head --sheet 1 data.xlsx        # second sheet
 
@@ -54,6 +55,27 @@ Options:
   -n, --n <N>          Number of records to show [default: 10]
   -S, --sheet <SHEET>  Get the nth worksheet of EXCEL file [default: 0]
   -h, --help           Print help information
+";
+
+pub const TAIL_DESC: &str = "Show tail n lines of file.
+
+Usage: 
+  rsv tail [OPTIONS] [FILENAME]
+  rsv tail data.csv               # default to show tail 10 records
+  rsv tail -n 5 data.csv          # tail 5 records
+  rsv tail data.xlsx              # EXCEL file, default to first sheet
+  rsv tail --sheet 1 data.xlsx    # the second sheet
+
+Arguments:
+  [FILENAME]  File to open
+
+Options:
+  -s, --sep <SEP>      Separator [default: ,]
+      --no-header      Whether the file has a header
+  -n, --n <N>          Number of records to show [default: 10]
+  -S, --sheet <SHEET>  Get the nth worksheet of EXCEL file [default: 0]
+  -E, --export         Export to a file named current-file-head.csv?
+  -h, --help           Print help
 ";
 
 pub const ESTIMATE_DESC: &str = "Fast estimate the number of lines. 
