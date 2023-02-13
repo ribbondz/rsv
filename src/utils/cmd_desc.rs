@@ -225,10 +225,10 @@ pub const SPLIT_DESC: &str = "Split a big and unordered file into separate files
 at a time, with the --col or -c flag. 
 
 The output directory is created automatically within the current data
-directory. Separate small files are named after unique column value. 
+directory. Small files are named after unique column value. 
 
 The command is performant because: (1) data is analyzed in chunks,
-e.g., 50MB by default, other than by line by line, so that it avoid 
+e.g., 50MB by default, other than line by line, so that it avoid 
 continuously opening and closing small files; (2) rows of CSV or EXCEL 
 are analyzed in parallel (based on Rayon) after their read in.
 
