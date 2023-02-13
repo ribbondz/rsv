@@ -1,7 +1,8 @@
 use crate::utils::cli_result::CliResult;
 use crate::utils::constants::COMMA;
-use crate::utils::reader::ExcelReader;
+use crate::utils::excel::datatype_vec_to_string_vec;
 use crate::utils::filename::new_path;
+use crate::utils::reader::ExcelReader;
 use crate::utils::sort::SortColumns;
 use crate::utils::writer::Writer;
 use std::path::Path;
@@ -27,7 +28,7 @@ pub fn run(path: &Path, sheet: usize, no_header: bool, cols: &str, export: bool)
     let mut lines = range
         .iter()
         .skip(range.next_called)
-        .map(|i| i.iter().map(|j| j.to_string()).collect::<Vec<_>>())
+        .map(datatype_vec_to_string_vec)
         .collect::<Vec<_>>();
 
     // sort

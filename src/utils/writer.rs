@@ -7,7 +7,7 @@ use std::{
     process,
 };
 
-pub struct Writer(Box<dyn Write>);
+pub struct Writer(pub Box<dyn Write>);
 
 impl Writer {
     pub fn new(path: &Path) -> Result<Self, Error> {
@@ -136,7 +136,7 @@ impl Writer {
     pub fn write_excel_line(&mut self, line: &[DataType], sep: &[u8]) -> CliResult {
         let mut l = line.iter().peekable();
         while let Some(f) = l.next() {
-            self.0.write_all(f.to_string().as_bytes())?;
+            write!(&mut self.0, "{}", f)?;
             if l.peek().is_some() {
                 self.0.write_all(sep)?;
             } else {

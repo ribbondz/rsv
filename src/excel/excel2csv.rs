@@ -18,7 +18,10 @@ pub fn run(path: &Path, sheet: usize, sep: &str) -> CliResult {
     for r in range.iter() {
         let mut r = r.iter().peekable();
         while let Some(v) = r.next() {
-            wtr.write_bytes(v.to_string().trim().as_bytes())?;
+            match v {
+                calamine::DataType::String(v) => wtr.write_bytes(v.trim().as_bytes())?,
+                _ => write!(&mut wtr.0, "{}", v)?,
+            };
             if r.peek().is_some() {
                 wtr.write_bytes(sep_bytes)?;
             } else {

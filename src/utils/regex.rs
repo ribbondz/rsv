@@ -15,8 +15,14 @@ impl Re {
         self.0.is_match(v)
     }
 
-    pub fn verify_excel_row_map(&self, r: &[DataType]) -> Option<Vec<String>> {
-        let v = r.iter().map(|j| j.to_string()).collect::<Vec<_>>();
+    pub fn verify_excel_row_map(&self, r: Vec<DataType>) -> Option<Vec<String>> {
+        let v = r
+            .into_iter()
+            .map(|j| match j {
+                DataType::String(s) => s,
+                _ => j.to_string(),
+            })
+            .collect::<Vec<_>>();
         match v.iter().any(|i| self.is_match(i)) {
             true => Some(v),
             false => None,

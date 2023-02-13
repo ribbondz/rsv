@@ -152,10 +152,13 @@ impl Filter {
         self.0.iter().all(|item| item.record_is_valid(row))
     }
 
-    pub fn excel_record_valid_map(&self, row: &[DataType]) -> Option<Vec<String>> {
+    pub fn excel_record_valid_map(&self, row: Vec<DataType>) -> Option<Vec<String>> {
         let row = row
-            .iter()
-            .map(|i| i.to_string().trim().to_owned())
+            .into_iter()
+            .map(|i| match i {
+                DataType::String(v) => v,
+                _ => i.to_string(),
+            })
             .collect::<Vec<_>>();
         if self.excel_record_is_valid(&row) {
             Some(row)

@@ -1,8 +1,8 @@
 use crate::utils::cli_result::CliResult;
-use crate::utils::excel::datatype_vec_to_string_vec;
-use crate::utils::reader::ExcelReader;
+use crate::utils::excel::datatype_vec_to_string;
 use crate::utils::filename::new_path;
 use crate::utils::priority_queue::PriorityQueue;
+use crate::utils::reader::ExcelReader;
 use crate::utils::table::Table;
 use crate::utils::writer::Writer;
 use rand::rngs::StdRng;
@@ -28,7 +28,7 @@ pub fn run(
     let header = match no_header {
         true => None,
         false => match range.next() {
-            Some(r) => Some(datatype_vec_to_string_vec(r)),
+            Some(r) => Some(datatype_vec_to_string(r)),
             None => return Ok(()),
         },
     };
@@ -45,7 +45,7 @@ pub fn run(
     for (line_n, r) in range.iter().skip(range.next_called).enumerate() {
         let priority = rng.gen::<f64>();
         if queue.can_insert(priority) {
-            let line = datatype_vec_to_string_vec(r);
+            let line = datatype_vec_to_string(r);
             queue.push(line_n, priority, line);
         }
 
@@ -62,26 +62,26 @@ pub fn run(
     Ok(())
 }
 
-fn write_to_file(path: &Path, header: Option<Vec<String>>, queue: PriorityQueue<Vec<String>>) {
+fn write_to_file(path: &Path, header: Option<String>, queue: PriorityQueue<String>) {
     // new file
     let out = new_path(path, "-sampled").with_extension("csv");
     let mut wtr = Writer::new(&out).unwrap();
     if let Some(r) = header {
-        wtr.write_line_by_field_unchecked(&r, None);
+        wtr.write_line_unchecked(&r);
     }
     for r in queue.into_sorted_items() {
-        wtr.write_line_by_field_unchecked(&r.item, None);
+        wtr.write_line_unchecked(&r.item);
     }
 
     println!("Saved to file: {}", out.display());
 }
 
-fn print_to_stdout(header: Option<Vec<String>>, queue: PriorityQueue<Vec<String>>) {
+fn print_to_stdout(header: Option<String>, queue: PriorityQueue<String>) {
     let mut table = Table::new();
 
     // header
     let header = match header {
-        Some(v) => Cow::Owned(v.join(",")),
+        Some(v) => Cow::Owned(v),
         None => Cow::Borrowed(""),
     };
     if !header.is_empty() {
@@ -92,7 +92,7 @@ fn print_to_stdout(header: Option<Vec<String>>, queue: PriorityQueue<Vec<String>
     let v = queue
         .into_sorted_items()
         .into_iter()
-        .map(|i| (i.line_n_as_string(), i.item.join(",")))
+        .map(|i| (i.line_n_as_string(), i.item))
         .collect::<Vec<_>>();
     v.iter()
         .for_each(|(line_n, r)| table.add_record(vec![line_n.as_str(), "->", r]));

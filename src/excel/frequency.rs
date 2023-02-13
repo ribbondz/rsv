@@ -1,10 +1,11 @@
 use crate::utils::cli_result::CliResult;
 use crate::utils::column::Columns;
 use crate::utils::excel::datatype_vec_to_string_vec;
-use crate::utils::reader::ExcelReader;
 use crate::utils::file;
 use crate::utils::filename;
 use crate::utils::progress::Progress;
+use crate::utils::reader::ExcelChunkTask;
+use crate::utils::reader::ExcelReader;
 use crate::utils::util::print_frequency_table;
 use crossbeam_channel::bounded;
 use dashmap::DashMap;
@@ -48,8 +49,8 @@ pub fn run(
     // process
     let freq = DashMap::new();
     let mut prog = Progress::new();
-    for task in rx {
-        task.lines.par_iter().for_each(|r| {
+    for ExcelChunkTask { lines, n, chunk: _ } in rx {
+        lines.par_iter().for_each(|r| {
             if col.max() >= r.len() {
                 println!("[info] ignore a bad line # {r:?}!");
             } else {
@@ -60,7 +61,7 @@ pub fn run(
 
         if export {
             prog.add_chunks(1);
-            prog.add_lines(task.n);
+            prog.add_lines(n);
             prog.print_lines();
         }
     }

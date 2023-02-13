@@ -95,10 +95,13 @@ impl ColumnStats {
             return;
         }
 
-        self.cols
-            .iter()
-            .zip(&mut self.stat)
-            .for_each(|(&i, c)| c.parse(&v[i].to_string()));
+        self.cols.iter().zip(&mut self.stat).for_each(|(&i, c)| {
+            let t = &v[i];
+            match t {
+                DataType::String(v) => c.parse(v),
+                _ => c.parse(&t.to_string()),
+            };
+        });
 
         self.rows += 1;
     }

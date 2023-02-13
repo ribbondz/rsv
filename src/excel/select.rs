@@ -1,10 +1,10 @@
 use crate::utils::cli_result::CliResult;
 use crate::utils::column::Columns;
 use crate::utils::constants::COMMA;
-use crate::utils::reader::{ExcelChunkTask, ExcelReader};
 use crate::utils::filename::new_path;
 use crate::utils::filter::Filter;
 use crate::utils::progress::Progress;
+use crate::utils::reader::{ExcelChunkTask, ExcelReader};
 use crate::utils::writer::Writer;
 use crossbeam_channel::bounded;
 use rayon::prelude::*;
@@ -71,10 +71,10 @@ fn handle_task(
     export: bool,
     prog: &mut Progress,
 ) {
+    let ExcelChunkTask { lines, n, chunk: _ } = task;
     // filter
-    let filtered = task
-        .lines
-        .par_iter()
+    let filtered = lines
+        .into_par_iter()
         .filter_map(|row| filter.excel_record_valid_map(row))
         .collect::<Vec<_>>();
 
@@ -89,7 +89,7 @@ fn handle_task(
 
     if export {
         prog.add_chunks(1);
-        prog.add_lines(task.n);
+        prog.add_lines(n);
         prog.print_lines();
     }
 }

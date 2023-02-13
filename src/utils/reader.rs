@@ -81,7 +81,7 @@ impl<'a> ExcelReader {
         let mut workbook = open_workbook_auto(path)?;
 
         let range = workbook.worksheet_range_at(sheet).unwrap_or_else(|| {
-            werr!("{}-th sheet is not exist.", sheet);
+            werr!("{}-th sheet does not exist.", sheet);
             process::exit(1)
         })?;
 

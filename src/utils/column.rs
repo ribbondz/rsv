@@ -1,3 +1,4 @@
+use super::excel::write_datatype_to_string;
 use super::util::werr;
 use calamine::DataType;
 use std::process;
@@ -84,10 +85,16 @@ impl Columns {
     }
 
     pub fn select_owned_string_from_excel_datatype(&self, all: &[DataType]) -> String {
-        self.iter()
-            .map(|&i| all[i].to_string())
-            .collect::<Vec<_>>()
-            .join(",")
+        let mut o = String::new();
+        let mut col = self.cols.iter().peekable();
+        while let Some(&i) = col.next() {
+            write_datatype_to_string(&mut o, &all[i]);
+            if col.peek().is_some() {
+                o.push(',');
+            }
+        }
+
+        o
     }
 
     pub fn select_owned_vector_and_append_n(&self, all: &[&str]) -> Vec<String> {
