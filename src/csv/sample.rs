@@ -27,7 +27,7 @@ pub fn run(
     let header = match no_header {
         true => None,
         false => match rdr.read_until(b'\n', &mut buf) {
-            Ok(_) => Some(String::from_utf8_lossy(&buf).trim_end().to_string()),
+            Ok(_) => Some(String::from_utf8_lossy(&buf).trim().to_string()),
             Err(_) => return Ok(()),
         },
     };
@@ -98,7 +98,7 @@ fn print_to_stdout(header: Option<String>, queue: PriorityQueue<Vec<u8>>) {
         .map(|i| {
             (
                 i.line_n_as_string(),
-                String::from_utf8_lossy(&i.item).to_string(),
+                String::from_utf8_lossy(&i.item).trim().to_string(),
             )
         })
         .collect::<Vec<_>>();
