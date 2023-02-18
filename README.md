@@ -280,10 +280,6 @@ rsv search pattern data.xlsx | rsv to out.tsv                # export to TSV
 rsv select -f "0N>=10" pattern data.xlsx | rsv to out.txt    # export to TXT
 ```
 
-## Bug report and suggestion
-
-[219352261 QQ Chat Room](https://jq.qq.com/?_wv=1027&k=MyU6ynI1)
-
 ## Next
 
 new features will be added in the future.
