@@ -1,5 +1,4 @@
 use crate::utils::util::werr;
-use calamine::DataType;
 use regex::Regex;
 use std::process;
 
@@ -145,26 +144,11 @@ impl Filter {
         }
     }
 
-    pub fn excel_record_is_valid(&self, row: &[String]) -> bool {
+    pub fn excel_record_is_valid<T: AsRef<str>>(&self, row: &[T]) -> bool {
         if self.is_empty() {
             return true;
         }
         self.0.iter().all(|item| item.record_is_valid(row))
-    }
-
-    pub fn excel_record_valid_map(&self, row: Vec<DataType>) -> Option<Vec<String>> {
-        let row = row
-            .into_iter()
-            .map(|i| match i {
-                DataType::String(v) => v,
-                _ => i.to_string(),
-            })
-            .collect::<Vec<_>>();
-        if self.excel_record_is_valid(&row) {
-            Some(row)
-        } else {
-            None
-        }
     }
 }
 

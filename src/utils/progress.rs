@@ -68,19 +68,6 @@ impl Progress {
         self.print_count += 1;
     }
 
-    pub fn print_lines(&mut self) {
-        // must have the suffix space, otherwise current line cannot be cleaned completely
-        print!(
-            "\rchunk: {}, total processed rows: {}, elapsed time: {}         ",
-            self.chunks,
-            self.lines,
-            self.elapsed_time_as_string()
-        );
-        io::stdout().flush().unwrap();
-
-        self.print_count += 1;
-    }
-
     pub fn clear(&mut self) {
         // must have the suffix space, otherwise current line cannot be cleaned completely
         print!("\r");

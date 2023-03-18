@@ -1,8 +1,17 @@
 use calamine::DataType;
-use std::fmt::Write;
+use std::{borrow::Cow, fmt::Write};
 
-pub fn datatype_vec_to_string_vec(data: &[DataType]) -> Vec<String> {
-    data.iter().map(|i| i.to_string()).collect()
+// pub fn datatype_vec_to_string_vec(data: &[DataType]) -> Vec<String> {
+//     data.iter().map(|i| i.to_string()).collect()
+// }
+
+pub fn datatype_vec_to_string_vec(data: &[DataType]) -> Vec<Cow<str>> {
+    data.iter()
+        .map(|i| match i {
+            DataType::String(s) => Cow::Borrowed(s.as_str()),
+            _ => Cow::from(i.to_string()),
+        })
+        .collect()
 }
 
 pub fn datatype_vec_to_string(data: &[DataType]) -> String {
@@ -28,5 +37,3 @@ pub fn write_datatype_to_string(s: &mut String, d: &DataType) {
         DataType::Empty => Ok(()),
     };
 }
-
-

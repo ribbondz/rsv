@@ -1,8 +1,9 @@
 use crate::utils::cli_result::CliResult;
 use crate::utils::constants::COMMA;
-use crate::utils::reader::{ExcelChunkTask, ExcelReader};
+use crate::utils::excel::datatype_vec_to_string_vec;
 use crate::utils::filename::{dir_file, str_to_filename};
 use crate::utils::progress::Progress;
+use crate::utils::reader::{ExcelChunkTask, ExcelReader};
 use crate::utils::util::{datetime_str, werr};
 use crate::utils::writer::Writer;
 use calamine::DataType;
@@ -43,10 +44,7 @@ pub fn run(
             werr!("Error: column index out of range!");
             process::exit(1);
         };
-        r.iter()
-            .map(|i| i.to_string())
-            .collect::<Vec<_>>()
-            .join(",")
+        datatype_vec_to_string_vec(r).join(",")
     };
 
     let (tx, rx) = bounded(1);

@@ -1,6 +1,6 @@
 use super::{cli_result::CliResult, writer::Writer};
 use rayon::prelude::*;
-use std::error::Error;
+use std::{borrow::Cow, error::Error};
 
 pub struct SortColumns(Vec<SortColumn>);
 
@@ -218,7 +218,7 @@ impl SortColumns {
 
     pub fn sort_excel_and_write(
         &self,
-        lines: &mut Vec<Vec<String>>,
+        lines: &mut Vec<Vec<Cow<str>>>,
         wtr: &mut Writer,
     ) -> CliResult {
         match self.0.len() {
@@ -238,7 +238,7 @@ impl SortColumns {
         Ok(())
     }
 
-    fn sort_excel_str_column(&self, lines: &mut [Vec<String>], wtr: &mut Writer) {
+    fn sort_excel_str_column(&self, lines: &mut [Vec<Cow<str>>], wtr: &mut Writer) {
         let c = self.col_at(0);
         match self.ascending_at(0) {
             true => lines.sort_by(|a, b| a[c].cmp(&b[c])),
@@ -250,7 +250,7 @@ impl SortColumns {
             .for_each(|l| wtr.write_line_by_field_unchecked(l, None));
     }
 
-    fn sort_excel_numeric_column(&self, lines: &mut Vec<Vec<String>>, wtr: &mut Writer) {
+    fn sort_excel_numeric_column(&self, lines: &mut Vec<Vec<Cow<str>>>, wtr: &mut Writer) {
         let c = self.col_at(0);
         let mut r = lines
             .par_iter()
@@ -265,7 +265,7 @@ impl SortColumns {
             .for_each(|(l, _)| wtr.write_line_by_field_unchecked(l, None));
     }
 
-    fn sort_excel_str_str_columns(&self, lines: &mut [Vec<String>], wtr: &mut Writer) {
+    fn sort_excel_str_str_columns(&self, lines: &mut [Vec<Cow<str>>], wtr: &mut Writer) {
         let c1 = self.col_at(0);
         let c2 = self.col_at(1);
         match (self.ascending_at(0), self.ascending_at(1)) {
@@ -280,7 +280,7 @@ impl SortColumns {
             .for_each(|l| wtr.write_line_by_field_unchecked(l, None));
     }
 
-    fn sort_excel_str_numeric_columns(&self, lines: &mut Vec<Vec<String>>, wtr: &mut Writer) {
+    fn sort_excel_str_numeric_columns(&self, lines: &mut Vec<Vec<Cow<str>>>, wtr: &mut Writer) {
         let c1 = self.col_at(0);
         let c2 = self.col_at(1);
 
@@ -299,7 +299,7 @@ impl SortColumns {
             .for_each(|(l, _, _)| wtr.write_line_by_field_unchecked(l, None));
     }
 
-    fn sort_excel_numeric_str_columns(&self, lines: &mut [Vec<String>], wtr: &mut Writer) {
+    fn sort_excel_numeric_str_columns(&self, lines: &mut [Vec<Cow<str>>], wtr: &mut Writer) {
         let c1 = self.col_at(0);
         let c2 = self.col_at(1);
 
@@ -318,7 +318,7 @@ impl SortColumns {
             .for_each(|(l, _, _)| wtr.write_line_by_field_unchecked(l, None));
     }
 
-    fn sort_excel_numeric_numeric_columns(&self, lines: &mut [Vec<String>], wtr: &mut Writer) {
+    fn sort_excel_numeric_numeric_columns(&self, lines: &mut [Vec<Cow<str>>], wtr: &mut Writer) {
         let c1 = self.col_at(0);
         let c2 = self.col_at(1);
 

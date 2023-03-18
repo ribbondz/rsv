@@ -97,18 +97,18 @@ impl Columns {
         o
     }
 
-    pub fn select_owned_vector_and_append_n(&self, all: &[&str]) -> Vec<String> {
+    pub fn select_owned_vec_from_excel_datatype(&self, all: &[DataType]) -> Vec<String> {
         self.cols
             .iter()
-            .map(|&i| all[i].to_owned())
+            .map(|&i| all[i].to_string())
             .chain(std::iter::once("n".to_owned()))
             .collect::<Vec<_>>()
     }
 
-    pub fn select_owned_vector_and_append_n2(&self, all: Vec<String>) -> Vec<String> {
-        all.into_iter()
-            .enumerate()
-            .filter_map(|(u, i)| self.cols.contains(&u).then_some(i))
+    pub fn select_owned_vector_and_append_n(&self, all: &[&str]) -> Vec<String> {
+        self.cols
+            .iter()
+            .map(|&i| all[i].to_owned())
             .chain(std::iter::once("n".to_owned()))
             .collect::<Vec<_>>()
     }

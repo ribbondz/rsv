@@ -1,7 +1,7 @@
 use crate::utils::cli_result::CliResult;
 use crate::utils::excel::datatype_vec_to_string_vec;
-use crate::utils::reader::ExcelReader;
 use crate::utils::filename::new_path;
+use crate::utils::reader::ExcelReader;
 use crate::utils::writer::Writer;
 use std::path::Path;
 
@@ -13,7 +13,7 @@ pub fn run(path: &Path, sheet: usize, no_header: bool, n: usize, export: bool) -
     // show head n
     let r = range
         .iter()
-        .take(n + 1 - no_header as usize)
+        .take(n + 1 - (no_header as usize))
         .map(datatype_vec_to_string_vec)
         .collect::<Vec<_>>();
 

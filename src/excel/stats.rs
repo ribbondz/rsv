@@ -2,52 +2,38 @@ use crate::utils::cli_result::CliResult;
 use crate::utils::column::Columns;
 use crate::utils::column_stats::ColumnStats;
 use crate::utils::column_type::ColumnTypes;
-use crate::utils::reader::ExcelReader;
 use crate::utils::filename::new_path;
-use rayon::prelude::*;
+use crate::utils::reader::ExcelReader;
 use std::fs::File;
 use std::io::{BufWriter, Write};
 use std::path::Path;
 
 pub fn run(path: &Path, sheet: usize, no_header: bool, cols: &str, export: bool) -> CliResult {
     // read file
-    let range = ExcelReader::new(path, sheet)?;
-    let lines = range.iter().collect::<Vec<_>>();
-
-    // too few lines
-    if lines.len() <= 1 - no_header as usize {
-        return Ok(());
-    }
+    let mut rdr = ExcelReader::new(path, sheet)?;
 
     // Column type
     let cols = Columns::new(cols);
-    let col_type = ColumnTypes::guess_from_excel(&range, no_header, &cols).unwrap();
+    let col_type = ColumnTypes::guess_from_excel(&rdr, no_header, &cols).unwrap();
 
     // header
     let name = match no_header {
-        true => cols.artificial_n_cols(lines[0].len()),
-        false => lines[0].iter().map(|i| i.to_string()).collect::<Vec<_>>(),
+        true => cols.artificial_n_cols(rdr.column_n()),
+        false => {
+            let Some(r) = rdr.next() else {
+                return Ok(())
+            };
+            r.iter().map(|i| i.to_string()).collect::<Vec<_>>()
+        }
     };
-
-    let lines = &lines[(1 - no_header as usize)..];
 
     // stats holder
     let mut stat = ColumnStats::new(&col_type, &name);
-    let segs = lines.chunks(1000).collect::<Vec<_>>();
-    let r = segs
-        .into_par_iter()
-        .map(|chunk| {
-            let mut s = stat.clone();
-            for &r in chunk {
-                s.parse_excel_row(r);
-            }
-            s
-        })
-        .collect::<Vec<_>>();
-    r.into_iter().fold(&mut stat, |s, b| {
-        s.merge(b);
-        s
-    });
+
+    // read
+    rdr.iter()
+        .skip(rdr.next_called)
+        .for_each(|r| stat.parse_excel_row(r));
 
     // refine result
     stat.cal_unique_and_mean();

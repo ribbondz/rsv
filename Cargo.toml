@@ -1,6 +1,6 @@
 [package]
 name = "csv-txt-excel-parallel-toolkit"
-version = "0.4.8"
+version = "0.4.9"
 edition = "2021"
 authors = ["zhuang dai <ribbondz@163.com>"]
 description = "A parallel and fast command line toolkit for small and large (>10G) CSV, TXT, and EXCEL files, with a unified api."

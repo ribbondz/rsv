@@ -1,17 +1,11 @@
 use crate::utils::cli_result::CliResult;
 use crate::utils::column::Columns;
-use crate::utils::excel::datatype_vec_to_string_vec;
 use crate::utils::file;
 use crate::utils::filename;
-use crate::utils::progress::Progress;
-use crate::utils::reader::ExcelChunkTask;
 use crate::utils::reader::ExcelReader;
 use crate::utils::util::print_frequency_table;
-use crossbeam_channel::bounded;
 use dashmap::DashMap;
-use rayon::prelude::*;
 use std::path::Path;
-use std::thread;
 
 pub fn run(
     path: &Path,
@@ -37,34 +31,20 @@ pub fn run(
             println!("[info] ignore a bad line # {r:?}!");
             col.artificial_cols_with_appended_n()
         } else {
-            let r = datatype_vec_to_string_vec(r);
-            col.select_owned_vector_and_append_n2(r)
+            col.select_owned_vec_from_excel_datatype(r)
         }
     };
 
     // read file
-    let (tx, rx) = bounded(1);
-    thread::spawn(move || rdr.send_to_channel_in_line_chunks(tx, None));
-
-    // process
     let freq = DashMap::new();
-    let mut prog = Progress::new();
-    for ExcelChunkTask { lines, n, chunk: _ } in rx {
-        lines.par_iter().for_each(|r| {
-            if col.max() >= r.len() {
-                println!("[info] ignore a bad line # {r:?}!");
-            } else {
-                let r = col.select_owned_string_from_excel_datatype(r);
-                *freq.entry(r).or_insert(0) += 1;
-            }
-        });
-
-        if export {
-            prog.add_chunks(1);
-            prog.add_lines(n);
-            prog.print_lines();
+    rdr.iter().skip(rdr.next_called).for_each(|r| {
+        if col.max() >= r.len() {
+            println!("[info] ignore a bad line # {r:?}!");
+        } else {
+            let r = col.select_owned_string_from_excel_datatype(r);
+            *freq.entry(r).or_insert(0) += 1;
         }
-    }
+    });
 
     let mut freq = freq.into_iter().collect::<Vec<(_, _)>>();
     if ascending {

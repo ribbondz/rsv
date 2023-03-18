@@ -11,7 +11,6 @@ pub fn run(path: &Path, sep: &str) -> CliResult {
 
     let rows = rdr
         .lines()
-        .into_iter()
         .filter_map(|r| r.ok())
         .map(|r| r.split(sep).map(String::from).collect::<Vec<_>>())
         .collect::<Vec<_>>();
