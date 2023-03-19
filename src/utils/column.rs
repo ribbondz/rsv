@@ -19,6 +19,15 @@ fn parse_col_usize(col: &str) -> usize {
 }
 
 impl Columns {
+    pub fn empty() -> Self {
+        Columns {
+            cols: vec![],
+            all_cols: vec![],
+            max_col: 0,
+            all: true,
+        }
+    }
+
     pub fn new(raw: &str) -> Self {
         let mut cols = Columns {
             cols: vec![],

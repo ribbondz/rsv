@@ -5,7 +5,7 @@ use utils::{
     cmd_desc::{
         CLEAN_DESC, COUNT_DESC, ESTIMATE_DESC, EXCEL2CSV_DESC, FLATTEN_DESC, FREQUENCY_DESC,
         HEADER_DESC, HEAD_DESC, SAMPLE_DESC, SEARCH_DESC, SELECT_DESC, SLICE_DESC, SORT_DESC,
-        SPLIT_DESC, STATS_DESC, TABLE_DESC, TAIL_DESC, TO_DESC,
+        SPLIT_DESC, STATS_DESC, TABLE_DESC, TAIL_DESC, TO_DESC, UNIQUE_DESC,
     },
     file::is_excel,
     filename::full_path,
@@ -134,6 +134,11 @@ enum Commands {
         override_help = SAMPLE_DESC
     )]
     Sample(Sample),
+    #[command(
+        about = "Drop duplicates of data",
+        override_help = UNIQUE_DESC
+    )]
+    Unique(Unique),
 }
 
 #[derive(Debug, Args)]
@@ -448,6 +453,30 @@ struct To {
     out: String,
     /// File to open
     filename: Option<String>,
+}
+
+#[derive(Debug, Args)]
+struct Unique {
+    /// File to open
+    filename: Option<String>,
+    /// Separator
+    #[arg(short, long, default_value_t = String::from(","))]
+    sep: String,
+    /// Whether the file has a header
+    #[arg(long, default_value_t = false)]
+    no_header: bool,
+    /// Columns to filter
+    #[arg(short, long, default_value_t = String::from("-1"))]
+    cols: String,
+    /// keep first or last
+    #[arg(long, default_value_t = false)]
+    keep_last: bool,
+    /// Get the nth worksheet of EXCEL file
+    #[arg(short = 'S', long, default_value_t = 0)]
+    sheet: usize,
+    /// Export to a file named drop-duplicates.csv?
+    #[arg(short = 'E', long, default_value_t = false)]
+    export: bool,
 }
 
 fn main() {
@@ -853,6 +882,39 @@ fn main() {
                 option.seed,
                 option.export,
                 (option.time_limit - 0.7).clamp(0.0, f32::MAX),
+            )
+            .handle_err(),
+        },
+        Commands::Unique(option) => match &option.filename {
+            Some(f) => {
+                let path = full_path(f);
+                match is_excel(&path) {
+                    true => excel::unique::run(
+                        &path,
+                        option.sheet,
+                        option.no_header,
+                        &option.cols,
+                        option.keep_last,
+                        option.export,
+                    )
+                    .handle_err(),
+                    false => csv::unique::run(
+                        &path,
+                        option.no_header,
+                        &option.sep,
+                        &option.cols,
+                        option.keep_last,
+                        option.export,
+                    )
+                    .handle_err(),
+                }
+            }
+            None => io::unique::run(
+                option.no_header,
+                &option.sep,
+                &option.cols,
+                option.keep_last,
+                option.export,
             )
             .handle_err(),
         },

@@ -15,3 +15,4 @@ pub mod stats;
 pub mod table;
 pub mod tail;
 pub mod to;
+pub mod unique;

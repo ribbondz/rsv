@@ -450,3 +450,33 @@ Options:
   -t, --time-limit <TIME_LIMIT>  Time limit [default: infinity]
   -h, --help                     Print help
 ";
+
+pub const UNIQUE_DESC: &str = "Drop duplicates of data. Default to filter on all columns.
+Drop on some columns could be specified with the -c flag.
+
+Usage: 
+  rsv unique [OPTIONS] [FILENAME]
+  rsv unique data.csv               # default to drop duplicates on all columns,
+                                    # default keep first record of duplicates
+  rsv unique -c 0 data.csv          # drop on first column
+  rsv unique -c 0,1 data.csv        # drop on first and second columns
+  rsv unique --keep-last data.csv   # keep the last record when dropping
+  rsv unique data.xlsx              # apply to EXCEL file
+  rsv unique data.txt               # apply to TXT file
+
+Arguments:
+  [FILENAME]  File to open, could be EXCEL, TXT, CSV files
+
+Options:
+  -s, --sep <SEP>      Separator [default: ,]
+      --no-header      Whether the file has a header
+  -c, --cols <COLS>    Columns to filter [default: all columns]
+      --keep-last      keep first or last
+  -S, --sheet <SHEET>  Get the nth worksheet of EXCEL file [default: 0]
+  -E, --export         Export to a file named drop-duplicates.csv?
+  -h, --help           Print help
+
+Column selection syntax:
+  -c 0,1,2,5         -->  cols [0,1,2,5]
+  -c 0-2,5           -->  same as cols [0,1,2,5]
+";

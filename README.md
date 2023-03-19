@@ -20,6 +20,7 @@ download **rsv.exe** from release tab, and append the file directory to system p
 - **count** - Count the number of lines of file :running:.
 - **estimate** - Fast estimate the number of lines.
 - **clean** - Clean file with escape char (e.g. ") or other strings :running:.
+- **unique** - Drop duplicates of data.
 - **frequency** - Show frequency table for column(s) :running: :star:.
 - **split** - Split file into separate files sequentially or based on column value :running: :star:.
 - **select** - Select rows and columns by filter :running:.
@@ -102,6 +103,18 @@ rsv clean data.csv                               # default to clean escape char 
 rsv clean -e "content-to-delete" data.csv        # escape is a str, clean str to empty
 rsv clean -o new-file.csv data.csv               # save to new-file.csv, the default is data-cleaned.csv
 rsv clean --help                                 # help info on all flags
+```
+
+- **rsv unique**
+
+```shell
+  rsv unique data.csv               # default to drop duplicates on all columns,
+                                    # default keep first record of duplicates
+  rsv unique -c 0 data.csv          # drop on first column
+  rsv unique -c 0,1 data.csv        # drop on first and second columns
+  rsv unique --keep-last data.csv   # keep the last record when dropping
+  rsv unique data.xlsx              # apply to EXCEL file
+  rsv unique data.txt               # apply to TXT file
 ```
 
 - **rsv frequency**
