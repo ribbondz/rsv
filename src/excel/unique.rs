@@ -1,4 +1,3 @@
-use std::path::Path;
 use crate::utils::cli_result::CliResult;
 use crate::utils::column::Columns;
 use crate::utils::constants::COMMA;
@@ -6,6 +5,7 @@ use crate::utils::excel::datatype_vec_to_string;
 use crate::utils::filename::new_path;
 use crate::utils::reader::ExcelReader;
 use crate::utils::writer::Writer;
+use std::path::Path;
 
 pub fn run(
     path: &Path,
@@ -31,8 +31,8 @@ pub fn run(
 
     // header
     if !no_header {
-        let Some(r)=rdr.next() else {
-            return Ok(()); 
+        let Some(r) = rdr.next() else {
+            return Ok(())
         };
         wtr.write_excel_line_unchecked(r, COMMA);
     }
@@ -55,7 +55,7 @@ pub fn run(
 fn keep_first_and_all_cols(rdr: &mut ExcelReader, wtr: &mut Writer) -> CliResult {
     let mut unique_holder = ahash::HashSet::default();
     for r in rdr.iter().skip(rdr.next_called) {
-        let r =datatype_vec_to_string(r);
+        let r = datatype_vec_to_string(r);
         if !unique_holder.contains(&r) {
             wtr.write_line_unchecked(&r);
             unique_holder.insert(r);
@@ -66,7 +66,7 @@ fn keep_first_and_all_cols(rdr: &mut ExcelReader, wtr: &mut Writer) -> CliResult
 }
 
 fn keep_first_and_partial_cols(
-    rdr:  &mut ExcelReader,
+    rdr: &mut ExcelReader,
     wtr: &mut Writer,
     cols: Columns,
 ) -> CliResult {
@@ -87,13 +87,13 @@ fn keep_last_and_all_cols(rdr: &mut ExcelReader, wtr: &mut Writer) -> CliResult 
 
     // first scan to locate record location
     for r in rdr.iter().skip(rdr.next_called) {
-        let r =datatype_vec_to_string(r);
+        let r = datatype_vec_to_string(r);
         *unique_n.entry(r).or_insert(0) += 1;
     }
 
     // second scan
-    for r in rdr.iter().skip(rdr.next_called){
-        let r =datatype_vec_to_string(r);
+    for r in rdr.iter().skip(rdr.next_called) {
+        let r = datatype_vec_to_string(r);
         if unique_n[&r] == 1 {
             wtr.write_line_unchecked(r);
         } else {
@@ -104,11 +104,7 @@ fn keep_last_and_all_cols(rdr: &mut ExcelReader, wtr: &mut Writer) -> CliResult 
     Ok(())
 }
 
-fn keep_last_and_partial_cols(
-    rdr: &mut ExcelReader,
-    wtr: &mut Writer,
-    cols: Columns
-) -> CliResult {
+fn keep_last_and_partial_cols(rdr: &mut ExcelReader, wtr: &mut Writer, cols: Columns) -> CliResult {
     let mut unique_n = ahash::HashMap::default();
 
     // first scan to locate record location

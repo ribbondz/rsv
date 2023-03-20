@@ -1,9 +1,9 @@
-use chrono;
 use std::io::{stdout, BufWriter, Write};
 
 pub fn datetime_str() -> String {
     let t = chrono::offset::Local::now();
     t.format("%Y%m%d%H%M%S").to_string()
+    // "".to_owned()
 }
 
 pub fn is_null(s: &str) -> bool {
