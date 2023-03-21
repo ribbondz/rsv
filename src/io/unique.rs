@@ -9,9 +9,9 @@ pub fn run(no_header: bool, sep: &str, cols: &str, keep_last: bool, export: bool
 
     // cols
     let cols = if all_cols {
-        Columns::empty()
+        None
     } else {
-        Columns::new(cols)
+        Some(Columns::new(cols))
     };
 
     // wtr and rdr
@@ -33,9 +33,9 @@ pub fn run(no_header: bool, sep: &str, cols: &str, keep_last: bool, export: bool
     // read
     match (keep_last, all_cols) {
         (true, true) => keep_last_and_all_cols(lines, &mut wtr)?,
-        (true, false) => keep_last_and_partial_cols(lines, &mut wtr, cols, sep)?,
+        (true, false) => keep_last_and_partial_cols(lines, &mut wtr, cols.unwrap(), sep)?,
         (false, true) => keep_first_and_all_cols(lines, &mut wtr)?,
-        (false, false) => keep_first_and_partial_cols(lines, &mut wtr, cols, sep)?,
+        (false, false) => keep_first_and_partial_cols(lines, &mut wtr, cols.unwrap(), sep)?,
     }
 
     if export {

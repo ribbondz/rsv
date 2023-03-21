@@ -12,7 +12,7 @@ pub fn run(path: &Path, sheet: usize, sep: &str) -> CliResult {
     let mut wtr = Writer::new(&out)?;
 
     // const
-    let sep_bytes = sep.as_bytes();
+    let sep = sep.as_bytes();
 
     // excel2csv
     for r in range.iter() {
@@ -23,7 +23,7 @@ pub fn run(path: &Path, sheet: usize, sep: &str) -> CliResult {
                 _ => write!(&mut wtr.0, "{}", v)?,
             };
             if r.peek().is_some() {
-                wtr.write_bytes(sep_bytes)?;
+                wtr.write_bytes(sep)?;
             } else {
                 wtr.write_bytes(TERMINATOR)?;
             }

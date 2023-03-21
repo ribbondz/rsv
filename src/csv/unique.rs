@@ -19,9 +19,9 @@ pub fn run(
 
     // cols
     let cols = if all_cols {
-        Columns::empty()
+        None
     } else {
-        Columns::new(cols)
+        Some(Columns::new(cols))
     };
 
     // wtr and rdr
@@ -41,10 +41,10 @@ pub fn run(
     match (keep_last, all_cols) {
         (true, true) => keep_last_and_all_cols(&mut rdr, &mut wtr, path, no_header)?,
         (true, false) => {
-            keep_last_and_partial_cols(&mut rdr, &mut wtr, cols, sep, path, no_header)?
+            keep_last_and_partial_cols(&mut rdr, &mut wtr, cols.unwrap(), sep, path, no_header)?
         }
         (false, true) => keep_first_and_all_cols(&mut rdr, &mut wtr)?,
-        (false, false) => keep_first_and_partial_cols(&mut rdr, &mut wtr, cols, sep)?,
+        (false, false) => keep_first_and_partial_cols(&mut rdr, &mut wtr, cols.unwrap(), sep)?,
     }
 
     if export {
