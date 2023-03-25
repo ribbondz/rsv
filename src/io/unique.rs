@@ -7,25 +7,26 @@ use crate::utils::writer::Writer;
 pub fn run(no_header: bool, sep: &str, cols: &str, keep_last: bool, export: bool) -> CliResult {
     let all_cols = cols == "-1";
 
-    // cols
-    let cols = if all_cols {
-        None
-    } else {
-        Some(Columns::new(cols))
-    };
-
     // wtr and rdr
     let out = new_file("drop_duplicates.csv");
     let mut wtr = Writer::file_or_stdout(export, &out)?;
     let lines = IoReader::new().no_header(no_header).lines();
 
+    if lines.is_empty() {
+        return Ok(());
+    }
+
+    // cols
+    let cols = if all_cols {
+        None
+    } else {
+        let n = lines[0].split(sep).count();
+        Some(Columns::new(cols).total_col(n).parse())
+    };
+
     // header
     if !no_header {
-        if !lines.is_empty() {
-            wtr.write_line_unchecked(&lines[0]);
-        } else {
-            return Ok(());
-        }
+        wtr.write_line_unchecked(&lines[0]);
     }
 
     let lines = if no_header { &lines[..] } else { &lines[1..] };

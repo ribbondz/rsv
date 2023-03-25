@@ -21,7 +21,7 @@ pub fn run(
     let cols = if all_cols {
         None
     } else {
-        Some(Columns::new(cols))
+        Some(Columns::new(cols).total_col_of(path, sep).parse())
     };
 
     // wtr and rdr

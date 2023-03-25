@@ -19,20 +19,22 @@ pub fn run(
     // out path
     let out = new_path(path, "-selected").with_extension("csv");
 
-    // filters and cols
+    // filters
     let filter = Filter::new(filter);
-    let cols = Columns::new(cols);
 
     // open file
     let mut wtr = Writer::file_or_stdout(export, &out)?;
     let mut rdr = ExcelReader::new(path, sheet)?;
+
+    // cols
+    let cols = Columns::new(cols).total_col(rdr.column_n()).parse();
 
     // header
     if !no_header {
         let Some(r) = rdr.next() else {
             return Ok(())
         };
-        if cols.all {
+        if cols.select_all {
             wtr.write_excel_line_unchecked(r, COMMA);
         } else {
             let r = cols.iter().map(|&i| r[i].to_string()).collect::<Vec<_>>();
@@ -44,7 +46,7 @@ pub fn run(
     rdr.iter().skip(rdr.next_called).for_each(|r| {
         let r = datatype_vec_to_string_vec(r);
         if filter.excel_record_is_valid(&r) {
-            match cols.all {
+            match cols.select_all {
                 true => wtr.write_line_by_field_unchecked(&r, None),
                 false => {
                     let r = cols.iter().map(|&i| &r[i]).collect::<Vec<_>>();

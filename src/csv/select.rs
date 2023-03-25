@@ -1,10 +1,10 @@
-use crate::utils::reader::{ChunkReader, Task};
 use crate::utils::cli_result::CliResult;
 use crate::utils::column::Columns;
 use crate::utils::file::estimate_line_count_by_mb;
 use crate::utils::filename::new_path;
 use crate::utils::filter::Filter;
 use crate::utils::progress::Progress;
+use crate::utils::reader::{ChunkReader, Task};
 use crate::utils::writer::Writer;
 use crossbeam_channel::bounded;
 use rayon::prelude::*;
@@ -21,7 +21,7 @@ pub fn run(
 ) -> CliResult {
     // filters and cols
     let filter = Filter::new(filter);
-    let cols = Columns::new(cols);
+    let cols = Columns::new(cols).total_col_of(path, sep).parse();
 
     // wtr and rdr
     let out = new_path(path, "-selected");
@@ -37,7 +37,7 @@ pub fn run(
             return Ok(())
         };
         let r = r?;
-        if cols.all {
+        if cols.select_all {
             wtr.write_line_unchecked(&r)
         } else {
             let mut r = r.split(sep).collect::<Vec<_>>();
@@ -89,7 +89,7 @@ fn handle_task(
     // write
     for (r, f) in filtered {
         // write the line directly
-        if cols.all {
+        if cols.select_all {
             wtr.write_line_unchecked(r.unwrap());
             continue;
         }
