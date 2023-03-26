@@ -18,7 +18,8 @@ pub fn run(sep: &str, no_header: bool, cols: &str, export: bool) -> CliResult {
     }
 
     // split rows
-    let cols = Columns::new(cols);
+    let n = rows[0].split(sep).count();
+    let cols = Columns::new(cols).total_col(n).parse();
     let rows = rows
         .par_iter()
         .map(|r| r.split(sep).collect::<Vec<_>>())

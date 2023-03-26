@@ -13,7 +13,7 @@ pub fn run(path: &Path, sheet: usize, no_header: bool, cols: &str, export: bool)
     let mut rdr = ExcelReader::new(path, sheet)?;
 
     // Column type
-    let cols = Columns::new(cols);
+    let cols = Columns::new(cols).total_col(rdr.column_n()).parse();
     let col_type = ColumnTypes::guess_from_excel(&rdr, no_header, &cols).unwrap();
 
     // header

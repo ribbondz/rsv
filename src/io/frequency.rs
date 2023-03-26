@@ -1,11 +1,9 @@
-use crate::utils::cli_result::CliResult;
 use crate::utils::column::Columns;
 use crate::utils::file;
 use crate::utils::filename::new_file;
 use crate::utils::util::print_frequency_table;
+use crate::utils::{cli_result::CliResult, reader::IoReader};
 use dashmap::DashMap;
-use rayon::prelude::*;
-use std::io::{stdin, BufRead};
 
 pub fn run(
     no_header: bool,
@@ -15,20 +13,23 @@ pub fn run(
     top_n: i32,
     export: bool,
 ) -> CliResult {
+    let lines = IoReader::new().lines();
+
+    if lines.is_empty() {
+        return Ok(());
+    }
+
     // cols
-    let col = Columns::new(cols);
+    let n = lines[0].split(sep).count();
+    let col = Columns::new(cols).total_col(n).parse();
 
     // open file and header
-    let mut rdr = stdin().lock().lines();
+
     let names: Vec<String> = if no_header {
         col.artificial_cols_with_appended_n()
     } else {
-        let  Some(r) = rdr.next() else {
-            return Ok(())
-        };
-        let r = r?;
-        let r = r.split(sep).collect::<Vec<_>>();
-        if col.max() >= r.len() {
+        let r = lines[0].split(sep).collect::<Vec<_>>();
+        if col.max >= r.len() {
             println!("[info] ignore a bad line # {r:?}!");
             col.artificial_cols_with_appended_n()
         } else {
@@ -37,22 +38,14 @@ pub fn run(
     };
 
     let freq = DashMap::new();
-    let mut n = 0;
-    let buffer = 1000;
-    let mut lines = Vec::with_capacity(buffer);
-
-    for r in rdr {
-        n += 1;
-        lines.push(r?);
-        if n >= buffer {
-            task_handle(lines, &freq, &col, sep);
-            lines = Vec::with_capacity(buffer);
-            n = 0;
+    for r in &lines[(1 - no_header as usize)..] {
+        let r = r.split(sep).collect::<Vec<_>>();
+        if col.max >= r.len() {
+            println!("[info] ignore a bad line # {r:?}!");
+        } else {
+            let r = col.select_owned_string(&r);
+            *freq.entry(r).or_insert(0) += 1;
         }
-    }
-
-    if !lines.is_empty() {
-        task_handle(lines, &freq, &col, sep);
     }
 
     let mut freq = freq.into_iter().collect::<Vec<(_, _)>>();
@@ -77,16 +70,4 @@ pub fn run(
     }
 
     Ok(())
-}
-
-fn task_handle(lines: Vec<String>, freq: &DashMap<String, usize>, col: &Columns, sep: &str) {
-    lines.par_iter().for_each(|r| {
-        let r = r.split(sep).collect::<Vec<_>>();
-        if col.max() >= r.len() {
-            println!("[info] ignore a bad line # {r:?}!");
-        } else {
-            let r = col.select_owned_string(&r);
-            *freq.entry(r).or_insert(0) += 1;
-        }
-    });
 }

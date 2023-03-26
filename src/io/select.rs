@@ -10,7 +10,7 @@ pub fn run(no_header: bool, sep: &str, cols: &str, filter: &str, export: bool) -
 
     // filters and cols
     let filter = Filter::new(filter);
-    let cols = Columns::new(cols);
+    let mut col = Columns::new(cols);
 
     // open file
     let mut wtr = Writer::file_or_stdout(export, &out)?;
@@ -25,18 +25,23 @@ pub fn run(no_header: bool, sep: &str, cols: &str, filter: &str, export: bool) -
             return Ok(())
         };
         let r = r?;
-        if cols.all {
+        let fields = r.split(sep).collect::<Vec<_>>();
+        col = col.total_col(fields.len()).parse();
+        if col.select_all {
             wtr.write_line_unchecked(&r)
         } else {
-            let mut r = r.split(sep).collect::<Vec<_>>();
-            r = cols.iter().map(|&i| r[i]).collect();
+            let r = col.iter().map(|&i| fields[i]).collect::<Vec<_>>();
             wtr.write_line_by_field_unchecked(&r, Some(sep_bytes));
         }
     }
 
     for r in rdr {
         let r = r?;
-        if filter.is_empty() && cols.all {
+        if !col.parsed {
+            let f = r.split(sep).collect::<Vec<_>>();
+            col = col.total_col(f.len()).parse();
+        }
+        if filter.is_empty() && col.select_all {
             wtr.write_line_unchecked(r);
             continue;
         }
@@ -44,8 +49,8 @@ pub fn run(no_header: bool, sep: &str, cols: &str, filter: &str, export: bool) -
         if !filter.is_empty() && !filter.record_is_valid(&f) {
             continue;
         }
-        if !cols.all {
-            f = cols.iter().map(|&i| f[i]).collect();
+        if !col.select_all {
+            f = col.iter().map(|&i| f[i]).collect();
         }
         wtr.write_line_by_field_unchecked(&f, Some(sep_bytes));
     }

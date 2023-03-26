@@ -1,4 +1,3 @@
-use crate::utils::reader::{ChunkReader, Task};
 use crate::utils::cli_result::CliResult;
 use crate::utils::column::Columns;
 use crate::utils::column_stats::ColumnStats;
@@ -6,6 +5,7 @@ use crate::utils::column_type::ColumnTypes;
 use crate::utils::file::{column_n, estimate_line_count_by_mb};
 use crate::utils::filename::new_path;
 use crate::utils::progress::Progress;
+use crate::utils::reader::{ChunkReader, Task};
 use crossbeam_channel::{bounded, unbounded, Sender};
 use rayon::ThreadPoolBuilder;
 use std::fs::File;
@@ -14,7 +14,7 @@ use std::path::Path;
 
 pub fn run(path: &Path, sep: &str, no_header: bool, cols: &str, export: bool) -> CliResult {
     // Column
-    let cols = Columns::new(cols);
+    let cols = Columns::new(cols).total_col_of(path, sep).parse();
     let Some(col_type) = ColumnTypes::guess_from_csv(path, sep, no_header, &cols)? else {
         return Ok(())
     };

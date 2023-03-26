@@ -108,13 +108,19 @@ rsv clean --help                                 # help info on all flags
 - **rsv unique**
 
 ```shell
-  rsv unique data.csv               # default to drop duplicates on all columns,
+rsv unique data.csv               # default to drop duplicates on all columns,
                                     # default keep first record of duplicates
-  rsv unique -c 0 data.csv          # drop on first column
-  rsv unique -c 0,1 data.csv        # drop on first and second columns
-  rsv unique --keep-last data.csv   # keep the last record when dropping
-  rsv unique data.xlsx              # apply to EXCEL file
-  rsv unique data.txt               # apply to TXT file
+rsv unique -c 0 data.csv          # drop on first column
+rsv unique -c 0,1 data.csv        # drop on first and second columns
+rsv unique --keep-last data.csv   # keep the last record when dropping
+rsv unique data.xlsx              # apply to EXCEL file
+rsv unique data.txt               # apply to TXT file
+
+column selection syntax:
+-c 0,1,2,5   -->    cols [0,1,2,5]
+-c 0-2,5     -->    same as cols [0,1,2,5]
+-c -1        -->    last column
+-c -2--1     -->    last two columns
 ```
 
 - **rsv frequency**
@@ -132,6 +138,8 @@ rsv frequency --help                     # help info on all flags
 column selection syntax:
 -c 0,1,2,5   -->    cols [0,1,2,5]
 -c 0-2,5     -->    same as cols [0,1,2,5]
+-c -1        -->    last column
+-c -2--1     -->    last two columns
 ```
 
 - **rsv split**
@@ -170,6 +178,8 @@ NOTE: 1. only & (AND) operation is supported, | (OR) operation is not supported;
 column selection syntax:
 -c 0,1,2,5   -->    cols [0,1,2,5]
 -c 0-2,5     -->    same as cols [0,1,2,5]
+-c -1        -->    last column
+-c -2--1     -->    last two columns
 ```
 
 - **rsv flatten**

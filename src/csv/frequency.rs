@@ -1,9 +1,9 @@
-use crate::utils::reader::ChunkReader;
 use crate::utils::cli_result::CliResult;
 use crate::utils::column::Columns;
 use crate::utils::file::{self, estimate_line_count_by_mb};
 use crate::utils::filename;
 use crate::utils::progress::Progress;
+use crate::utils::reader::ChunkReader;
 use crate::utils::util::print_frequency_table;
 use crossbeam_channel::bounded;
 use dashmap::DashMap;
@@ -21,7 +21,7 @@ pub fn run(
     export: bool,
 ) -> CliResult {
     // cols
-    let col = Columns::new(cols);
+    let col = Columns::new(cols).total_col_of(path, sep).parse();
 
     // open file and header
     let mut rdr = ChunkReader::new(path)?;
@@ -33,7 +33,7 @@ pub fn run(
         };
         let r = r?;
         let r = r.split(sep).collect::<Vec<_>>();
-        if col.max() >= r.len() {
+        if col.max >= r.len() {
             println!("[info] ignore a bad line # {r:?}!");
             col.artificial_cols_with_appended_n()
         } else {
@@ -52,7 +52,7 @@ pub fn run(
     for task in rx {
         task.lines.par_iter().for_each(|r| {
             let r = r.split(sep).collect::<Vec<_>>();
-            if col.max() >= r.len() {
+            if col.max >= r.len() {
                 println!("[info] ignore a bad line # {r:?}!");
             } else {
                 let r = col.select_owned_string(&r);

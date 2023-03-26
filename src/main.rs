@@ -266,7 +266,7 @@ struct Frequency {
     #[arg(long, default_value_t = false)]
     no_header: bool,
     /// Columns to generate frequency table
-    #[arg(short, long, default_value_t = String::from("0"))]
+    #[arg(short, long, default_value_t = String::from("0"), allow_hyphen_values=true)]
     cols: String,
     /// Ascending order or not
     #[arg(short, long, default_value_t = false)]
@@ -314,7 +314,7 @@ struct Select {
     #[arg(long, default_value_t = false)]
     no_header: bool,
     /// Columns to select, support syntax 0,1,3 or 0-4, including 4; Default to select all columns
-    #[arg(short, long, default_value_t = String::from(""))]
+    #[arg(short, long, default_value_t = String::from(""), allow_hyphen_values=true)]
     cols: String,
     /// Row filter, support syntax 0=a,b,c or 0=a,b&1=c,d; Default to None
     #[arg(short, long, default_value_t = String::from(""))]
@@ -338,7 +338,7 @@ struct Stats {
     #[arg(long, default_value_t = false)]
     no_header: bool,
     /// Columns to generate statistics, support syntax 0,1,3 or 0-4, including 4; Default to select all columns
-    #[arg(short, long, default_value_t = String::from(""))]
+    #[arg(short, long, default_value_t = String::from(""), allow_hyphen_values=true)]
     cols: String,
     /// Export results to a file named current-file-selected.csv?
     #[arg(short = 'E', long, default_value_t = false)]
@@ -401,7 +401,7 @@ struct Sort {
     no_header: bool,
     /// Columns to sort by, support syntax 0 (first column),
     /// "-0" (descending), "-0N" (as numeric) or "0N,-1" (two columns)
-    #[arg(short, long, default_value_t = String::from("0"))]
+    #[arg(short, long, default_value_t = String::from("0"), allow_hyphen_values=true)]
     cols: String,
     /// Get the nth worksheet of EXCEL file
     #[arg(short = 'S', long, default_value_t = 0)]
@@ -466,7 +466,7 @@ struct Unique {
     #[arg(long, default_value_t = false)]
     no_header: bool,
     /// Columns to filter
-    #[arg(short, long, default_value_t = String::from("-1"))]
+    #[arg(short, long, default_value_t = String::from("-1"), allow_hyphen_values=true)]
     cols: String,
     /// keep first or last
     #[arg(long, default_value_t = false)]

@@ -17,17 +17,17 @@ pub fn run(
 ) -> CliResult {
     let all_cols = cols == "-1";
 
-    // cols
-    let cols = if all_cols {
-        None
-    } else {
-        Some(Columns::new(cols))
-    };
-
     // wtr and rdr
     let out = new_path(path, "-drop-duplicates").with_extension("csv");
     let mut wtr = Writer::file_or_stdout(export, &out)?;
     let mut rdr = ExcelReader::new(path, sheet)?;
+
+    // cols
+    let cols = if all_cols {
+        None
+    } else {
+        Some(Columns::new(cols).total_col(rdr.column_n()).parse())
+    };
 
     // header
     if !no_header {

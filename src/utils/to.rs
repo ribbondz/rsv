@@ -1,4 +1,4 @@
-use super::{cli_result::CliResult, reader::ExcelReader, filename::new_file, writer::Writer};
+use super::{cli_result::CliResult, filename::new_file, reader::ExcelReader, writer::Writer};
 use crate::utils::{column::Columns, column_type::ColumnTypes};
 use regex::bytes::Regex;
 use std::{
@@ -83,7 +83,7 @@ pub fn csv_to_excel(path: &Path, sep: &str, out: &str, no_header: bool) -> CliRe
     let mut sheet = workbook.add_worksheet(None)?;
 
     // column type
-    let cols = Columns::new("");
+    let cols = Columns::new("").total_col_of(path, sep).parse();
     let ctypes = match ColumnTypes::guess_from_csv(path, sep, no_header, &cols)? {
         Some(v) => v,
         None => return Ok(()),
@@ -117,8 +117,12 @@ pub fn io_to_excel(sep: &str, no_header: bool, out: &str) -> CliResult {
         .map(|i| i.split(sep).collect::<Vec<_>>())
         .collect::<Vec<_>>();
 
+    if lines.is_empty() {
+        return Ok(());
+    }
+
     // column type
-    let cols = Columns::new("");
+    let cols = Columns::new("").total_col(lines[0].len()).parse();
     let ctypes = ColumnTypes::guess_from_io(&lines[(1 - no_header as usize)..], &cols);
 
     //  wtr
