@@ -70,6 +70,8 @@ impl<'a> Columns<'a> {
     }
 
     pub fn parse(mut self) -> Self {
+        self.parsed = true;
+
         if self.raw.is_empty() {
             return self;
         }
@@ -80,7 +82,6 @@ impl<'a> Columns<'a> {
             }
         });
         self.update_status();
-        self.parsed = true;
 
         self
     }
