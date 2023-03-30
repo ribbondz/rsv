@@ -292,8 +292,8 @@ Filter syntax, support =, !=, >, >=, <, <= and &:
 Column selection syntax:
   -c 0,1,2,5         -->  cols [0,1,2,5]
   -c 0-2,5           -->  same as cols [0,1,2,5]
-  -c -1        -->    last column
-  -c -2--1     -->    last two columns
+  -c -1              -->  last column
+  -c -2--1           -->  last two columns
 ";
 
 pub const STATS_DESC: &str = "Statistics for every column, including min, max, mean, unique, null.
@@ -483,6 +483,6 @@ Options:
 Column selection syntax:
   -c 0,1,2,5         -->  cols [0,1,2,5]
   -c 0-2,5           -->  same as cols [0,1,2,5]
-  -c -1        -->    last column
-  -c -2--1     -->    last two columns
+  -c -1              -->  last column
+  -c -2--1           -->  last two columns
 ";

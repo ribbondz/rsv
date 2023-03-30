@@ -19,15 +19,14 @@ pub fn run(
     // out path
     let out = new_path(path, "-selected").with_extension("csv");
 
-    // filters
-    let filter = Filter::new(filter);
-
     // open file
     let mut wtr = Writer::file_or_stdout(export, &out)?;
     let mut rdr = ExcelReader::new(path, sheet)?;
 
-    // cols
-    let cols = Columns::new(cols).total_col(rdr.column_n()).parse();
+    // cols and filters
+    let n = rdr.column_n();
+    let cols = Columns::new(cols).total_col(n).parse();
+    let filter = Filter::new(filter).total_col(n).parse();
 
     // header
     if !no_header {

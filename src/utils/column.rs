@@ -77,7 +77,7 @@ impl<'a> Columns<'a> {
         }
 
         self.raw.split(',').for_each(|i| {
-            if !i.is_empty() {
+            if !i.trim().is_empty() {
                 self.parse_col(i)
             }
         });
@@ -117,8 +117,9 @@ impl<'a> Columns<'a> {
             if self.total.is_none() {
                 let mut first_line = String::new();
                 let f = File::open(self.path.unwrap()).expect("unable to open file.");
-                let mut buffer = BufReader::new(f);
-                buffer.read_line(&mut first_line).expect("read error.");
+                BufReader::new(f)
+                    .read_line(&mut first_line)
+                    .expect("read error.");
                 self.total = Some(first_line.split(self.sep).count());
             }
             let i = (self.total.unwrap() as i32) + parse_i32(col);

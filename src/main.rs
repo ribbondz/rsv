@@ -317,7 +317,7 @@ struct Select {
     #[arg(short, long, default_value_t = String::from(""), allow_hyphen_values=true)]
     cols: String,
     /// Row filter, support syntax 0=a,b,c or 0=a,b&1=c,d; Default to None
-    #[arg(short, long, default_value_t = String::from(""))]
+    #[arg(short, long, default_value_t = String::from(""), allow_hyphen_values=true)]
     filter: String,
     /// Export results to a file named current-file-selected.csv?
     #[arg(short = 'E', long, default_value_t = false)]

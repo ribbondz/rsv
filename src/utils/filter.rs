@@ -1,6 +1,11 @@
 use crate::utils::util::werr;
 use regex::Regex;
-use std::process;
+use std::{
+    fs::File,
+    io::{BufRead, BufReader},
+    path::Path,
+    process,
+};
 
 enum Op {
     Equal,
@@ -21,29 +26,100 @@ struct FilterItem {
     str_values: Vec<String>,
 }
 
-pub struct Filter(Vec<FilterItem>);
+pub struct Filter<'a> {
+    raw: &'a str,
+    total: Option<usize>,
+    path: Option<&'a Path>,
+    sep: &'a str,
+    filters: Vec<FilterItem>,
+    pub parsed: bool,
+}
 
-impl Filter {
-    pub fn is_empty(&self) -> bool {
-        self.0.len() == 0
+fn parse_col_usize(col: &str) -> usize {
+    col.parse().unwrap_or_else(|_| {
+        werr!(
+            "{}",
+            "Column syntax error: can be something like 0 (first column), -1 (last column)."
+        );
+        process::exit(1);
+    })
+}
+
+fn parse_i32(col: &str) -> i32 {
+    col.parse().unwrap_or_else(|_| {
+        werr!(
+            "{}",
+            "Column syntax error: can be something like 0 (first column), -1 (last column)."
+        );
+        process::exit(1);
+    })
+}
+
+impl<'a> Filter<'a> {
+    pub fn new(raw: &str) -> Filter {
+        Filter {
+            raw,
+            total: None,
+            path: None,
+            sep: "",
+            filters: vec![],
+            parsed: false,
+        }
     }
 
-    pub fn new(raw: &str) -> Self {
-        let mut f = Filter(vec![]);
+    pub fn is_empty(&self) -> bool {
+        self.filters.len() == 0
+    }
 
-        if raw.is_empty() {
-            return f;
+    pub fn total_col(mut self, total: usize) -> Self {
+        self.total = Some(total);
+        self
+    }
+
+    pub fn total_col_of(mut self, path: &'a Path, sep: &'a str) -> Self {
+        self.path = Some(path);
+        self.sep = sep;
+        self
+    }
+
+    fn true_col(&mut self, col: &str) -> usize {
+        if col.starts_with('-') {
+            if self.total.is_none() {
+                let mut first_line = String::new();
+                let f = File::open(self.path.unwrap()).expect("unable to open file.");
+                BufReader::new(f)
+                    .read_line(&mut first_line)
+                    .expect("read error.");
+                self.total = Some(first_line.split(self.sep).count());
+            }
+            let i = (self.total.unwrap() as i32) + parse_i32(col);
+            if i < 0 {
+                werr!("Column {} does not exist.", col);
+                process::exit(1);
+            }
+            i as usize
+        } else {
+            parse_col_usize(col)
+        }
+    }
+
+    pub fn parse(mut self) -> Self {
+        self.parsed = true;
+
+        if self.raw.is_empty() {
+            return self;
         }
 
-        raw.split('&')
-            .filter(|i| !i.is_empty())
-            .for_each(|one| f.parse(one));
+        self.raw
+            .split('&')
+            .filter(|&i| !i.is_empty())
+            .for_each(|one| self.parse_one(one));
 
-        f
+        self
     }
 
-    fn parse(&mut self, one: &str) {
-        // the matching order is important
+    fn parse_one(&mut self, one: &str) {
+        // matching order is important
         let re = Regex::new("!=|>=|<=|=|>|<").unwrap();
         let v = re.split(one).collect::<Vec<_>>();
 
@@ -58,10 +134,7 @@ impl Filter {
         if is_numeric {
             col.pop();
         }
-        let col = col.parse::<usize>().unwrap_or_else(|_| {
-            werr!("Error: <{}> is not a column.", col);
-            process::exit(1)
-        });
+        let col = { self.true_col(&col) };
 
         let mut item = FilterItem {
             col,
@@ -119,19 +192,19 @@ impl Filter {
             }
         }
 
-        self.0.push(item);
+        self.filters.push(item);
     }
 
     // todo
     pub fn record_is_valid<T: AsRef<str>>(&self, row: &[T]) -> bool {
-        self.0.iter().all(|item| item.record_is_valid(row))
+        self.filters.iter().all(|item| item.record_is_valid(row))
     }
 
-    pub fn record_valid_map<'a>(
+    pub fn record_valid_map<'b>(
         &self,
-        row: &'a str,
+        row: &'b str,
         sep: &str,
-    ) -> Option<(Option<&'a str>, Option<Vec<&'a str>>)> {
+    ) -> Option<(Option<&'b str>, Option<Vec<&'b str>>)> {
         if self.is_empty() {
             return Some((Some(row), None));
         }
@@ -148,7 +221,7 @@ impl Filter {
         if self.is_empty() {
             return true;
         }
-        self.0.iter().all(|item| item.record_is_valid(row))
+        self.filters.iter().all(|item| item.record_is_valid(row))
     }
 }
 

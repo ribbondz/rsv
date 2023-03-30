@@ -20,7 +20,7 @@ pub fn run(
     export: bool,
 ) -> CliResult {
     // filters and cols
-    let filter = Filter::new(filter);
+    let filter = Filter::new(filter).total_col_of(path, sep).parse();
     let cols = Columns::new(cols).total_col_of(path, sep).parse();
 
     // wtr and rdr

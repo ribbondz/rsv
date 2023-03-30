@@ -9,7 +9,7 @@ pub fn run(no_header: bool, sep: &str, cols: &str, filter: &str, export: bool) -
     let out = new_file("selected.csv");
 
     // filters and cols
-    let filter = Filter::new(filter);
+    let mut filter = Filter::new(filter);
     let mut col = Columns::new(cols);
 
     // open file
@@ -25,8 +25,11 @@ pub fn run(no_header: bool, sep: &str, cols: &str, filter: &str, export: bool) -
             return Ok(())
         };
         let r = r?;
+
         let fields = r.split(sep).collect::<Vec<_>>();
         col = col.total_col(fields.len()).parse();
+        filter = filter.total_col(fields.len()).parse();
+
         if col.select_all {
             wtr.write_line_unchecked(&r)
         } else {
@@ -37,21 +40,30 @@ pub fn run(no_header: bool, sep: &str, cols: &str, filter: &str, export: bool) -
 
     for r in rdr {
         let r = r?;
+
         if !col.parsed {
-            let f = r.split(sep).collect::<Vec<_>>();
-            col = col.total_col(f.len()).parse();
+            let n = r.split(sep).count();
+            col = col.total_col(n).parse();
         }
+        if !filter.parsed {
+            let n = r.split(sep).count();
+            filter = filter.total_col(n).parse();
+        }
+
         if filter.is_empty() && col.select_all {
             wtr.write_line_unchecked(r);
             continue;
         }
+
         let mut f = r.split(sep).collect::<Vec<_>>();
         if !filter.is_empty() && !filter.record_is_valid(&f) {
             continue;
         }
+
         if !col.select_all {
             f = col.iter().map(|&i| f[i]).collect();
         }
+
         wtr.write_line_by_field_unchecked(&f, Some(sep_bytes));
     }
 
