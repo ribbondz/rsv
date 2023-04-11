@@ -211,6 +211,7 @@ rsv search PATTERN data.csv                # search PATTERN
 rsv search "^\d{4}-\d{2}-\d{2}$" data.csv  # search dates
 rsv search --export PATTERN data.csv       # export result
 rsv search PATTERN data.xlsx               # search EXCEL file
+rsv search -S all PATTERN data.xlsx        # search all sheets of EXCEL
 rsv slice --help                           # help info on all flags
 ```
 

@@ -359,6 +359,7 @@ Usage:
   rsv search \"^\\d{4}-\\d{2}-\\d{2}$\" data.csv       # regex search dates
   rsv search --export PATTERN data.csv            # export result
   rsv search PATTERN data.xlsx                    # search EXCEL file
+  rsv search -S all PATTERN data.xlsx             # search all sheets of EXCEL
 
 Arguments:
   <PATTERN>   Regex pattern to search
@@ -366,7 +367,7 @@ Arguments:
 
 Options:
       --no-header      Whether the file has a header
-  -S, --sheet <SHEET>  Get the nth worksheet of EXCEL file [default: 0]
+  -S, --sheet <SHEET>  Search the nth worksheet of EXCEL file [default: 0], can search all sheets with -S all
   -E, --export         Export to a file named current-file-searched.csv?
   -h, --help           Print help information
 ";

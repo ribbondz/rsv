@@ -382,8 +382,8 @@ struct Search {
     #[arg(long, default_value_t = false)]
     no_header: bool,
     /// Get the nth worksheet of EXCEL file
-    #[arg(short = 'S', long, default_value_t = 0)]
-    sheet: usize,
+    #[arg(short = 'S', long, default_value_t = String::from("0"), allow_hyphen_values = true)]
+    sheet: String,
     /// Export to a file named current-file-searched.csv?
     #[arg(short = 'E', long, default_value_t = false)]
     export: bool,
@@ -780,7 +780,7 @@ fn main() {
                 match is_excel(&path) {
                     true => excel::search::run(
                         &path,
-                        option.sheet,
+                        &option.sheet,
                         &option.pattern,
                         option.no_header,
                         option.export,
