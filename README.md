@@ -115,6 +115,7 @@ rsv unique -c 0,1 data.csv        # drop on first and second columns
 rsv unique --keep-last data.csv   # keep the last record when dropping
 rsv unique data.xlsx              # apply to EXCEL file
 rsv unique data.txt               # apply to TXT file
+rsv unique --help                 # help info on all flags
 
 column selection syntax:
 -c 0,1,2,5   -->    cols [0,1,2,5]
@@ -225,6 +226,7 @@ rsv sample -n 20 data.xlsx          # EXCEL file
 rsv sample --seed 100 data.xlsx     # set a seed
 rsv sample --time-limit 2 data.xlsx # set time limit to 2 seconds for large file
 rsv sample -n 20 --export data.xlsx # data export
+rsv sample --help                   # help info on all flags
 ```
 
 - **rsv sort**
@@ -236,6 +238,7 @@ rsv sort -c 0DN data.csv      # sort as numeric values
 rsv sort -c 0DN,2N data.csv   # sort two columns
 rsv sort -E data.csv          # export result
 rsv sort data.xlsx            # sort EXCEL file
+rsv sort --help               # help info on all flags
 ```
 
 - **rsv stats**
@@ -255,6 +258,7 @@ rsv excel2csv data.xlsx                 # apply to xlsx file, default to first s
 rsv excel2csv data.xls                  # apply also to xls file
 rsv excel2csv --sheet 1 data.xls        # second sheet, e.g., sheet 2
 rsv excel2csv -S 1 data.xls             # same as above
+rsv excel2csv --help                    # help info on all flags
 ```
 
 - **rsv table**
@@ -262,6 +266,7 @@ rsv excel2csv -S 1 data.xls             # same as above
 ```shell
 rsv head data.csv | rsv table                   # convert result to an aligned table
 rsv slice -s 10 -e 15 data.csv | rsv table      # convert result to an aligned table
+rsv table --help                                # help info on all flags
 ```
 
 ## Command pipeline

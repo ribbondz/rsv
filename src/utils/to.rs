@@ -89,12 +89,13 @@ pub fn csv_to_excel(path: &Path, sep: &str, out: &str, no_header: bool) -> CliRe
         None => return Ok(()),
     };
     ctypes.update_excel_column_width(&mut sheet)?;
+    let ctypes = Some(ctypes);
 
     // copy
     for (n, r) in rdr.lines().enumerate() {
         let r = r?;
         let l = r.split(sep).collect::<Vec<_>>();
-        write_excel_line(&mut sheet, n, &l, &ctypes)?;
+        write_excel_line(&mut sheet, n, &l, ctypes.as_ref())?;
     }
 
     println!("Saved to file: {}", out.display());
@@ -121,23 +122,38 @@ pub fn io_to_excel(sep: &str, no_header: bool, out: &str) -> CliResult {
         return Ok(());
     }
 
-    // column type
-    let cols = Columns::new("").total_col(lines[0].len()).parse();
-    let ctypes = ColumnTypes::guess_from_io(&lines[(1 - no_header as usize)..], &cols);
-
     //  wtr
     let workbook = Workbook::new(out.to_str().unwrap())?;
     let mut sheet = workbook.add_worksheet(None)?;
-    ctypes.update_excel_column_width(&mut sheet)?;
+    let ctypes = if equal_width(&lines) {
+        // column type
+        let cols = Columns::new("").total_col(lines[0].len()).parse();
+        let ctypes = ColumnTypes::guess_from_io(&lines[(1 - no_header as usize)..], &cols);
+        ctypes.update_excel_column_width(&mut sheet)?;
+        Some(ctypes)
+    } else {
+        None
+    };
 
-    // copy
     for (n, r) in lines.iter().enumerate() {
-        write_excel_line(&mut sheet, n, r, &ctypes)?;
+        write_excel_line(&mut sheet, n, r, ctypes.as_ref())?;
     }
 
     println!("Saved to file: {}", out.display());
 
     Ok(())
+}
+
+fn equal_width(lines: &Vec<Vec<&str>>) -> bool {
+    let width = lines[0].len();
+
+    for row in lines.iter() {
+        if width != row.len() {
+            return false;
+        }
+    }
+
+    true
 }
 
 fn out_filename(out: &str) -> PathBuf {
@@ -154,15 +170,21 @@ fn write_excel_line(
     sheet: &mut Worksheet,
     row: usize,
     line: &[&str],
-    ctypes: &ColumnTypes,
+    ctypes: Option<&ColumnTypes>,
 ) -> CliResult {
-    for ((col, &v), t) in line.iter().enumerate().zip(ctypes.iter()) {
-        match t.col_type.is_number() {
-            true => match v.parse::<f64>() {
-                Ok(v) => sheet.write_number(row as u32, col as u16, v, None)?,
-                Err(_) => sheet.write_string(row as u32, col as u16, v, None)?,
-            },
-            false => sheet.write_string(row as u32, col as u16, v, None)?,
+    if ctypes.is_some() {
+        for ((col, &v), t) in line.iter().enumerate().zip(ctypes.unwrap().iter()) {
+            match t.col_type.is_number() {
+                true => match v.parse::<f64>() {
+                    Ok(v) => sheet.write_number(row as u32, col as u16, v, None)?,
+                    Err(_) => sheet.write_string(row as u32, col as u16, v, None)?,
+                },
+                false => sheet.write_string(row as u32, col as u16, v, None)?,
+            }
+        }
+    } else {
+        for (col, &v) in line.iter().enumerate() {
+            sheet.write_string(row as u32, col as u16, v, None)?;
         }
     }
 
