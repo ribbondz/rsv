@@ -19,16 +19,10 @@ tasks:
       - cross build --release --target x86_64-pc-windows-gnu
       - cross build --release --target x86_64-pc-windows-msvc
       - cross build --release --target x86_64-unknown-linux-musl
-      - cross build --release --target x86_64-unknown-linux-gnu
-      # - cross build --release --target aarch64-unknown-linux-gnu
-      # - cross build --release --target aarch64-apple-darwin
-      # - cross build --release --target x86_64-apple-darwin
 
   compress:
-    dir: D:\code\rsv\target
+    dir: D:\code\rsv
     cmds:
-      - zip.exe -j dis\\x86_64-pc-windows-gnu.zip ..\\README.md x86_64-pc-windows-gnu\\release\\rsv.exe
-      - zip.exe -j dis\\x86_64-pc-windows-msvc.zip ..\\README.md x86_64-pc-windows-msvc\\release\\rsv.exe
-      - zip.exe -j dis\\x86_64-unknown-linux-musl.zip ..\\README.md x86_64-unknown-linux-musl\\release\\rsv
-      - zip.exe -j dis\\x86_64-unknown-linux-gnu.zip ..\\README.md x86_64-unknown-linux-gnu\\release\\rsv
-#      - zip.exe -j dis\\aarch64-unknown-linux-gnu.zip ..\\README.md aarch64-unknown-linux-gnu\\release\\rsv
+      - zip.exe -j dis\\x86_64-pc-windows-gnu.zip README.md target\\x86_64-pc-windows-gnu\\release\\rsv.exe
+      - zip.exe -j dis\\x86_64-pc-windows-msvc.zip README.md target\\x86_64-pc-windows-msvc\\release\\rsv.exe
+      - zip.exe -j dis\\x86_64-unknown-linux-musl.zip README.md target\\x86_64-unknown-linux-musl\\release\\rsv
