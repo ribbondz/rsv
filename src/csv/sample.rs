@@ -6,6 +6,7 @@ use crate::utils::writer::Writer;
 use rand::rngs::StdRng;
 use rand::thread_rng;
 use rand::{Rng, SeedableRng};
+use std::borrow::Cow;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
@@ -87,24 +88,17 @@ fn write_to_file(path: &Path, header: Option<String>, queue: PriorityQueue<Vec<u
 fn print_to_stdout(header: Option<String>, queue: PriorityQueue<Vec<u8>>) {
     let mut table = Table::new();
 
-    let header = header.unwrap_or_default();
-    if !header.is_empty() {
-        table.add_record(vec!["#", "", &header]);
+    if let Some(h) = header {
+        table.add_record([Cow::Borrowed("#"), Cow::Borrowed(""), Cow::from(h)]);
     }
 
-    let v = queue
-        .into_sorted_items()
-        .into_iter()
-        .map(|i| {
-            (
-                i.line_n_as_string(),
-                String::from_utf8_lossy(&i.item).trim().to_string(),
-            )
-        })
-        .collect::<Vec<_>>();
-
-    v.iter()
-        .for_each(|(line_n, r)| table.add_record(vec![line_n.as_str(), "->", r]));
+    queue.into_sorted_items().into_iter().for_each(|i| {
+        table.add_record([
+            Cow::from(i.line_n_as_string()),
+            Cow::Borrowed("->"),
+            Cow::from(String::from_utf8_lossy(&i.item).trim().to_string()),
+        ])
+    });
 
     table.print_blank_unchecked();
 }

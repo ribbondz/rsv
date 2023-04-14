@@ -7,6 +7,7 @@ use crate::utils::writer::Writer;
 use rand::rngs::StdRng;
 use rand::thread_rng;
 use rand::{Rng, SeedableRng};
+use std::borrow::Cow;
 use std::time::Instant;
 
 pub fn run(
@@ -76,19 +77,17 @@ fn write_to_file(header: Option<String>, queue: PriorityQueue<String>) -> CliRes
 fn print_to_stdout(header: Option<String>, queue: PriorityQueue<String>) {
     let mut table = Table::new();
 
-    let header = header.unwrap_or_default();
-    if !header.is_empty() {
-        table.add_record(vec!["#", "", &header]);
+    if let Some(h) = header {
+        table.add_record([Cow::Borrowed("#"), Cow::Borrowed(""), Cow::from(h)]);
     }
 
-    let v = queue
-        .into_sorted_items()
-        .into_iter()
-        .map(|i| (i.line_n_as_string(), i))
-        .collect::<Vec<_>>();
-
-    v.iter()
-        .for_each(|(line_n, r)| table.add_record(vec![line_n.as_str(), "->", r.item.as_str()]));
+    queue.into_sorted_items().into_iter().for_each(|i| {
+        table.add_record([
+            Cow::from(i.line_n_as_string()),
+            Cow::Borrowed("->"),
+            Cow::from(i.item),
+        ])
+    });
 
     table.print_blank_unchecked();
 }

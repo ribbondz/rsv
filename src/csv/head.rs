@@ -10,14 +10,14 @@ pub fn run(path: &Path, no_header: bool, n: usize, export: bool) -> CliResult {
     let mut wtr = Writer::file_or_stdout(export, &out)?;
 
     // show head n
-    let r = BufReader::new(File::open(path)?)
+    BufReader::new(File::open(path)?)
         .lines()
         .take(n + 1 - no_header as usize)
-        .filter_map(|i| i.ok())
-        .collect::<Vec<_>>();
-
-    // tabled or not
-    wtr.write_lines_unchecked(&r);
+        .for_each(|r| {
+            if let Ok(r) = r {
+                wtr.write_line_unchecked(&r);
+            }
+        });
 
     if export {
         println!("Saved to file: {}", out.display())

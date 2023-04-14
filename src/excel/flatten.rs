@@ -24,7 +24,7 @@ pub fn run(path: &Path, no_header: bool, sheet: usize, delimiter: &str, n: i32) 
         let r = l
             .iter()
             .zip(&columns)
-            .map(|(v, k)| vec![k.to_owned(), v.to_string()])
+            .map(|(v, k)| [k.to_owned(), v.to_string()])
             .collect::<Vec<_>>();
         Table::from_records(r).print_blank()?;
 

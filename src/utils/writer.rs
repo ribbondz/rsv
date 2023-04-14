@@ -111,28 +111,6 @@ impl Writer {
         }
     }
 
-    pub fn write_lines_by_field<T: AsRef<str>>(
-        &mut self,
-        lines: &[Vec<T>],
-        sep: Option<&[u8]>,
-    ) -> CliResult {
-        for l in lines {
-            self.write_line_by_field(l, sep)?;
-        }
-
-        Ok(())
-    }
-
-    pub fn write_lines_by_field_unchecked<T: AsRef<str>>(
-        &mut self,
-        lines: &[Vec<T>],
-        sep: Option<&[u8]>,
-    ) {
-        if self.write_lines_by_field(lines, sep).is_err() {
-            process::exit(0)
-        }
-    }
-
     pub fn write_excel_line(&mut self, line: &[DataType], sep: &[u8]) -> CliResult {
         let mut l = line.iter().peekable();
         while let Some(f) = l.next() {

@@ -80,22 +80,18 @@ fn print_to_stdout(header: Option<String>, queue: PriorityQueue<String>) {
     let mut table = Table::new();
 
     // header
-    let header = match header {
-        Some(v) => Cow::Owned(v),
-        None => Cow::Borrowed(""),
-    };
-    if !header.is_empty() {
-        table.add_record(vec!["#", "", &header]);
+    if let Some(h) = header {
+        table.add_record([Cow::Borrowed("#"), Cow::Borrowed(""), Cow::from(h)]);
     }
 
     // samples
-    let v = queue
-        .into_sorted_items()
-        .into_iter()
-        .map(|i| (i.line_n_as_string(), i.item))
-        .collect::<Vec<_>>();
-    v.iter()
-        .for_each(|(line_n, r)| table.add_record(vec![line_n.as_str(), "->", r]));
+    queue.into_sorted_items().into_iter().for_each(|i| {
+        table.add_record([
+            Cow::from(i.line_n_as_string()),
+            Cow::Borrowed("->"),
+            Cow::from(i.item),
+        ])
+    });
 
     table.print_blank_unchecked();
 }

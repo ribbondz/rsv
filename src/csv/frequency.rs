@@ -76,7 +76,7 @@ pub fn run(
 
     // apply head n
     if n > 0 {
-        freq = freq.into_iter().take(n as usize).collect()
+        freq.truncate(n as usize)
     }
 
     // export or print

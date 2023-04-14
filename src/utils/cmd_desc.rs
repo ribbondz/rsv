@@ -447,7 +447,7 @@ Arguments:
   [FILENAME]  File to open
 
 Options:
-  --no-header                Whether the file has a header
+      --no-header                Whether the file has a header
   -S, --sheet <SHEET>            Get the nth worksheet of EXCEL file [default: 0]
   -n, --n <N>                    Sample size [default: 10]
       --seed <SEED>              Get the nth worksheet of EXCEL file

@@ -141,7 +141,7 @@ impl ColumnStats {
         let mut builder = Builder::default();
 
         // header
-        let r = vec!["col", "type", "min", "max", "mean", "unique", "null"];
+        let r = ["col", "type", "min", "max", "mean", "unique", "null"];
         builder.set_columns(r);
 
         // columns
