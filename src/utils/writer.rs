@@ -25,6 +25,11 @@ impl Writer {
         Ok(Writer(wtr))
     }
 
+    pub fn stdout() -> Result<Self, Error> {
+        let wtr = Box::new(stdout()) as Box<dyn Write>;
+        Ok(Writer(wtr))
+    }
+
     pub fn append_to(out: &Path) -> Result<Self, Error> {
         // open file
         let f = OpenOptions::new()

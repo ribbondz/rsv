@@ -18,6 +18,7 @@ pub fn run(
     n: usize,
     seed: Option<usize>,
     export: bool,
+    show_number: bool,
     time_limit: f32,
 ) -> CliResult {
     // open files
@@ -63,9 +64,10 @@ pub fn run(
         }
     }
 
-    match export {
-        true => write_to_file(path, header, queue),
-        false => print_to_stdout(header, queue),
+    match (export, show_number) {
+        (true, _) => write_to_file(path, header, queue),
+        (false, true) => print_to_stdout(header, queue),
+        (false, false) => print_to_stdout_no_number(header, queue),
     }
 
     Ok(())
@@ -101,4 +103,16 @@ fn print_to_stdout(header: Option<String>, queue: PriorityQueue<Vec<u8>>) {
     });
 
     table.print_blank_unchecked();
+}
+
+fn print_to_stdout_no_number(header: Option<String>, queue: PriorityQueue<Vec<u8>>) {
+    let mut wtr = Writer::stdout().unwrap();
+
+    if let Some(h) = header {
+        wtr.write_line_unchecked(h);
+    }
+
+    queue.into_sorted_items().into_iter().for_each(|i| {
+        wtr.write_bytes_unchecked(&i.item);
+    });
 }

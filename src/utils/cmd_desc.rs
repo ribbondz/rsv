@@ -440,6 +440,7 @@ Usage:
   rsv sample -n 20 data.csv            # pull more
   rsv sample -n 20 data.xlsx           # EXCEL file
   rsv sample --seed 100 data.xlsx      # set a seed
+  rsv sample --show-number data.xlsx   # show line numbers
   rsv sample --time-limit 2 data.xlsx  # set time limit to 2 seconds for large file
   rsv sample -n 20 --export data.xlsx  # data export
 
@@ -451,7 +452,8 @@ Options:
   -S, --sheet <SHEET>            Get the nth worksheet of EXCEL file [default: 0]
   -n, --n <N>                    Sample size [default: 10]
       --seed <SEED>              Get the nth worksheet of EXCEL file
-  -E, --export                   Export to a file named current-file-searched.csv?
+  -E, --export                   Export to a file named current-file-searched.csv
+      --show-number              Show line number
   -t, --time-limit <TIME_LIMIT>  Time limit [default: infinity]
   -h, --help                     Print help
 ";

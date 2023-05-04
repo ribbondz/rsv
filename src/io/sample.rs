@@ -15,6 +15,7 @@ pub fn run(
     n: usize,
     seed: Option<usize>,
     export: bool,
+    show_number: bool,
     time_limit: f32,
 ) -> CliResult {
     // open files
@@ -50,9 +51,10 @@ pub fn run(
         }
     }
 
-    match export {
-        true => write_to_file(header, queue)?,
-        false => print_to_stdout(header, queue),
+    match (export, show_number) {
+        (true, _) => write_to_file(header, queue)?,
+        (false, true) => print_to_stdout(header, queue),
+        (false, false) => print_to_stdout_no_number(header, queue),
     }
 
     Ok(())
@@ -90,4 +92,18 @@ fn print_to_stdout(header: Option<String>, queue: PriorityQueue<String>) {
     });
 
     table.print_blank_unchecked();
+}
+
+fn print_to_stdout_no_number(header: Option<String>, queue: PriorityQueue<String>) {
+    let mut wtr = Writer::stdout().unwrap();
+
+    // header
+    if let Some(h) = header {
+        wtr.write_line_unchecked(h);
+    }
+
+    // samples
+    queue.into_sorted_items().into_iter().for_each(|i| {
+        wtr.write_line_unchecked(i.item);
+    });
 }

@@ -430,6 +430,9 @@ struct Sample {
     /// Export to a file named current-file-searched.csv?
     #[arg(short = 'E', long, default_value_t = false)]
     export: bool,
+    /// Show line number
+    #[arg(long, long, default_value_t = false)]
+    show_number: bool,
     /// Time limit
     #[arg(short, long, default_value_t = 0.0)]
     time_limit: f32,
@@ -862,6 +865,7 @@ fn main() {
                         option.n,
                         option.seed,
                         option.export,
+                        option.show_number,
                         (option.time_limit - 0.7).clamp(0.0, f32::MAX),
                     )
                     .handle_err(),
@@ -871,6 +875,7 @@ fn main() {
                         option.n,
                         option.seed,
                         option.export,
+                        option.show_number,
                         (option.time_limit - 0.7).clamp(0.0, f32::MAX),
                     )
                     .handle_err(),
@@ -881,6 +886,7 @@ fn main() {
                 option.n,
                 option.seed,
                 option.export,
+                option.show_number,
                 (option.time_limit - 0.7).clamp(0.0, f32::MAX),
             )
             .handle_err(),
