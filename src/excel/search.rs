@@ -3,14 +3,13 @@ use crate::utils::constants::COMMA;
 use crate::utils::excel::datatype_vec_to_string_vec;
 use crate::utils::filename::new_path;
 use crate::utils::regex::Re;
-use crate::utils::util::werr;
+use crate::utils::util::werr_exit;
 use crate::utils::writer::Writer;
 use calamine::{open_workbook_auto, Reader, Sheets};
 use std::error::Error;
 use std::fs::File;
 use std::io::BufReader;
 use std::path::Path;
-use std::process;
 
 struct Args {
     sheet: usize,
@@ -54,8 +53,7 @@ pub fn run(path: &Path, sheet: &str, pattern: &str, no_header: bool, export: boo
 impl Args {
     fn parse_sheet(&mut self, sheet: &str) {
         let Ok(v) = sheet.parse::<usize>() else { 
-            werr!("{} is not a valid int.", sheet);
-            process::exit(0);
+            werr_exit!("{} is not a valid int.", sheet);           
         };
 
         self.sheet = v;
@@ -80,8 +78,7 @@ impl Args {
 
     fn search(&mut self, sheet: usize) {
         let Ok(range) = self.workbook.worksheet_range_at(sheet).unwrap_or_else(|| {
-            werr!("{}-th sheet does not exist.", sheet);
-            process::exit(1)
+            werr_exit!("{}-th sheet does not exist.", sheet);
         }) else {
             return;
         };

@@ -1,11 +1,10 @@
 use crate::utils::cli_result::CliResult;
 use crate::utils::constants::COMMA;
-use crate::utils::reader::ExcelReader;
 use crate::utils::filename::new_path;
-use crate::utils::util::werr;
+use crate::utils::reader::ExcelReader;
+use crate::utils::util::werr_exit;
 use crate::utils::writer::Writer;
 use std::path::Path;
-use std::process;
 
 #[allow(clippy::too_many_arguments)]
 pub fn run(
@@ -41,8 +40,7 @@ pub fn run(
                 .or_else(|| length.map(|l| start + l))
                 .unwrap_or(usize::MAX - 10);
             if start > end {
-                werr!("Error: end index should be equal to or bigger than start index.");
-                process::exit(1)
+                werr_exit!("Error: end index should be equal to or bigger than start index.");
             }
             write_by_range(&mut rdr, &mut wtr, start, end);
         }

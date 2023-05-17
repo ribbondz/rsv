@@ -1,10 +1,9 @@
-use crate::utils::util::werr;
+use crate::utils::util::werr_exit;
 use regex::Regex;
 use std::{
     fs::File,
     io::{BufRead, BufReader},
     path::Path,
-    process,
 };
 
 enum Op {
@@ -37,21 +36,19 @@ pub struct Filter<'a> {
 
 fn parse_col_usize(col: &str) -> usize {
     col.parse().unwrap_or_else(|_| {
-        werr!(
+        werr_exit!(
             "{}",
             "Column syntax error: can be something like 0 (first column), -1 (last column)."
         );
-        process::exit(1);
     })
 }
 
 fn parse_i32(col: &str) -> i32 {
     col.parse().unwrap_or_else(|_| {
-        werr!(
+        werr_exit!(
             "{}",
             "Column syntax error: can be something like 0 (first column), -1 (last column)."
         );
-        process::exit(1);
     })
 }
 
@@ -94,8 +91,7 @@ impl<'a> Filter<'a> {
             }
             let i = (self.total.unwrap() as i32) + parse_i32(col);
             if i < 0 {
-                werr!("Column {} does not exist.", col);
-                process::exit(1);
+                werr_exit!("Column {} does not exist.", col);
             }
             i as usize
         } else {
@@ -124,8 +120,7 @@ impl<'a> Filter<'a> {
         let v = re.split(one).collect::<Vec<_>>();
 
         if v.len() != 2 {
-            werr!("Error: Filter syntax is wrong, run <rsv select -h> for help.");
-            process::exit(1);
+            werr_exit!("Error: Filter syntax is wrong, run <rsv select -h> for help.");
         }
 
         // parse column
@@ -227,8 +222,7 @@ impl<'a> Filter<'a> {
 
 fn str_to_f64(s: &str) -> f64 {
     s.parse::<f64>().unwrap_or_else(|_| {
-        werr!("Error: <{s}> is not a valid number, run <rsv select -h> for help.");
-        process::exit(1)
+        werr_exit!("Error: <{s}> is not a valid number, run <rsv select -h> for help.");
     })
 }
 
@@ -236,8 +230,7 @@ fn str_to_f64_vec(s: &str) -> Vec<f64> {
     s.split(',')
         .map(|i| {
             i.parse::<f64>().unwrap_or_else(|_| {
-                werr!("Error: <{i}> is not a number, run <rsv select -h> for help.");
-                process::exit(1);
+                werr_exit!("Error: <{i}> is not a number, run <rsv select -h> for help.")
             })
         })
         .collect()

@@ -29,11 +29,13 @@ pub fn print_frequency_table(names: &[String], freq: Vec<(String, usize)>) {
     }
 }
 
-macro_rules! werr {
+macro_rules! werr_exit {
     ($($arg:tt)*) => ({
         use std::io::Write;
+        use std::process;
         (writeln!(&mut ::std::io::stderr(), $($arg)*)).unwrap();
+        process::exit(1);
     });
 }
 
-pub(crate) use werr;
+pub(crate) use werr_exit;

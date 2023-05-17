@@ -1,9 +1,9 @@
-use crate::utils::reader::{ChunkReader, Task};
 use crate::utils::cli_result::CliResult;
 use crate::utils::file::estimate_line_count_by_mb;
 use crate::utils::filename::{dir_file, str_to_filename};
 use crate::utils::progress::Progress;
-use crate::utils::util::{datetime_str, werr};
+use crate::utils::reader::{ChunkReader, Task};
+use crate::utils::util::{datetime_str, werr_exit};
 use crate::utils::writer::Writer;
 use crossbeam_channel::bounded;
 use dashmap::DashMap;
@@ -11,7 +11,7 @@ use rayon::prelude::*;
 use std::error::Error;
 use std::fs::create_dir;
 use std::path::Path;
-use std::{process, thread};
+use std::thread;
 
 pub fn run(path: &Path, no_header: bool, sep: &str, col: usize, size: &Option<usize>) -> CliResult {
     let is_sequential_split = size.is_some();
@@ -34,8 +34,7 @@ pub fn run(path: &Path, no_header: bool, sep: &str, col: usize, size: &Option<us
         };
         let r = r?;
         if col >= r.split(sep).count() {
-            werr!("column index out of range!");
-            process::exit(1)
+            werr_exit!("column index out of range!");
         }
         r
     };

@@ -4,7 +4,7 @@ use crate::utils::excel::datatype_vec_to_string_vec;
 use crate::utils::filename::{dir_file, str_to_filename};
 use crate::utils::progress::Progress;
 use crate::utils::reader::{ExcelChunkTask, ExcelReader};
-use crate::utils::util::{datetime_str, werr};
+use crate::utils::util::{datetime_str, werr_exit};
 use crate::utils::writer::Writer;
 use calamine::DataType;
 use crossbeam_channel::bounded;
@@ -13,7 +13,7 @@ use rayon::prelude::*;
 use std::error::Error;
 use std::fs::create_dir;
 use std::path::Path;
-use std::{process, thread};
+use std::thread;
 
 pub fn run(
     path: &Path,
@@ -41,8 +41,7 @@ pub fn run(
             return Ok(())
         };
         if col >= r.len() {
-            werr!("Error: column index out of range!");
-            process::exit(1);
+            werr_exit!("Error: column index out of range!");
         };
         datatype_vec_to_string_vec(r).join(",")
     };

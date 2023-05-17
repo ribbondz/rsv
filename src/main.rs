@@ -1,4 +1,4 @@
-use crate::utils::util::is_tab;
+use crate::utils::util::{is_tab, werr_exit};
 use clap::{Args, Parser, Subcommand};
 use utils::{
     cli_result::E,
@@ -9,7 +9,6 @@ use utils::{
     },
     file::is_excel,
     filename::full_path,
-    util::werr,
 };
 
 mod csv;
@@ -557,7 +556,7 @@ fn main() {
         Commands::Clean(option) => {
             let path = full_path(&option.filename);
             if is_excel(&path) {
-                werr!("Error: rsv clean does not support Excel files.")
+                werr_exit!("Error: rsv clean does not support Excel files.")
             } else {
                 csv::clean::run(&path, &option.escape, &option.output).handle_err()
             }
@@ -764,7 +763,7 @@ fn main() {
                 true => {
                     excel::excel2csv::run(&path, option.sheet, &option.sep.valid()).handle_err()
                 }
-                false => werr!("Error: File <{}> is not an excel file.", path.display()),
+                false => werr_exit!("Error: File <{}> is not an excel file.", path.display()),
             }
         }
         Commands::Table(option) => match &option.filename {

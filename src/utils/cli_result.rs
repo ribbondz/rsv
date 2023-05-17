@@ -1,5 +1,4 @@
-use crate::utils::util::werr;
-use std::process;
+use crate::utils::util::werr_exit;
 
 pub type CliResult = Result<(), Box<dyn std::error::Error>>;
 
@@ -12,8 +11,7 @@ impl E for CliResult {
         match self {
             Ok(()) => {}
             Err(msg) => {
-                werr!("Error: {}", msg);
-                process::exit(1)
+                werr_exit!("Error: {}", msg);
             }
         }
     }

@@ -1,10 +1,9 @@
 use super::excel::write_datatype_to_string;
-use super::util::werr;
+use crate::utils::util::werr_exit;
 use calamine::DataType;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
-use std::process;
 
 #[derive(Debug)]
 pub struct Columns<'a> {
@@ -20,21 +19,19 @@ pub struct Columns<'a> {
 
 fn parse_col_usize(col: &str) -> usize {
     col.parse().unwrap_or_else(|_| {
-        werr!(
+        werr_exit!(
             "{}",
             "Column syntax error: can be something like 0,1,2,5 or 0-2,5 or -1 or -3--1."
         );
-        process::exit(1);
     })
 }
 
 fn parse_i32(col: &str) -> i32 {
     col.parse().unwrap_or_else(|_| {
-        werr!(
+        werr_exit!(
             "{}",
             "Column syntax error: can be something like 0,1,2,5 or 0-2,5 or -1 or -3--1."
         );
-        process::exit(1);
     })
 }
 
@@ -124,8 +121,7 @@ impl<'a> Columns<'a> {
             }
             let i = (self.total.unwrap() as i32) + parse_i32(col);
             if i < 0 {
-                werr!("Column {} does not exist.", col);
-                process::exit(1);
+                werr_exit!("Column {} does not exist.", col);
             }
             i as usize
         } else {
@@ -141,8 +137,7 @@ impl<'a> Columns<'a> {
 
     fn push_range(&mut self, min: usize, max: usize) {
         if min > max {
-            werr!("Min column is bigger than max column.");
-            process::exit(1);
+            werr_exit!("Min column is bigger than max column.");
         }
         for i in min..=max {
             self.push(i)

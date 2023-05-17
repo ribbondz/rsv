@@ -1,9 +1,9 @@
-use super::util::werr;
+use crate::utils::util::werr_exit;
 use calamine::{open_workbook_auto, DataType, Range, Reader, Rows};
 use crossbeam_channel::Sender;
+use std::error::Error;
 use std::io::stdin;
 use std::path::Path;
-use std::{error::Error, process};
 use std::{
     fs::File,
     io::{BufRead, BufReader, Lines},
@@ -81,8 +81,7 @@ impl<'a> ExcelReader {
         let mut workbook = open_workbook_auto(path)?;
 
         let range = workbook.worksheet_range_at(sheet).unwrap_or_else(|| {
-            werr!("{}-th sheet does not exist.", sheet);
-            process::exit(1)
+            werr_exit!("{}-th sheet does not exist.", sheet);
         })?;
 
         Ok(ExcelReader {
