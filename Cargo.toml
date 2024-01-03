@@ -11,18 +11,19 @@ categories = ["command-line-utilities"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ahash = "0.8.2"
-bytecount = "0.6.3"
-calamine = "0.19.1"
-chrono = "0.4.24"
-clap = { version = "4.0.32", features = ["derive"] }
-crossbeam-channel = "0.5.6"
-dashmap = "5.4.0"
+ahash = "0.8.7"
+bytecount = "0.6.7"
+calamine = "0.23.1"
+chrono = "0.4.31"
+clap = { version = "4.4.12", features = ["derive"] }
+crossbeam-channel = "0.5.10"
+dashmap = "5.5.3"
 rand = "0.8.5"
-rayon = "1.6.1"
-regex = "1.7.0"
-tabled = "0.10.0"
-xlsxwriter = "0.5.0"
+rayon = "1.8.0"
+regex = "1.10.2"
+tabled = "0.15.0"
+xlsxwriter = "0.6.0"
+
 
 [dev-dependencies]
 execute = "0.2.11"

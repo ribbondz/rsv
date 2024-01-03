@@ -1,3 +1,5 @@
+#![cfg_attr(rustfmt, rustfmt_skip)]
+
 use crate::utils::util::werr_exit;
 
 #[derive(Debug, PartialEq, Clone, Copy)]

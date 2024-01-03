@@ -33,6 +33,9 @@ pub fn write_datatype_to_string(s: &mut String, d: &DataType) {
         DataType::Int(v) => write!(s, "{}", v),
         DataType::Bool(v) => write!(s, "{}", v),
         DataType::DateTime(v) => write!(s, "{}", v),
+        DataType::DateTimeIso(v) => write!(s, "{}", v),
+        DataType::Duration(v) => write!(s, "{}", v),
+        DataType::DurationIso(v) => write!(s, "{}", v),
         DataType::Error(v) => write!(s, "{}", v),
         DataType::Empty => Ok(()),
     };

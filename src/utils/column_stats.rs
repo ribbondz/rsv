@@ -6,7 +6,7 @@ use ahash::HashSet;
 use calamine::DataType;
 use rayon::prelude::*;
 use std::fmt::Display;
-use tabled::{builder::Builder, Style, Table};
+use tabled::{builder::Builder, settings::Style, Table};
 
 #[derive(Debug)]
 pub struct ColumnStats {
@@ -142,7 +142,7 @@ impl ColumnStats {
 
         // header
         let r = ["col", "type", "min", "max", "mean", "unique", "null"];
-        builder.set_columns(r);
+        builder.push_record(r);
 
         // columns
         self.iter().for_each(|c| {
@@ -154,7 +154,7 @@ impl ColumnStats {
             r.push(c.mean_fmt());
             r.push(c.unique_fmt());
             r.push(c.null.to_string());
-            builder.add_record(r);
+            builder.push_record(r);
         });
 
         // build

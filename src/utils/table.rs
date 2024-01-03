@@ -1,17 +1,16 @@
 use super::{cli_result::CliResult, constants::TERMINATOR};
 use std::{
-    borrow::Cow,
     io::{stdout, BufWriter, Write},
     process,
 };
-use tabled::{builder::Builder, Style};
+use tabled::{builder::Builder, settings::Style};
 
-pub struct Table<'a> {
-    builder: Builder<'a>,
+pub struct Table {
+    builder: Builder,
     n: usize,
 }
 
-impl<'a> Table<'a> {
+impl Table {
     pub fn new() -> Self {
         Table {
             builder: Builder::default(),
@@ -26,9 +25,9 @@ impl<'a> Table<'a> {
     pub fn add_record<R, T>(&mut self, row: R)
     where
         R: IntoIterator<Item = T>,
-        T: Into<Cow<'a, str>>,
+        T: Into<String>,
     {
-        self.builder.add_record(row);
+        self.builder.push_record(row);
         self.n += 1;
     }
 
@@ -50,13 +49,13 @@ impl<'a> Table<'a> {
     pub fn from_records<R, T>(rows: Vec<R>) -> Self
     where
         R: IntoIterator<Item = T>,
-        T: Into<Cow<'a, str>>,
+        T: Into<String>,
     {
         let mut b = Builder::default();
         let n = rows.len();
 
         for row in rows {
-            b.add_record(row);
+            b.push_record(row);
         }
 
         Table { builder: b, n }
