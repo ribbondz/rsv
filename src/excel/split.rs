@@ -37,9 +37,7 @@ pub fn run(
     let first_row = if no_header {
         String::new()
     } else {
-        let Some(r) = range.next() else {
-            return Ok(())
-        };
+        let Some(r) = range.next() else { return Ok(()) };
         if col >= r.len() {
             werr_exit!("Error: column index out of range!");
         };

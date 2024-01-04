@@ -21,9 +21,7 @@ pub fn run(no_header: bool, sep: &str, cols: &str, filter: &str, export: bool) -
 
     // header
     if !no_header {
-        let Some(r) = rdr.next() else {
-            return Ok(())
-        };
+        let Some(r) = rdr.next() else { return Ok(()) };
         let r = r?;
 
         let fields = r.split(sep).collect::<Vec<_>>();

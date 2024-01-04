@@ -52,8 +52,8 @@ pub fn run(path: &Path, sheet: &str, pattern: &str, no_header: bool, export: boo
 
 impl Args {
     fn parse_sheet(&mut self, sheet: &str) {
-        let Ok(v) = sheet.parse::<usize>() else { 
-            werr_exit!("{} is not a valid int.", sheet);           
+        let Ok(v) = sheet.parse::<usize>() else {
+            werr_exit!("{} is not a valid int.", sheet);
         };
 
         self.sheet = v;

@@ -16,7 +16,7 @@ pub fn run(path: &Path, sep: &str, no_header: bool, cols: &str, export: bool) ->
     // Column
     let cols = Columns::new(cols).total_col_of(path, sep).parse();
     let Some(col_type) = ColumnTypes::guess_from_csv(path, sep, no_header, &cols)? else {
-        return Ok(())
+        return Ok(());
     };
 
     // open file
@@ -25,13 +25,11 @@ pub fn run(path: &Path, sep: &str, no_header: bool, cols: &str, export: bool) ->
     // header
     let name = if no_header {
         let Some(n) = column_n(path, sep)? else {
-            return Ok(())
+            return Ok(());
         };
         cols.artificial_n_cols(n)
     } else {
-        let Some(r) = rdr.next() else {
-           return Ok(())
-        };
+        let Some(r) = rdr.next() else { return Ok(()) };
         r?.split(sep).map(String::from).collect()
     };
 

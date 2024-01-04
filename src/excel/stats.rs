@@ -20,9 +20,7 @@ pub fn run(path: &Path, sheet: usize, no_header: bool, cols: &str, export: bool)
     let name = match no_header {
         true => cols.artificial_n_cols(rdr.column_n()),
         false => {
-            let Some(r) = rdr.next() else {
-                return Ok(())
-            };
+            let Some(r) = rdr.next() else { return Ok(()) };
             r.iter().map(|i| i.to_string()).collect::<Vec<_>>()
         }
     };

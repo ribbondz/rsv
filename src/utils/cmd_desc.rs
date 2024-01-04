@@ -366,10 +366,19 @@ Arguments:
   <FILENAME>  File to open
 
 Options:
-      --no-header      Whether the file has a header
-  -S, --sheet <SHEET>  Search the nth worksheet of EXCEL file [default: 0], can search all sheets with -S all
-  -E, --export         Export to a file named current-file-searched.csv?
-  -h, --help           Print help information
+      --no-header        Whether the file has a header
+  -s, --sep <SEP>        Separator [default: ,]
+  -f, --filter <FILTER>  Columns to search [default: all]
+  -c, --cols <COLS>      Columns to keep in output [default: all]
+  -S, --sheet <SHEET>    Search the nth worksheet of EXCEL file [default: 0], can search all sheets with -S all
+  -E, --export           Export to a file named current-file-searched.csv?
+  -h, --help             Print help information
+
+Column selection syntax:
+  -c 0,1,2,5         -->  cols [0,1,2,5]
+  -c 0-2,5           -->  same as cols [0,1,2,5]
+  -c -1              -->  last column
+  -c -2--1           -->  last two columns
 ";
 
 pub const SORT_DESC: &str =

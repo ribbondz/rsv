@@ -1,6 +1,6 @@
 use crate::utils::cli_result::CliResult;
-use crate::utils::reader::ExcelReader;
 use crate::utils::progress::Progress;
+use crate::utils::reader::ExcelReader;
 use std::path::Path;
 
 pub fn run(path: &Path, sheet: usize, no_header: bool) -> CliResult {

@@ -35,9 +35,7 @@ pub fn run(no_header: bool, sep: &str, col: usize, size: &Option<usize>) -> CliR
     let first_row = if no_header {
         String::new()
     } else {
-        let Some(r) = rdr.next() else {
-           return Ok(())
-        };
+        let Some(r) = rdr.next() else { return Ok(()) };
         r?
     };
 

@@ -24,7 +24,7 @@ pub fn run(
     if !no_header {
         let mut buf = vec![];
         let Ok(_) = rdr.read_until(b'\n', &mut buf) else {
-            return Ok(())
+            return Ok(());
         };
         wtr.write_bytes_unchecked(&buf);
     }

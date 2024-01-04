@@ -90,6 +90,7 @@ impl<'a> Columns<'a> {
                 let c = { self.true_col(col) };
                 self.push(c)
             }
+            // col range
             (true, _) => {
                 let (first, second) = split_pat_at(col, "-", 1);
                 let min = { self.true_col(first) };

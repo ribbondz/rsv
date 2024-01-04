@@ -26,9 +26,7 @@ pub fn run(
     let names: Vec<String> = if no_header {
         col.artificial_cols_with_appended_n()
     } else {
-        let Some(r) = rdr.next() else {
-           return Ok(())
-        };
+        let Some(r) = rdr.next() else { return Ok(()) };
         if col.max >= r.len() {
             println!("[info] ignore a bad line # {r:?}!");
             col.artificial_cols_with_appended_n()

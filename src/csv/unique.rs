@@ -31,9 +31,7 @@ pub fn run(
 
     // header
     if !no_header {
-        let Some(r) = rdr.next() else {
-            return Ok(())
-        };
+        let Some(r) = rdr.next() else { return Ok(()) };
         wtr.write_line_unchecked(&r?)
     }
 

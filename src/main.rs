@@ -380,6 +380,15 @@ struct Search {
     /// Whether the file has a header
     #[arg(long, default_value_t = false)]
     no_header: bool,
+    /// Separator
+    #[arg(short, long, default_value_t = String::from(","))]
+    sep: String,
+    /// Search specific columns, e.g. -f=0,1 to search first two columns; Default to all columns
+    #[arg(short, long, default_value_t = String::from(""), allow_hyphen_values=true)]
+    filter: String,
+    /// Columns to select in output, support syntax 0,1,3 or 0-4, including 4; Default to select all columns
+    #[arg(short, long, default_value_t = String::from(""), allow_hyphen_values=true)]
+    cols: String,
     /// Get the nth worksheet of EXCEL file
     #[arg(short = 'S', long, default_value_t = String::from("0"), allow_hyphen_values = true)]
     sheet: String,
@@ -788,10 +797,16 @@ fn main() {
                         option.export,
                     )
                     .handle_err(),
-                    false => {
-                        csv::search::run(&path, &option.pattern, option.no_header, option.export)
-                            .handle_err()
-                    }
+                    false => csv::search::run(
+                        &path,
+                        &option.sep,
+                        &option.filter,
+                        &option.cols,
+                        &option.pattern,
+                        option.no_header,
+                        option.export,
+                    )
+                    .handle_err(),
                 }
             }
             None => io::search::run(&option.pattern, option.no_header, option.export).handle_err(),

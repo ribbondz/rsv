@@ -61,11 +61,11 @@ impl Writer {
         Ok(())
     }
 
-    pub fn write_header_unchecked(&mut self, row: &str) {
-        if self.write_header(row).is_err() {
-            process::exit(0)
-        }
-    }
+    // pub fn write_header_unchecked(&mut self, row: &str) {
+    //     if self.write_header(row).is_err() {
+    //         process::exit(0)
+    //     }
+    // }
 
     pub fn write_line<T: AsRef<str>>(&mut self, row: T) -> CliResult {
         self.0.write_all(row.as_ref().as_bytes())?;
@@ -113,6 +113,18 @@ impl Writer {
     pub fn write_line_by_field_unchecked<T: AsRef<str>>(&mut self, line: &[T], sep: Option<&[u8]>) {
         if self.write_line_by_field(line, sep).is_err() {
             process::exit(0)
+        }
+    }
+
+    pub fn write_lines_by_field_unchecked<T: AsRef<str>>(
+        &mut self,
+        lines: &Vec<Vec<T>>,
+        sep: Option<&[u8]>,
+    ) {
+        for line in lines {
+            if self.write_line_by_field(line, sep).is_err() {
+                process::exit(0)
+            }
         }
     }
 

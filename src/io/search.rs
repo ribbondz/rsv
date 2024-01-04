@@ -13,7 +13,7 @@ pub fn run(pattern: &str, no_header: bool, export: bool) -> CliResult {
 
     if !no_header {
         let Some(r) = handle.next() else {
-           return Ok(())
+            return Ok(());
         };
         wtr.write_line(&r?)?;
     }
