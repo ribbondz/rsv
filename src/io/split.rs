@@ -97,7 +97,7 @@ fn sequential_task_handle(
     // write
     let mut wtr = Writer::append_to(&out)?;
     wtr.write_header(first_row)?;
-    wtr.write_lines(&lines)?;
+    wtr.write_strings(&lines)?;
 
     Ok(())
 }
@@ -154,9 +154,9 @@ fn save_to_disk(
     let mut wtr = Writer::append_to(&out)?;
     if !args.no_header && !header_inserted.contains_key(&filename) {
         header_inserted.insert(filename, true);
-        wtr.write_line(first_row)?;
+        wtr.write_str(first_row)?;
     }
-    wtr.write_lines(rows)?;
+    wtr.write_strings(rows)?;
 
     Ok(())
 }

@@ -56,7 +56,7 @@ impl Writer {
 
     pub fn write_header(&mut self, row: &str) -> CliResult {
         if !row.is_empty() {
-            self.write_line(row)?;
+            self.write_str(row)?;
         }
         Ok(())
     }
@@ -67,36 +67,32 @@ impl Writer {
     //     }
     // }
 
-    pub fn write_line<T: AsRef<str>>(&mut self, row: T) -> CliResult {
+    pub fn write_str<T: AsRef<str>>(&mut self, row: T) -> CliResult {
         self.0.write_all(row.as_ref().as_bytes())?;
         self.0.write_all(TERMINATOR)?;
         Ok(())
     }
 
-    pub fn write_line_unchecked<T: AsRef<str>>(&mut self, row: T) {
-        if self.write_line(row).is_err() {
+    pub fn write_str_unchecked<T: AsRef<str>>(&mut self, row: T) {
+        if self.write_str(row).is_err() {
             process::exit(0)
         }
     }
 
-    pub fn write_lines<T: AsRef<str>>(&mut self, lines: &[T]) -> CliResult {
+    pub fn write_strings<T: AsRef<str>>(&mut self, lines: &[T]) -> CliResult {
         for l in lines {
-            self.write_line(l)?
+            self.write_str(l)?
         }
         Ok(())
     }
 
-    pub fn write_lines_unchecked<T: AsRef<str>>(&mut self, lines: &[T]) {
-        if self.write_lines(lines).is_err() {
+    pub fn write_strings_unchecked<T: AsRef<str>>(&mut self, lines: &[T]) {
+        if self.write_strings(lines).is_err() {
             process::exit(0)
         }
     }
 
-    pub fn write_line_by_field<T: AsRef<str>>(
-        &mut self,
-        line: &[T],
-        sep: Option<&[u8]>,
-    ) -> CliResult {
+    pub fn write_fields<T: AsRef<str>>(&mut self, line: &[T], sep: Option<&[u8]>) -> CliResult {
         let mut l = line.iter().peekable();
         while let Some(f) = l.next() {
             self.0.write_all(f.as_ref().as_bytes())?;
@@ -110,7 +106,13 @@ impl Writer {
         Ok(())
     }
 
-    pub fn write_line_by_selected_field<T: AsRef<str>>(
+    pub fn write_fields_unchecked<T: AsRef<str>>(&mut self, line: &[T], sep: Option<&[u8]>) {
+        if self.write_fields(line, sep).is_err() {
+            process::exit(0)
+        }
+    }
+
+    pub fn write_selected_fields<T: AsRef<str>>(
         &mut self,
         line: &[T],
         cols: &[usize],
@@ -129,30 +131,24 @@ impl Writer {
         Ok(())
     }
 
-    pub fn write_line_by_field_unchecked<T: AsRef<str>>(&mut self, line: &[T], sep: Option<&[u8]>) {
-        if self.write_line_by_field(line, sep).is_err() {
-            process::exit(0)
-        }
-    }
-
-    pub fn write_line_by_selected_field_unchecked<T: AsRef<str>>(
+    pub fn write_selected_fields_unchecked<T: AsRef<str>>(
         &mut self,
         line: &[T],
         cols: &[usize],
         sep: Option<&[u8]>,
     ) {
-        if self.write_line_by_selected_field(line, cols, sep).is_err() {
+        if self.write_selected_fields(line, cols, sep).is_err() {
             process::exit(0)
         }
     }
 
-    pub fn write_lines_by_field_unchecked<T: AsRef<str>>(
+    pub fn write_fields_of_lines_unchecked<T: AsRef<str>>(
         &mut self,
         lines: &Vec<Vec<T>>,
         sep: Option<&[u8]>,
     ) {
         for line in lines {
-            if self.write_line_by_field(line, sep).is_err() {
+            if self.write_fields(line, sep).is_err() {
                 process::exit(0)
             }
         }
@@ -172,7 +168,13 @@ impl Writer {
         Ok(())
     }
 
-    pub fn write_excel_line_by_selected_fields(
+    pub fn write_excel_line_unchecked(&mut self, line: &[DataType], sep: &[u8]) {
+        if self.write_excel_line(line, sep).is_err() {
+            process::exit(0)
+        }
+    }
+
+    pub fn write_excel_selected_fields(
         &mut self,
         line: &[DataType],
         cols: &[usize],
@@ -191,22 +193,13 @@ impl Writer {
         Ok(())
     }
 
-    pub fn write_excel_line_unchecked(&mut self, line: &[DataType], sep: &[u8]) {
-        if self.write_excel_line(line, sep).is_err() {
-            process::exit(0)
-        }
-    }
-
-    pub fn write_excel_line_by_selected_fields_unchecked(
+    pub fn write_excel_selected_fields_unchecked(
         &mut self,
         line: &[DataType],
         cols: &[usize],
         sep: &[u8],
     ) {
-        if self
-            .write_excel_line_by_selected_fields(line, cols, sep)
-            .is_err()
-        {
+        if self.write_excel_selected_fields(line, cols, sep).is_err() {
             process::exit(0)
         }
     }

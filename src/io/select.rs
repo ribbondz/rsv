@@ -29,10 +29,10 @@ pub fn run(no_header: bool, sep: &str, cols: &str, filter: &str, export: bool) -
         filter = filter.total_col(fields.len()).parse();
 
         if col.select_all {
-            wtr.write_line_unchecked(&r)
+            wtr.write_str_unchecked(&r)
         } else {
             let r = col.iter().map(|&i| fields[i]).collect::<Vec<_>>();
-            wtr.write_line_by_field_unchecked(&r, Some(sep_bytes));
+            wtr.write_fields_unchecked(&r, Some(sep_bytes));
         }
     }
 
@@ -49,7 +49,7 @@ pub fn run(no_header: bool, sep: &str, cols: &str, filter: &str, export: bool) -
         }
 
         if filter.is_empty() && col.select_all {
-            wtr.write_line_unchecked(r);
+            wtr.write_str_unchecked(r);
             continue;
         }
 
@@ -62,7 +62,7 @@ pub fn run(no_header: bool, sep: &str, cols: &str, filter: &str, export: bool) -
             f = col.iter().map(|&i| f[i]).collect();
         }
 
-        wtr.write_line_by_field_unchecked(&f, Some(sep_bytes));
+        wtr.write_fields_unchecked(&f, Some(sep_bytes));
     }
 
     if export {

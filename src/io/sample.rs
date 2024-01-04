@@ -65,10 +65,10 @@ fn write_to_file(header: Option<String>, queue: PriorityQueue<String>) -> CliRes
     let out = new_file("sampled.csv");
     let mut wtr = Writer::new(&out)?;
     if let Some(r) = header {
-        wtr.write_line_unchecked(r);
+        wtr.write_str_unchecked(r);
     }
     for r in queue.into_sorted_items() {
-        wtr.write_line_unchecked(&r.item);
+        wtr.write_str_unchecked(&r.item);
     }
 
     println!("Saved to file: {}", out.display());
@@ -99,11 +99,11 @@ fn print_to_stdout_no_number(header: Option<String>, queue: PriorityQueue<String
 
     // header
     if let Some(h) = header {
-        wtr.write_line_unchecked(h);
+        wtr.write_str_unchecked(h);
     }
 
     // samples
     queue.into_sorted_items().into_iter().for_each(|i| {
-        wtr.write_line_unchecked(i.item);
+        wtr.write_str_unchecked(i.item);
     });
 }

@@ -32,7 +32,7 @@ pub fn run(
     // header
     if !no_header {
         let Some(r) = rdr.next() else { return Ok(()) };
-        wtr.write_line_unchecked(&r?)
+        wtr.write_str_unchecked(&r?)
     }
 
     // read
@@ -57,7 +57,7 @@ fn keep_first_and_all_cols(rdr: &mut Lines<BufReader<File>>, wtr: &mut Writer) -
     for r in rdr {
         let r = r?;
         if !unique_holder.contains(&r) {
-            wtr.write_line_unchecked(&r);
+            wtr.write_str_unchecked(&r);
             unique_holder.insert(r);
         }
     }
@@ -77,7 +77,7 @@ fn keep_first_and_partial_cols(
         let segs = r.split(sep).collect::<Vec<_>>();
         let p = cols.select_owned_string(&segs);
         if !unique_holder.contains(&p) {
-            wtr.write_line_unchecked(&r);
+            wtr.write_str_unchecked(&r);
             unique_holder.insert(p);
         }
     }
@@ -104,7 +104,7 @@ fn keep_last_and_all_cols(
     for r in rdr {
         let r = r?;
         if unique_n[&r] == 1 {
-            wtr.write_line_unchecked(&r);
+            wtr.write_str_unchecked(&r);
         } else {
             *unique_n.entry(r).or_insert(0) -= 1;
         }
@@ -138,7 +138,7 @@ fn keep_last_and_partial_cols(
         let segs = r.split(sep).collect::<Vec<_>>();
         let p = cols.select_owned_string(&segs);
         if unique_n[&p] == 1 {
-            wtr.write_line_unchecked(&r);
+            wtr.write_str_unchecked(&r);
         } else {
             *unique_n.entry(p).or_insert(0) -= 1;
         }

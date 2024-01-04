@@ -9,7 +9,7 @@ pub fn run(no_header: bool, n: usize, export: bool) -> CliResult {
 
     // header
     if !no_header && !lines.is_empty() {
-        wtr.write_line_unchecked(&lines[0]);
+        wtr.write_str_unchecked(&lines[0]);
     }
 
     // show tail n
@@ -19,7 +19,7 @@ pub fn run(no_header: bool, n: usize, export: bool) -> CliResult {
         .rev()
         .take(n)
         .rev()
-        .for_each(|r| wtr.write_line_unchecked(r));
+        .for_each(|r| wtr.write_str_unchecked(r));
 
     if export {
         println!("Saved to file: {}", out.display())

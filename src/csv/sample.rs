@@ -78,7 +78,7 @@ fn write_to_file(path: &Path, header: Option<String>, queue: PriorityQueue<Vec<u
     let out = new_path(path, "-sampled");
     let mut wtr = Writer::new(&out).unwrap();
     if let Some(r) = header {
-        wtr.write_line_unchecked(r);
+        wtr.write_str_unchecked(r);
     }
     for r in queue.into_sorted_items() {
         wtr.write_bytes_unchecked(&r.item);
@@ -109,7 +109,7 @@ fn print_to_stdout_no_number(header: Option<String>, queue: PriorityQueue<Vec<u8
     let mut wtr = Writer::stdout().unwrap();
 
     if let Some(h) = header {
-        wtr.write_line_unchecked(h);
+        wtr.write_str_unchecked(h);
     }
 
     queue.into_sorted_items().into_iter().for_each(|i| {

@@ -33,11 +33,11 @@ pub fn run(
         let Some(r) = rdr.next() else { return Ok(()) };
         let r = r?;
         if cols.select_all {
-            wtr.write_line_unchecked(&r)
+            wtr.write_str_unchecked(&r)
         } else {
             let mut r = r.split(sep).collect::<Vec<_>>();
             r = cols.iter().map(|&i| r[i]).collect();
-            wtr.write_line_by_field_unchecked(&r, Some(sep.as_bytes()));
+            wtr.write_fields_unchecked(&r, Some(sep.as_bytes()));
         }
     }
 
@@ -60,7 +60,7 @@ pub fn run(
                     .par_iter()
                     .filter(|&i| re.is_match(i))
                     .collect::<Vec<_>>();
-                wtr.write_lines_unchecked(&lines);
+                wtr.write_strings_unchecked(&lines);
                 lines.len()
             }
             (true, false) => {
@@ -74,7 +74,7 @@ pub fn run(
                         })
                     })
                     .collect::<Vec<_>>();
-                wtr.write_lines_by_field_unchecked(&lines, Some(sep.as_bytes()));
+                wtr.write_fields_of_lines_unchecked(&lines, Some(sep.as_bytes()));
                 lines.len()
             }
             (false, true) => {
@@ -86,7 +86,7 @@ pub fn run(
                         filter.iter().any(|&i| re.is_match(r[i]))
                     })
                     .collect::<Vec<_>>();
-                wtr.write_lines_unchecked(&lines);
+                wtr.write_strings_unchecked(&lines);
                 lines.len()
             }
             (false, false) => {
@@ -101,7 +101,7 @@ pub fn run(
                             .then_some(cols.iter().map(|&i| r[i]).collect::<Vec<_>>())
                     })
                     .collect::<Vec<_>>();
-                wtr.write_lines_by_field_unchecked(&lines, Some(sep.as_bytes()));
+                wtr.write_fields_of_lines_unchecked(&lines, Some(sep.as_bytes()));
                 lines.len()
             }
         };

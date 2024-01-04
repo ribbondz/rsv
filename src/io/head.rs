@@ -14,7 +14,7 @@ pub fn run(no_header: bool, n: usize, export: bool) -> CliResult {
         .take(n + 1 - no_header as usize)
         .for_each(|r| {
             if let Ok(r) = r {
-                wtr.write_line_unchecked(&r);
+                wtr.write_str_unchecked(&r);
             }
         });
 

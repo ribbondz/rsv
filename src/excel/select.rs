@@ -35,7 +35,7 @@ pub fn run(
             wtr.write_excel_line_unchecked(r, COMMA);
         } else {
             let r = cols.iter().map(|&i| r[i].to_string()).collect::<Vec<_>>();
-            wtr.write_line_by_field_unchecked(&r, None);
+            wtr.write_fields_unchecked(&r, None);
         }
     }
 
@@ -44,10 +44,10 @@ pub fn run(
         let r = datatype_vec_to_string_vec(r);
         if filter.excel_record_is_valid(&r) {
             match cols.select_all {
-                true => wtr.write_line_by_field_unchecked(&r, None),
+                true => wtr.write_fields_unchecked(&r, None),
                 false => {
                     let r = cols.iter().map(|&i| &r[i]).collect::<Vec<_>>();
-                    wtr.write_line_by_field_unchecked(&r, None);
+                    wtr.write_fields_unchecked(&r, None);
                 }
             }
         }

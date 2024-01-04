@@ -36,11 +36,11 @@ pub fn run(
         let Some(r) = rdr.next() else { return Ok(()) };
         let r = r?;
         if cols.select_all {
-            wtr.write_line_unchecked(&r)
+            wtr.write_str_unchecked(&r)
         } else {
             let mut r = r.split(sep).collect::<Vec<_>>();
             r = cols.iter().map(|&i| r[i]).collect();
-            wtr.write_line_by_field_unchecked(&r, Some(sep_bytes));
+            wtr.write_fields_unchecked(&r, Some(sep_bytes));
         }
     }
 
@@ -88,14 +88,14 @@ fn handle_task(
     for (r, f) in filtered {
         // write the line directly
         if cols.select_all {
-            wtr.write_line_unchecked(r.unwrap());
+            wtr.write_str_unchecked(r.unwrap());
             continue;
         }
 
         // write by fields
         let f = f.unwrap_or_else(|| r.unwrap().split(sep).collect());
         let row = cols.iter().map(|&i| f[i]).collect::<Vec<_>>();
-        wtr.write_line_by_field_unchecked(&row, Some(sep_bytes));
+        wtr.write_fields_unchecked(&row, Some(sep_bytes));
     }
 
     if export {

@@ -115,7 +115,7 @@ impl<'a> Args<'a> {
                 self.wtr.write_excel_line_unchecked(r, COMMA);
             } else {
                 self.wtr
-                    .write_excel_line_by_selected_fields_unchecked(&r, &self.cols.cols, COMMA);
+                    .write_excel_selected_fields_unchecked(&r, &self.cols.cols, COMMA);
             }
         };
 
@@ -125,27 +125,27 @@ impl<'a> Args<'a> {
             match (self.cols.select_all, self.filter.select_all) {
                 (true, true) => {
                     if r.iter().any(|i| self.re.is_match(i)) {
-                        self.wtr.write_line_by_field_unchecked(&r, None);
+                        self.wtr.write_fields_unchecked(&r, None);
                         self.matched += 1;
                     }
                 }
                 (true, false) => {
                     if self.filter.iter().any(|&i| self.re.is_match(&r[i])) {
-                        self.wtr.write_line_by_field_unchecked(&r, None);
+                        self.wtr.write_fields_unchecked(&r, None);
                         self.matched += 1;
                     }
                 }
                 (false, true) => {
                     if r.iter().any(|i| self.re.is_match(i)) {
                         self.wtr
-                            .write_line_by_selected_field_unchecked(&r, &self.cols.cols, None);
+                            .write_selected_fields_unchecked(&r, &self.cols.cols, None);
                         self.matched += 1;
                     }
                 }
                 (false, false) => {
                     if self.filter.iter().any(|&i| self.re.is_match(&r[i])) {
                         self.wtr
-                            .write_line_by_selected_field_unchecked(&r, &self.cols.cols, None);
+                            .write_selected_fields_unchecked(&r, &self.cols.cols, None);
                         self.matched += 1;
                     }
                 }

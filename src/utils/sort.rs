@@ -91,7 +91,7 @@ impl SortColumns {
             false => r.sort_by(|&a, &b| b.1.cmp(a.1)),
         }
 
-        r.iter().for_each(|(l, _)| wtr.write_line_unchecked(l));
+        r.iter().for_each(|(l, _)| wtr.write_str_unchecked(l));
     }
 
     fn sort_numeric_column(&self, lines: &Vec<String>, sep: &str, wtr: &mut Writer) {
@@ -108,7 +108,7 @@ impl SortColumns {
             false => r.sort_by(|&a, &b| b.1.partial_cmp(&a.1).unwrap()),
         };
 
-        r.iter().for_each(|(l, _)| wtr.write_line_unchecked(l));
+        r.iter().for_each(|(l, _)| wtr.write_str_unchecked(l));
     }
 
     fn sort_str_str_columns(&self, lines: &Vec<String>, sep: &str, wtr: &mut Writer) {
@@ -129,7 +129,7 @@ impl SortColumns {
             (false, false) => r.sort_by(|&a, &b| b.1.cmp(a.1).then(b.2.cmp(a.2))),
         }
 
-        r.iter().for_each(|(l, _, _)| wtr.write_line_unchecked(l));
+        r.iter().for_each(|(l, _, _)| wtr.write_str_unchecked(l));
     }
 
     fn sort_str_numeric_columns(&self, lines: &Vec<String>, sep: &str, wtr: &mut Writer) {
@@ -150,7 +150,7 @@ impl SortColumns {
             (false, false) => r.sort_by(|&a, &b| b.1.cmp(a.1).then(b.2.partial_cmp(&a.2).unwrap())),
         }
 
-        r.iter().for_each(|(l, _, _)| wtr.write_line_unchecked(l));
+        r.iter().for_each(|(l, _, _)| wtr.write_str_unchecked(l));
     }
 
     fn sort_numeric_str_columns(&self, lines: &Vec<String>, sep: &str, wtr: &mut Writer) {
@@ -171,7 +171,7 @@ impl SortColumns {
             (false, false) => r.sort_by(|&a, &b| b.1.partial_cmp(&a.1).unwrap().then(b.2.cmp(a.2))),
         }
 
-        r.iter().for_each(|(l, _, _)| wtr.write_line_unchecked(l));
+        r.iter().for_each(|(l, _, _)| wtr.write_str_unchecked(l));
     }
 
     fn sort_numeric_numeric_columns(&self, lines: &Vec<String>, sep: &str, wtr: &mut Writer) {
@@ -213,7 +213,7 @@ impl SortColumns {
             }),
         }
 
-        r.iter().for_each(|(l, _, _)| wtr.write_line_unchecked(l));
+        r.iter().for_each(|(l, _, _)| wtr.write_str_unchecked(l));
     }
 
     pub fn sort_excel_and_write(
@@ -247,7 +247,7 @@ impl SortColumns {
 
         lines
             .iter()
-            .for_each(|l| wtr.write_line_by_field_unchecked(l, None));
+            .for_each(|l| wtr.write_fields_unchecked(l, None));
     }
 
     fn sort_excel_numeric_column(&self, lines: &mut Vec<Vec<Cow<str>>>, wtr: &mut Writer) {
@@ -262,7 +262,7 @@ impl SortColumns {
         };
 
         r.iter()
-            .for_each(|(l, _)| wtr.write_line_by_field_unchecked(l, None));
+            .for_each(|(l, _)| wtr.write_fields_unchecked(l, None));
     }
 
     fn sort_excel_str_str_columns(&self, lines: &mut [Vec<Cow<str>>], wtr: &mut Writer) {
@@ -277,7 +277,7 @@ impl SortColumns {
 
         lines
             .iter()
-            .for_each(|l| wtr.write_line_by_field_unchecked(l, None));
+            .for_each(|l| wtr.write_fields_unchecked(l, None));
     }
 
     fn sort_excel_str_numeric_columns(&self, lines: &mut Vec<Vec<Cow<str>>>, wtr: &mut Writer) {
@@ -296,7 +296,7 @@ impl SortColumns {
         }
 
         r.iter()
-            .for_each(|(l, _, _)| wtr.write_line_by_field_unchecked(l, None));
+            .for_each(|(l, _, _)| wtr.write_fields_unchecked(l, None));
     }
 
     fn sort_excel_numeric_str_columns(&self, lines: &mut [Vec<Cow<str>>], wtr: &mut Writer) {
@@ -315,7 +315,7 @@ impl SortColumns {
         }
 
         r.iter()
-            .for_each(|(l, _, _)| wtr.write_line_by_field_unchecked(l, None));
+            .for_each(|(l, _, _)| wtr.write_fields_unchecked(l, None));
     }
 
     fn sort_excel_numeric_numeric_columns(&self, lines: &mut [Vec<Cow<str>>], wtr: &mut Writer) {
@@ -357,6 +357,6 @@ impl SortColumns {
         }
 
         r.iter()
-            .for_each(|(l, _, _)| wtr.write_line_by_field_unchecked(l, None));
+            .for_each(|(l, _, _)| wtr.write_fields_unchecked(l, None));
     }
 }

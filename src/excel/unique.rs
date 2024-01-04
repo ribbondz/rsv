@@ -55,7 +55,7 @@ fn keep_first_and_all_cols(rdr: &mut ExcelReader, wtr: &mut Writer) -> CliResult
     for r in rdr.iter().skip(rdr.next_called) {
         let r = datatype_vec_to_string(r);
         if !unique_holder.contains(&r) {
-            wtr.write_line_unchecked(&r);
+            wtr.write_str_unchecked(&r);
             unique_holder.insert(r);
         }
     }
@@ -93,7 +93,7 @@ fn keep_last_and_all_cols(rdr: &mut ExcelReader, wtr: &mut Writer) -> CliResult 
     for r in rdr.iter().skip(rdr.next_called) {
         let r = datatype_vec_to_string(r);
         if unique_n[&r] == 1 {
-            wtr.write_line_unchecked(r);
+            wtr.write_str_unchecked(r);
         } else {
             *unique_n.entry(r).or_insert(0) -= 1;
         }
