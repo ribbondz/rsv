@@ -110,8 +110,38 @@ impl Writer {
         Ok(())
     }
 
+    pub fn write_line_by_selected_field<T: AsRef<str>>(
+        &mut self,
+        line: &[T],
+        cols: &[usize],
+        sep: Option<&[u8]>,
+    ) -> CliResult {
+        let mut l = cols.iter().peekable();
+        while let Some(&i) = l.next() {
+            self.0.write_all(line[i].as_ref().as_bytes())?;
+            self.0.write_all(if l.peek().is_none() {
+                TERMINATOR
+            } else {
+                sep.unwrap_or(b",")
+            })?;
+        }
+
+        Ok(())
+    }
+
     pub fn write_line_by_field_unchecked<T: AsRef<str>>(&mut self, line: &[T], sep: Option<&[u8]>) {
         if self.write_line_by_field(line, sep).is_err() {
+            process::exit(0)
+        }
+    }
+
+    pub fn write_line_by_selected_field_unchecked<T: AsRef<str>>(
+        &mut self,
+        line: &[T],
+        cols: &[usize],
+        sep: Option<&[u8]>,
+    ) {
+        if self.write_line_by_selected_field(line, cols, sep).is_err() {
             process::exit(0)
         }
     }
@@ -142,8 +172,41 @@ impl Writer {
         Ok(())
     }
 
+    pub fn write_excel_line_by_selected_fields(
+        &mut self,
+        line: &[DataType],
+        cols: &[usize],
+        sep: &[u8],
+    ) -> CliResult {
+        let mut l = cols.iter().peekable();
+        while let Some(&i) = l.next() {
+            write!(&mut self.0, "{}", line[i])?;
+            if l.peek().is_some() {
+                self.0.write_all(sep)?;
+            } else {
+                self.0.write_all(TERMINATOR)?;
+            }
+        }
+
+        Ok(())
+    }
+
     pub fn write_excel_line_unchecked(&mut self, line: &[DataType], sep: &[u8]) {
         if self.write_excel_line(line, sep).is_err() {
+            process::exit(0)
+        }
+    }
+
+    pub fn write_excel_line_by_selected_fields_unchecked(
+        &mut self,
+        line: &[DataType],
+        cols: &[usize],
+        sep: &[u8],
+    ) {
+        if self
+            .write_excel_line_by_selected_fields(line, cols, sep)
+            .is_err()
+        {
             process::exit(0)
         }
     }

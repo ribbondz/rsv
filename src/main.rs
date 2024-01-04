@@ -791,6 +791,8 @@ fn main() {
                 match is_excel(&path) {
                     true => excel::search::run(
                         &path,
+                        &option.filter,
+                        &option.cols,
                         &option.sheet,
                         &option.pattern,
                         option.no_header,
@@ -809,7 +811,15 @@ fn main() {
                     .handle_err(),
                 }
             }
-            None => io::search::run(&option.pattern, option.no_header, option.export).handle_err(),
+            None => io::search::run(
+                &option.sep,
+                &option.filter,
+                &option.cols,
+                &option.pattern,
+                option.no_header,
+                option.export,
+            )
+            .handle_err(),
         },
         Commands::Sort(option) => match &option.filename {
             Some(f) => {
