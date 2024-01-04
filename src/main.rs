@@ -245,7 +245,7 @@ struct Flatten {
 #[derive(Debug, Args)]
 struct Clean {
     /// File to open
-    filename: String,
+    filename: Option<String>,
     /// Output file, default to current-file-cleaned.csv
     #[arg(short, long, default_value_t = String::from(""), hide_default_value=true)]
     output: String,
@@ -562,14 +562,16 @@ fn main() {
             }
             None => io::count::run(false).handle_err(),
         },
-        Commands::Clean(option) => {
-            let path = full_path(&option.filename);
-            if is_excel(&path) {
-                werr_exit!("Error: rsv clean does not support Excel files.")
-            } else {
-                csv::clean::run(&path, &option.escape, &option.output).handle_err()
+        Commands::Clean(option) => match &option.filename {
+            Some(f) => {
+                let path = full_path(f);
+                match is_excel(&path) {
+                    true => werr_exit!("Error: rsv clean does not support Excel files."),
+                    false => csv::clean::run(&path, &option.escape, &option.output).handle_err(),
+                }
             }
-        }
+            None => io::clean::run(&option.escape).handle_err(),
+        },
         Commands::Frequency(option) => match &option.filename {
             Some(f) => {
                 let path = full_path(f);

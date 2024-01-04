@@ -107,7 +107,7 @@ impl<'a> ExcelReader {
         self.range.rows()
     }
 
-    pub fn send_to_channel_in_line_chunks(self, tx: Sender<ExcelChunkTask>, size: Option<usize>) {
+    pub fn send_to_channel_by_chunk(self, tx: Sender<ExcelChunkTask>, size: Option<usize>) {
         let line_buffer_n = size.unwrap_or(1000);
         let mut lines = Vec::with_capacity(line_buffer_n);
         let mut n = 0;

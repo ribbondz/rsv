@@ -1,3 +1,4 @@
+pub mod clean;
 pub mod count;
 pub mod flatten;
 pub mod frequency;
