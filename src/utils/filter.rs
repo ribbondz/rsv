@@ -1,3 +1,4 @@
+use super::math_expr_parser::{CompiledExpr, AST};
 use crate::utils::util::werr_exit;
 use regex::Regex;
 use std::{
@@ -6,6 +7,7 @@ use std::{
     path::Path,
 };
 
+#[derive(Debug)]
 enum Op {
     Equal,
     NotEqual,
@@ -13,6 +15,19 @@ enum Op {
     Ge,
     Lt,
     Le,
+}
+
+impl Op {
+    fn evaluate(&self, a: f64, b: f64) -> bool {
+        match self {
+            Op::Equal => a == b,
+            Op::NotEqual => a != b,
+            Op::Gt => a > b,
+            Op::Ge => a >= b,
+            Op::Lt => a < b,
+            Op::Le => a <= b,
+        }
+    }
 }
 
 struct FilterItem {
@@ -23,6 +38,8 @@ struct FilterItem {
     str_value: String,
     f64_values: Vec<f64>,
     str_values: Vec<String>,
+    is_math_expr: bool,
+    ast: Box<CompiledExpr>,
 }
 
 pub struct Filter<'a> {
@@ -65,7 +82,7 @@ impl<'a> Filter<'a> {
     }
 
     pub fn is_empty(&self) -> bool {
-        self.filters.len() == 0
+        self.filters.is_empty()
     }
 
     pub fn total_col(mut self, total: usize) -> Self {
@@ -131,6 +148,11 @@ impl<'a> Filter<'a> {
         }
         let col = { self.true_col(&col) };
 
+        // check whether rhs is a math expr
+        // @1 or c1 represents first column
+        let is_math_expr = v[1].contains(['+', '*', '/', '%', '^', '(', '@', 'c'])
+            || v[1].rfind('-').unwrap_or(0) > 0;
+
         let mut item = FilterItem {
             col,
             is_numeric,
@@ -139,32 +161,52 @@ impl<'a> Filter<'a> {
             f64_values: vec![],
             str_value: String::new(),
             str_values: vec![],
+            is_math_expr,
+            ast: Box::new(AST::parse("")),
         };
 
-        // parse filter, the matching order is important
-        match is_numeric {
-            true => {
+        // parse filter, matching order is important
+        match (is_math_expr, is_numeric) {
+            (true, _) => {
+                item.op = if one.contains("!=") {
+                    Op::NotEqual
+                } else if one.contains(">=") {
+                    Op::Ge
+                } else if one.contains("<=") {
+                    Op::Le
+                } else if one.contains('=') {
+                    Op::Equal
+                } else if one.contains('>') {
+                    Op::Gt
+                } else if one.contains('<') {
+                    Op::Lt
+                } else {
+                    Op::NotEqual
+                };
+                item.ast = Box::new(AST::parse(v[1]));
+            }
+            (false, true) => {
                 if one.contains("!=") {
                     item.op = Op::NotEqual;
-                    item.f64_values = str_to_f64_vec(v[1]);
+                    item.f64_values = parse_f64_vec(v[1]);
                 } else if one.contains(">=") {
                     item.op = Op::Ge;
-                    item.f64_value = str_to_f64(v[1]);
+                    item.f64_value = parse_f64(v[1]);
                 } else if one.contains("<=") {
                     item.op = Op::Le;
-                    item.f64_value = str_to_f64(v[1]);
+                    item.f64_value = parse_f64(v[1]);
                 } else if one.contains('=') {
                     item.op = Op::Equal;
-                    item.f64_values = str_to_f64_vec(v[1]);
+                    item.f64_values = parse_f64_vec(v[1]);
                 } else if one.contains('>') {
                     item.op = Op::Gt;
-                    item.f64_value = str_to_f64(v[1]);
+                    item.f64_value = parse_f64(v[1]);
                 } else if one.contains('<') {
                     item.op = Op::Lt;
-                    item.f64_value = str_to_f64(v[1]);
+                    item.f64_value = parse_f64(v[1]);
                 }
             }
-            false => {
+            (false, false) => {
                 if one.contains("!=") {
                     item.op = Op::NotEqual;
                     item.str_values = v[1].split(',').map(String::from).collect::<Vec<_>>();
@@ -220,13 +262,13 @@ impl<'a> Filter<'a> {
     }
 }
 
-fn str_to_f64(s: &str) -> f64 {
+pub fn parse_f64(s: &str) -> f64 {
     s.parse::<f64>().unwrap_or_else(|_| {
         werr_exit!("Error: <{s}> is not a valid number, run <rsv select -h> for help.");
     })
 }
 
-fn str_to_f64_vec(s: &str) -> Vec<f64> {
+fn parse_f64_vec(s: &str) -> Vec<f64> {
     s.split(',')
         .map(|i| {
             i.parse::<f64>().unwrap_or_else(|_| {
@@ -238,43 +280,46 @@ fn str_to_f64_vec(s: &str) -> Vec<f64> {
 
 impl FilterItem {
     fn record_is_valid<T: AsRef<str>>(&self, row: &[T]) -> bool {
-        match (&self.op, self.is_numeric) {
-            (Op::Equal, true) => match row[self.col].as_ref().parse::<f64>() {
+        match (self.is_math_expr, self.is_numeric, &self.op) {
+            (true, _, _) => match row[self.col].as_ref().parse::<f64>() {
+                Ok(v) => match self.ast.max_column() {
+                    0 => self.op.evaluate(v, self.ast.evaluate(None)),
+                    _ => {
+                        let f64_vec: Vec<f64> = (0..=self.ast.max_column())
+                            .map(|i| match self.ast.contains_column(&i) {
+                                true => parse_f64(row[i].as_ref()),
+                                false => 0.0,
+                            })
+                            .collect();
+                        self.op.evaluate(v, self.ast.evaluate(Some(&f64_vec)))
+                    }
+                },
+                Err(_) => false,
+            },
+            (false, true, Op::Equal) => match row[self.col].as_ref().parse::<f64>() {
                 Ok(v) => self.f64_values.contains(&v),
                 Err(_) => false,
             },
-            (Op::NotEqual, true) => match row[self.col].as_ref().parse::<f64>() {
+            (false, true, Op::NotEqual) => match row[self.col].as_ref().parse::<f64>() {
                 Ok(v) => !self.f64_values.contains(&v),
                 Err(_) => true,
             },
-            (Op::Ge, true) => match row[self.col].as_ref().parse::<f64>() {
-                Ok(v) => v >= self.f64_value,
+            (false, true, _) => match row[self.col].as_ref().parse::<f64>() {
+                Ok(v) => self.op.evaluate(v, self.f64_value),
                 Err(_) => false,
             },
-            (Op::Gt, true) => match row[self.col].as_ref().parse::<f64>() {
-                Ok(v) => v > self.f64_value,
-                Err(_) => false,
-            },
-            (Op::Le, true) => match row[self.col].as_ref().parse::<f64>() {
-                Ok(v) => v <= self.f64_value,
-                Err(_) => false,
-            },
-            (Op::Lt, true) => match row[self.col].as_ref().parse::<f64>() {
-                Ok(v) => v < self.f64_value,
-                Err(_) => false,
-            },
-            (Op::Equal, false) => self
+            (false, false, Op::Equal) => self
                 .str_values
                 .iter()
                 .any(|i| i.as_str() == row[self.col].as_ref()),
-            (Op::NotEqual, false) => !self
+            (false, false, Op::NotEqual) => !self
                 .str_values
                 .iter()
                 .any(|i| i.as_str() == row[self.col].as_ref()),
-            (Op::Ge, false) => row[self.col].as_ref() >= &self.str_value,
-            (Op::Gt, false) => row[self.col].as_ref() > &self.str_value,
-            (Op::Le, false) => row[self.col].as_ref() <= &self.str_value,
-            (Op::Lt, false) => row[self.col].as_ref() < &self.str_value,
+            (false, false, Op::Ge) => row[self.col].as_ref() >= &self.str_value,
+            (false, false, Op::Gt) => row[self.col].as_ref() > &self.str_value,
+            (false, false, Op::Le) => row[self.col].as_ref() <= &self.str_value,
+            (false, false, Op::Lt) => row[self.col].as_ref() < &self.str_value,
         }
     }
 }

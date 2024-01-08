@@ -1,4 +1,4 @@
-use std::env::current_exe;
+use std::env::{consts::OS, current_exe};
 
 pub fn rsv() -> String {
     let mut p = current_exe().unwrap();
@@ -10,7 +10,11 @@ pub fn rsv() -> String {
 
     p.push("target");
     p.push("release");
-    p.push("rsv.exe");
+    if OS == "macos" {
+        p.push("rsv");
+    } else {
+        p.push("rsv.exe");
+    }
 
     // println!("file path: {}", p.display());
     p.to_str().unwrap().to_owned()

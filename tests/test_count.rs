@@ -11,7 +11,7 @@ fn count(file: &str, no_header: bool, io: bool) -> Option<usize> {
         (false, true) => format!("{rsv} slice -l 10 {file} | {rsv} count"),
     };
 
-    // println!("111111 {:?}", cmd);
+    println!("111111 {:?}", cmd);
     let mut cmd = shell(cmd);
     let output = cmd.output().unwrap();
 
@@ -26,7 +26,9 @@ fn count(file: &str, no_header: bool, io: bool) -> Option<usize> {
 
 #[test]
 fn test_count_csv_header() {
-    let n = count(&data_path("hotel_reservation.csv"), false, false).unwrap();
+    let p = data_path("hotel_reservation.csv");
+    dbg!(&p);
+    let n = count(&p, false, false).unwrap();
     assert_eq!(n, 36275);
 }
 
