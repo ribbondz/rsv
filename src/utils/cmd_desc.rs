@@ -264,10 +264,12 @@ are listed as below. Output can be exported with the --export flag.
 
 Usage: 
   rsv.exe select [OPTIONS] <FILENAME>
-  rsv select -f 0=a,b,c data.csv      # first column has values of a, b, or c
-  rsv select -f \"0N>10&1=c\" data.csv  # first column > 10 numerically, AND the second column equals c
-  rsv select -f 0!= --export data.csv # export result, in which the first column is non-empty
-  rsv select -f 0=a,b data.xlsx       # apply to EXCEL file
+  rsv select -f 0=a,b,c data.csv          # first column has values of a, b, or c
+  rsv select -f \"0N>10&1=c\" data.csv      # first column > 10 numerically, AND the second column equals c
+  rsv select -f 0!= --export data.csv     # export result, in which the first column is non-empty
+  rsv select -f 0=a,b data.xlsx           # apply to EXCEL file
+  rsv select -f \"0>@1-10*(@3+2)\" data.csv # math calculation based on column 2 (@1) and column 4 (@3)
+                                          # left column is treated as numeric automatically
 
 Arguments:
   <FILENAME>  File to open
@@ -288,6 +290,10 @@ Filter syntax, support =, !=, >, >=, <, <= and &:
   -f \"0>=2022-01-21\"   -->  first column equal to or bigger than 2022-01-21, lexicographically
   -f \"0N>10\"           -->  first column > 10 numerically
   -f \"0N>10&2=pattern\" -->  first column > 10 numerically, AND the third column equals to <pattern>
+  
+Math express syntax (support +, -, *, /, %, ^, (, )):
+-f \"0>@1 + 1\"        -->  first column > second column plus one
+-f \"0>=(@1+1)/(2^2)\" -->  first column >= (second column + 1) / (2 ^ 2)
 
 Column selection syntax:
   -c 0,1,2,5         -->  cols [0,1,2,5]
@@ -356,6 +362,7 @@ The command reads file in chunks and processes a chunk in parallel based on Rayo
 Usage: 
   rsv.exe search [OPTIONS] <PATTERN> <FILENAME>
   rsv search PATTERN data.csv                     # regex search a PATTERN
+  rsv search -f 0,1 PATTERN data.xlsx             # search the first two columns
   rsv search \"^\\d{4}-\\d{2}-\\d{2}$\" data.csv       # regex search dates
   rsv search --export PATTERN data.csv            # export result
   rsv search PATTERN data.xlsx                    # search EXCEL file

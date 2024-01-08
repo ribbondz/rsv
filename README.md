@@ -161,6 +161,8 @@ rsv split --help                  # help info on all flags
 rsv select -f 0=a,b,c data.csv          # first column has values of a, b, or c
 rsv select -f 0=a,b,c data.xlsx         # EXCEL file, sheet can be specified with the --sheet flag
 rsv select -f "0N>10&1=c" data.csv      # first column > 10 numerically, AND the second column equals c
+rsv select -f "0>@1-10*(@3+2)" data.csv # math calculation based on column 2 (@1) and column 4 (@3)
+                                        # left column is treated as numeric automatically
 rsv select -f 0!= --export data.csv     # export result, in which the first column is non-empty
 rsv select --help                       # help info on other options
 
@@ -172,9 +174,16 @@ Filter syntax, support =, !=, >, >=, <, <= and &:
 -f "0N>10"           -->  first column > 10 numerically
 -f "0N>10&2=pattern" -->  first column > 10 numerically, AND the third column equals to <pattern>
 
+Math express syntax (support +, -, *, /, %, ^, (, )):
+-f "0>@1 + 1"        -->  first column > second column plus one
+-f "0>=(@1+1)/(2^2)" -->  first column >= (second column + 1) / (2 ^ 2)
+
 NOTE: 1. only & (AND) operation is supported, | (OR) operation is not supported;
       2. quotes are needed when the filter contains special chars, e.g., &, > or <;
       3. The filter option can be omitted to select all rows.
+      4. The filter supports math expression calculation, where @ is used to refer to a column.
+         Math expression can only be provided on the RIGHT SIDE. Left side column is treated
+         automatically as a numeric column.
 
 column selection syntax:
 -c 0,1,2,5   -->    cols [0,1,2,5]

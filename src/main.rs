@@ -19,7 +19,7 @@ mod utils;
 #[derive(Parser)]
 #[command(name = "rsv")]
 #[command(author = "ribbondz@163.com")]
-#[command(version = "0.4.10")]
+#[command(version = "0.4.11")]
 #[command(
     about = "A Rust command line tool to parse small and large (>10G) CSV, TXT, and EXCEL files."
 )]
