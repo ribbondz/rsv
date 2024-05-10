@@ -1,5 +1,6 @@
 use super::{cli_result::CliResult, constants::TERMINATOR};
-use calamine::DataType;
+use calamine::Data;
+use chrono::Timelike;
 use std::{
     fs::{File, OpenOptions},
     io::{stdout, BufWriter, Error, Write},
@@ -154,10 +155,22 @@ impl Writer {
         }
     }
 
-    pub fn write_excel_line(&mut self, line: &[DataType], sep: &[u8]) -> CliResult {
+    pub fn write_excel_line(&mut self, line: &[Data], sep: &[u8]) -> CliResult {
         let mut l = line.iter().peekable();
         while let Some(f) = l.next() {
-            write!(&mut self.0, "{}", f)?;
+            match f {
+                Data::DateTime(v) => {
+                    if let Some(a) = v.as_datetime() {
+                        if a.hour() == 0 && a.minute() == 0 && a.second() == 0 {
+                            write!(&mut self.0, "{}", a.format("%Y-%m-%d"))?
+                        } else {
+                            write!(&mut self.0, "{}", a.format("%Y-%m-%d %H:%M:%S"))?
+                        }
+                    };
+                }
+                _ => write!(&mut self.0, "{}", f)?,
+            }
+
             if l.peek().is_some() {
                 self.0.write_all(sep)?;
             } else {
@@ -168,7 +181,7 @@ impl Writer {
         Ok(())
     }
 
-    pub fn write_excel_line_unchecked(&mut self, line: &[DataType], sep: &[u8]) {
+    pub fn write_excel_line_unchecked(&mut self, line: &[Data], sep: &[u8]) {
         if self.write_excel_line(line, sep).is_err() {
             process::exit(0)
         }
@@ -176,7 +189,7 @@ impl Writer {
 
     pub fn write_excel_selected_fields(
         &mut self,
-        line: &[DataType],
+        line: &[Data],
         cols: &[usize],
         sep: &[u8],
     ) -> CliResult {
@@ -195,7 +208,7 @@ impl Writer {
 
     pub fn write_excel_selected_fields_unchecked(
         &mut self,
-        line: &[DataType],
+        line: &[Data],
         cols: &[usize],
         sep: &[u8],
     ) {
@@ -204,14 +217,14 @@ impl Writer {
         }
     }
 
-    pub fn write_excel_lines(&mut self, lines: &[Vec<DataType>], sep: &[u8]) -> CliResult {
+    pub fn write_excel_lines(&mut self, lines: &[Vec<Data>], sep: &[u8]) -> CliResult {
         for l in lines {
             self.write_excel_line(l, sep)?;
         }
         Ok(())
     }
 
-    pub fn write_excel_lines_by_ref(&mut self, lines: &[&Vec<DataType>], sep: &[u8]) -> CliResult {
+    pub fn write_excel_lines_by_ref(&mut self, lines: &[&Vec<Data>], sep: &[u8]) -> CliResult {
         for &l in lines {
             self.write_excel_line(l, sep)?;
         }

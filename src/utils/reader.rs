@@ -1,5 +1,5 @@
 use crate::utils::util::werr_exit;
-use calamine::{open_workbook_auto, DataType, Range, Reader, Rows};
+use calamine::{open_workbook_auto, Data, Range, Reader, Rows};
 use crossbeam_channel::Sender;
 use std::error::Error;
 use std::io::stdin;
@@ -66,12 +66,12 @@ impl ChunkReader {
 }
 
 pub struct ExcelReader {
-    range: Range<DataType>,
+    range: Range<Data>,
     pub next_called: usize,
 }
 
 pub struct ExcelChunkTask {
-    pub lines: Vec<Vec<DataType>>,
+    pub lines: Vec<Vec<Data>>,
     pub n: usize,
     pub chunk: usize,
 }
@@ -98,12 +98,12 @@ impl<'a> ExcelReader {
         self.range.get_size().1
     }
 
-    pub fn next(&mut self) -> Option<&[DataType]> {
+    pub fn next(&mut self) -> Option<&[Data]> {
         self.next_called += 1;
         self.range.rows().next()
     }
 
-    pub fn iter(&'a self) -> Rows<'a, DataType> {
+    pub fn iter(&'a self) -> Rows<'a, Data> {
         self.range.rows()
     }
 

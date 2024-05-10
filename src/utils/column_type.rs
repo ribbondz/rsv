@@ -1,6 +1,6 @@
 use super::{cli_result::CliResult, column::Columns, reader::ExcelReader, util::is_null};
 use crate::utils::column;
-use calamine::DataType;
+use calamine::{Data, DataType};
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 use std::{
     error::Error,
@@ -144,7 +144,7 @@ fn parse_col_type_at(n: usize, v: &[Vec<&str>]) -> ColumnType {
     ctype
 }
 
-fn parse_excel_col_type_at(n: usize, v: &[&[DataType]]) -> ColumnType {
+fn parse_excel_col_type_at(n: usize, v: &[&[Data]]) -> ColumnType {
     let mut ctype = ColumnType::Null;
     for &r in v {
         if ctype.is_string() {
@@ -211,7 +211,7 @@ impl ColumnType {
         }
     }
 
-    pub fn update_by_excel_cell(&mut self, f: &DataType) {
+    pub fn update_by_excel_cell(&mut self, f: &Data) {
         match self {
             ColumnType::Null => {
                 *self = if f.is_int() {

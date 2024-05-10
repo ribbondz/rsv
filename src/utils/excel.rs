@@ -1,20 +1,20 @@
-use calamine::DataType;
+use calamine::Data;
 use std::{borrow::Cow, fmt::Write};
 
 // pub fn datatype_vec_to_string_vec(data: &[DataType]) -> Vec<String> {
 //     data.iter().map(|i| i.to_string()).collect()
 // }
 
-pub fn datatype_vec_to_string_vec(data: &[DataType]) -> Vec<Cow<str>> {
+pub fn datatype_vec_to_string_vec(data: &[Data]) -> Vec<Cow<str>> {
     data.iter()
         .map(|i| match i {
-            DataType::String(s) => Cow::Borrowed(s.as_str()),
+            Data::String(s) => Cow::Borrowed(s.as_str()),
             _ => Cow::from(i.to_string()),
         })
         .collect()
 }
 
-pub fn datatype_vec_to_string(data: &[DataType]) -> String {
+pub fn datatype_vec_to_string(data: &[Data]) -> String {
     let mut o = String::new();
     let mut iter = data.iter().peekable();
     while let Some(i) = iter.next() {
@@ -26,17 +26,16 @@ pub fn datatype_vec_to_string(data: &[DataType]) -> String {
     o
 }
 
-pub fn write_datatype_to_string(s: &mut String, d: &DataType) {
+pub fn write_datatype_to_string(s: &mut String, d: &Data) {
     let _ = match d {
-        DataType::String(v) => write!(s, "{}", v),
-        DataType::Float(v) => write!(s, "{}", v),
-        DataType::Int(v) => write!(s, "{}", v),
-        DataType::Bool(v) => write!(s, "{}", v),
-        DataType::DateTime(v) => write!(s, "{}", v),
-        DataType::DateTimeIso(v) => write!(s, "{}", v),
-        DataType::Duration(v) => write!(s, "{}", v),
-        DataType::DurationIso(v) => write!(s, "{}", v),
-        DataType::Error(v) => write!(s, "{}", v),
-        DataType::Empty => Ok(()),
+        Data::String(v) => write!(s, "{}", v),
+        Data::Float(v) => write!(s, "{}", v),
+        Data::Int(v) => write!(s, "{}", v),
+        Data::Bool(v) => write!(s, "{}", v),
+        Data::DateTime(v) => write!(s, "{}", v),
+        Data::DateTimeIso(v) => write!(s, "{}", v),
+        Data::DurationIso(v) => write!(s, "{}", v),
+        Data::Error(v) => write!(s, "{}", v),
+        Data::Empty => Ok(()),
     };
 }

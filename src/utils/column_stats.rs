@@ -3,7 +3,7 @@ use super::{
     util,
 };
 use ahash::HashSet;
-use calamine::DataType;
+use calamine::Data;
 use rayon::prelude::*;
 use std::fmt::Display;
 use tabled::{builder::Builder, settings::Style, Table};
@@ -89,7 +89,7 @@ impl ColumnStats {
         self.parse_line_by_fields(&v);
     }
 
-    pub fn parse_excel_row(&mut self, v: &[DataType]) {
+    pub fn parse_excel_row(&mut self, v: &[Data]) {
         if self.max_col >= v.len() {
             println!("[info] ignore a bad line: {v:?}");
             return;
@@ -98,7 +98,7 @@ impl ColumnStats {
         self.cols.iter().zip(&mut self.stat).for_each(|(&i, c)| {
             let t = &v[i];
             match t {
-                DataType::String(v) => c.parse(v),
+                Data::String(v) => c.parse(v),
                 _ => c.parse(&t.to_string()),
             };
         });

@@ -1,6 +1,6 @@
 use super::excel::write_datatype_to_string;
 use crate::utils::util::werr_exit;
-use calamine::DataType;
+use calamine::Data;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
@@ -169,7 +169,7 @@ impl<'a> Columns<'a> {
         self.iter().map(|&i| all[i]).collect::<Vec<_>>().join(",")
     }
 
-    pub fn select_owned_string_from_excel_datatype(&self, all: &[DataType]) -> String {
+    pub fn select_owned_string_from_excel_datatype(&self, all: &[Data]) -> String {
         let mut o = String::new();
         let mut col = self.cols.iter().peekable();
         while let Some(&i) = col.next() {
@@ -182,7 +182,7 @@ impl<'a> Columns<'a> {
         o
     }
 
-    pub fn select_owned_vec_from_excel_datatype(&self, all: &[DataType]) -> Vec<String> {
+    pub fn select_owned_vec_from_excel_datatype(&self, all: &[Data]) -> Vec<String> {
         self.cols
             .iter()
             .map(|&i| all[i].to_string())

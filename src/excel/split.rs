@@ -6,7 +6,7 @@ use crate::utils::progress::Progress;
 use crate::utils::reader::{ExcelChunkTask, ExcelReader};
 use crate::utils::util::{datetime_str, werr_exit};
 use crate::utils::writer::Writer;
-use calamine::DataType;
+use calamine::Data;
 use crossbeam_channel::bounded;
 use dashmap::DashMap;
 use rayon::prelude::*;
@@ -146,7 +146,7 @@ fn task_handle(
 fn save_to_disk(
     dir: &Path,
     field: &str,
-    rows: &[&Vec<DataType>],
+    rows: &[&Vec<Data>],
     no_header: bool,
     header_inserted: &DashMap<String, bool>,
     first_row: &str,
