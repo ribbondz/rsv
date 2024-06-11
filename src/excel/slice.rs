@@ -1,54 +1,48 @@
+use crate::args::Slice;
 use crate::utils::cli_result::CliResult;
 use crate::utils::constants::COMMA;
 use crate::utils::filename::new_path;
 use crate::utils::reader::ExcelReader;
 use crate::utils::util::werr_exit;
 use crate::utils::writer::Writer;
-use std::path::Path;
 
-#[allow(clippy::too_many_arguments)]
-pub fn run(
-    path: &Path,
-    sheet: usize,
-    no_header: bool,
-    start: usize,
-    end: Option<usize>,
-    length: Option<usize>,
-    index: Option<usize>,
-    export: bool,
-) -> CliResult {
-    // out file
-    let out = new_path(path, "-slice").with_extension("csv");
+impl Slice {
+    pub fn excel_run(&self) -> CliResult {
+        let path = &self.path();
+        // out file
+        let out = new_path(path, "-slice").with_extension("csv");
 
-    // open file
-    let mut wtr = Writer::file_or_stdout(export, &out)?;
-    let mut rdr = ExcelReader::new(path, sheet)?;
+        // open file
+        let mut wtr = Writer::file_or_stdout(self.export, &out)?;
+        let mut rdr = ExcelReader::new(path, self.sheet)?;
 
-    // header
-    if !no_header {
-        let Some(r) = rdr.next() else { return Ok(()) };
-        wtr.write_excel_line_unchecked(r, COMMA)
-    }
-
-    // slice
-    match index {
-        Some(index) => write_by_index(&mut rdr, &mut wtr, index),
-        None => {
-            let end = end
-                .or_else(|| length.map(|l| start + l))
-                .unwrap_or(usize::MAX - 10);
-            if start > end {
-                werr_exit!("Error: end index should be equal to or bigger than start index.");
-            }
-            write_by_range(&mut rdr, &mut wtr, start, end);
+        // header
+        if !self.no_header {
+            let Some(r) = rdr.next() else { return Ok(()) };
+            wtr.write_excel_line_unchecked(r, COMMA)
         }
-    }
 
-    if export {
-        println!("Saved to file: {}", out.display())
-    }
+        // slice
+        match self.index {
+            Some(index) => write_by_index(&mut rdr, &mut wtr, index),
+            None => {
+                let end = self
+                    .end
+                    .or_else(|| self.length.map(|l| self.start + l))
+                    .unwrap_or(usize::MAX - 10);
+                if self.start > end {
+                    werr_exit!("Error: end index should be equal to or bigger than start index.");
+                }
+                write_by_range(&mut rdr, &mut wtr, self.start, end);
+            }
+        }
 
-    Ok(())
+        if self.export {
+            println!("Saved to file: {}", out.display())
+        }
+
+        Ok(())
+    }
 }
 
 fn write_by_index(rdr: &mut ExcelReader, wtr: &mut Writer, index: usize) {

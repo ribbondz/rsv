@@ -1,13 +1,20 @@
-use crate::utils::{cli_result::CliResult, reader::IoReader, table::Table};
+use crate::{
+    args::Table,
+    utils::{cli_result::CliResult, reader::IoReader, table::Table as T, util::valid_sep},
+};
 
-pub fn run(sep: &str) -> CliResult {
-    let lines = IoReader::new().lines();
-    let lines = lines
-        .iter()
-        .map(|r| r.split(sep).collect::<Vec<_>>())
-        .collect::<Vec<_>>();
+impl Table {
+    pub fn io_run(&self) -> CliResult {
+        let sep = valid_sep(&self.sep);
 
-    Table::from_records(lines).print_blank()?;
+        let lines = IoReader::new().lines();
+        let lines = lines
+            .iter()
+            .map(|r| r.split(&sep).collect::<Vec<_>>())
+            .collect::<Vec<_>>();
 
-    Ok(())
+        T::from_records(lines).print_blank()?;
+
+        Ok(())
+    }
 }

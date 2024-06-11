@@ -1,3 +1,4 @@
+use crate::args::Unique;
 use crate::utils::cli_result::CliResult;
 use crate::utils::column::Columns;
 use crate::utils::constants::COMMA;
@@ -5,49 +6,44 @@ use crate::utils::excel::datatype_vec_to_string;
 use crate::utils::filename::new_path;
 use crate::utils::reader::ExcelReader;
 use crate::utils::writer::Writer;
-use std::path::Path;
 
-pub fn run(
-    path: &Path,
-    sheet: usize,
-    no_header: bool,
-    cols: &str,
-    keep_last: bool,
-    export: bool,
-) -> CliResult {
-    let all_cols = cols == "-1";
+impl Unique {
+    pub fn excel_run(&self) -> CliResult {
+        let path = &self.path();
+        let all_cols = self.cols == "-1";
 
-    // wtr and rdr
-    let out = new_path(path, "-drop-duplicates").with_extension("csv");
-    let mut wtr = Writer::file_or_stdout(export, &out)?;
-    let mut rdr = ExcelReader::new(path, sheet)?;
+        // wtr and rdr
+        let out = new_path(path, "-drop-duplicates").with_extension("csv");
+        let mut wtr = Writer::file_or_stdout(self.export, &out)?;
+        let mut rdr = ExcelReader::new(path, self.sheet)?;
 
-    // cols
-    let cols = if all_cols {
-        None
-    } else {
-        Some(Columns::new(cols).total_col(rdr.column_n()).parse())
-    };
+        // cols
+        let cols = if all_cols {
+            None
+        } else {
+            Some(Columns::new(&self.cols).total_col(rdr.column_n()).parse())
+        };
 
-    // header
-    if !no_header {
-        let Some(r) = rdr.next() else { return Ok(()) };
-        wtr.write_excel_line_unchecked(r, COMMA);
+        // header
+        if !self.no_header {
+            let Some(r) = rdr.next() else { return Ok(()) };
+            wtr.write_excel_line_unchecked(r, COMMA);
+        }
+
+        // read
+        match (self.keep_last, all_cols) {
+            (true, true) => keep_last_and_all_cols(&mut rdr, &mut wtr)?,
+            (true, false) => keep_last_and_partial_cols(&mut rdr, &mut wtr, cols.unwrap())?,
+            (false, true) => keep_first_and_all_cols(&mut rdr, &mut wtr)?,
+            (false, false) => keep_first_and_partial_cols(&mut rdr, &mut wtr, cols.unwrap())?,
+        }
+
+        if self.export {
+            println!("\nSaved to file: {}", out.display())
+        }
+
+        Ok(())
     }
-
-    // read
-    match (keep_last, all_cols) {
-        (true, true) => keep_last_and_all_cols(&mut rdr, &mut wtr)?,
-        (true, false) => keep_last_and_partial_cols(&mut rdr, &mut wtr, cols.unwrap())?,
-        (false, true) => keep_first_and_all_cols(&mut rdr, &mut wtr)?,
-        (false, false) => keep_first_and_partial_cols(&mut rdr, &mut wtr, cols.unwrap())?,
-    }
-
-    if export {
-        println!("\nSaved to file: {}", out.display())
-    }
-
-    Ok(())
 }
 
 fn keep_first_and_all_cols(rdr: &mut ExcelReader, wtr: &mut Writer) -> CliResult {

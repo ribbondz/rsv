@@ -1,50 +1,47 @@
+use crate::args::Slice;
 use crate::utils::cli_result::CliResult;
 use crate::utils::filename::new_path;
 use crate::utils::writer::Writer;
 use std::fs::File;
 use std::io::BufRead;
 use std::io::BufReader;
-use std::path::Path;
 
-pub fn run(
-    path: &Path,
-    no_header: bool,
-    start: usize,
-    end: Option<usize>,
-    length: Option<usize>,
-    index: Option<usize>,
-    export: bool,
-) -> CliResult {
-    // wtr and rdr
-    let out = new_path(path, "-slice");
-    let mut wtr = Writer::file_or_stdout(export, &out)?;
-    let mut rdr = BufReader::new(File::open(path)?);
+impl Slice {
+    pub fn csv_run(&self) -> CliResult {
+        let path = &self.path();
 
-    // header
-    if !no_header {
-        let mut buf = vec![];
-        let Ok(_) = rdr.read_until(b'\n', &mut buf) else {
-            return Ok(());
-        };
-        wtr.write_bytes_unchecked(&buf);
-    }
+        // wtr and rdr
+        let out = new_path(path, "-slice");
+        let mut wtr = Writer::file_or_stdout(self.export, &out)?;
+        let mut rdr = BufReader::new(File::open(path)?);
 
-    // slice
-    match index {
-        Some(index) => write_by_index(&mut rdr, &mut wtr, index),
-        None => {
-            let e = end
-                .or_else(|| length.map(|l| start + l))
-                .unwrap_or(usize::MAX - 10);
-            write_by_range(&mut rdr, &mut wtr, start, e);
+        // header
+        if !self.no_header {
+            let mut buf = vec![];
+            let Ok(_) = rdr.read_until(b'\n', &mut buf) else {
+                return Ok(());
+            };
+            wtr.write_bytes_unchecked(&buf);
         }
-    }
 
-    if export {
-        println!("Saved to file: {}", out.display())
-    }
+        // slice
+        match self.index {
+            Some(index) => write_by_index(&mut rdr, &mut wtr, index),
+            None => {
+                let e = self
+                    .end
+                    .or_else(|| self.length.map(|l| self.start + l))
+                    .unwrap_or(usize::MAX - 10);
+                write_by_range(&mut rdr, &mut wtr, self.start, e);
+            }
+        }
 
-    Ok(())
+        if self.export {
+            println!("Saved to file: {}", out.display())
+        }
+
+        Ok(())
+    }
 }
 
 fn write_by_index(rdr: &mut BufReader<File>, wtr: &mut Writer, index: usize) {

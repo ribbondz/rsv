@@ -1,21 +1,27 @@
-use crate::utils::{cli_result::CliResult, table::Table};
+use crate::{
+    args::Table,
+    utils::{cli_result::CliResult, table::Table as T, util::valid_sep},
+};
 use std::{
     fs::File,
     io::{BufRead, BufReader},
-    path::Path,
 };
 
-pub fn run(path: &Path, sep: &str) -> CliResult {
-    // rdr
-    let rdr = BufReader::new(File::open(path)?);
+impl Table {
+    pub fn csv_run(&self) -> CliResult {
+        let sep = valid_sep(&self.sep);
 
-    let rows = rdr
-        .lines()
-        .filter_map(|r| r.ok())
-        .map(|r| r.split(sep).map(String::from).collect::<Vec<_>>())
-        .collect::<Vec<_>>();
+        // rdr
+        let rdr = BufReader::new(File::open(&self.path())?);
 
-    Table::from_records(rows).print_blank()?;
+        let rows = rdr
+            .lines()
+            .filter_map(|r| r.ok())
+            .map(|r| r.split(&sep).map(String::from).collect::<Vec<_>>())
+            .collect::<Vec<_>>();
 
-    Ok(())
+        T::from_records(rows).print_blank()?;
+
+        Ok(())
+    }
 }

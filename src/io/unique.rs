@@ -1,49 +1,58 @@
+use crate::args::Unique;
 use crate::utils::cli_result::CliResult;
 use crate::utils::column::Columns;
 use crate::utils::filename::new_file;
 use crate::utils::reader::IoReader;
+use crate::utils::util::valid_sep;
 use crate::utils::writer::Writer;
 
-pub fn run(no_header: bool, sep: &str, cols: &str, keep_last: bool, export: bool) -> CliResult {
-    let all_cols = cols == "-1";
+impl Unique {
+    pub fn io_run(&self) -> CliResult {
+        let sep = valid_sep(&self.sep);
+        let all_cols = self.cols == "-1";
 
-    // wtr and rdr
-    let out = new_file("drop_duplicates.csv");
-    let mut wtr = Writer::file_or_stdout(export, &out)?;
-    let lines = IoReader::new().no_header(no_header).lines();
+        // wtr and rdr
+        let out = new_file("drop_duplicates.csv");
+        let mut wtr = Writer::file_or_stdout(self.export, &out)?;
+        let lines = IoReader::new().no_header(self.no_header).lines();
 
-    if lines.is_empty() {
-        return Ok(());
+        if lines.is_empty() {
+            return Ok(());
+        }
+
+        // cols
+        let cols = if all_cols {
+            None
+        } else {
+            let n = lines[0].split(&sep).count();
+            Some(Columns::new(&self.cols).total_col(n).parse())
+        };
+
+        // header
+        if !self.no_header {
+            wtr.write_str_unchecked(&lines[0]);
+        }
+
+        let lines = if self.no_header {
+            &lines[..]
+        } else {
+            &lines[1..]
+        };
+
+        // read
+        match (self.keep_last, all_cols) {
+            (true, true) => keep_last_and_all_cols(lines, &mut wtr)?,
+            (true, false) => keep_last_and_partial_cols(lines, &mut wtr, cols.unwrap(), &sep)?,
+            (false, true) => keep_first_and_all_cols(lines, &mut wtr)?,
+            (false, false) => keep_first_and_partial_cols(lines, &mut wtr, cols.unwrap(), &sep)?,
+        }
+
+        if self.export {
+            println!("\nSaved to file: {}", out.display())
+        }
+
+        Ok(())
     }
-
-    // cols
-    let cols = if all_cols {
-        None
-    } else {
-        let n = lines[0].split(sep).count();
-        Some(Columns::new(cols).total_col(n).parse())
-    };
-
-    // header
-    if !no_header {
-        wtr.write_str_unchecked(&lines[0]);
-    }
-
-    let lines = if no_header { &lines[..] } else { &lines[1..] };
-
-    // read
-    match (keep_last, all_cols) {
-        (true, true) => keep_last_and_all_cols(lines, &mut wtr)?,
-        (true, false) => keep_last_and_partial_cols(lines, &mut wtr, cols.unwrap(), sep)?,
-        (false, true) => keep_first_and_all_cols(lines, &mut wtr)?,
-        (false, false) => keep_first_and_partial_cols(lines, &mut wtr, cols.unwrap(), sep)?,
-    }
-
-    if export {
-        println!("\nSaved to file: {}", out.display())
-    }
-
-    Ok(())
 }
 
 fn keep_first_and_all_cols(rdr: &[String], wtr: &mut Writer) -> CliResult {

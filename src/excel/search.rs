@@ -1,3 +1,4 @@
+use crate::args::Search;
 use crate::utils::cli_result::CliResult;
 use crate::utils::column::Columns;
 use crate::utils::constants::COMMA;
@@ -10,7 +11,6 @@ use calamine::{open_workbook_auto, Reader, Sheets};
 use std::error::Error;
 use std::fs::File;
 use std::io::BufReader;
-use std::path::Path;
 
 struct Args<'a> {
     sheet: usize,
@@ -25,46 +25,42 @@ struct Args<'a> {
     workbook: Sheets<BufReader<File>>,
 }
 
-pub fn run(
-    path: &Path,
-    filter: &str,
-    cols: &str,
-    sheet: &str,
-    pattern: &str,
-    no_header: bool,
-    export: bool,
-) -> CliResult {
-    // wtr and rdr
-    let out = new_path(path, "-searched").with_extension("csv");
-    let wtr = Writer::file_or_stdout(export, &out)?;
+impl Search {
+    pub fn excel_run(&self) -> CliResult {
+        let path = &self.path();
 
-    // regex search
-    let mut args = Args {
-        sheet: 0,
-        cols_raw: cols,
-        cols: Columns::new(cols),
-        filter_raw: filter,
-        filter: Columns::new(filter),
-        no_header,
-        wtr,
-        re: Re::new(pattern)?,
-        matched: 0,
-        workbook: open_workbook_auto(path)?,
-    };
+        // wtr and rdr
+        let out = new_path(path, "-searched").with_extension("csv");
+        let wtr = Writer::file_or_stdout(self.export, &out)?;
 
-    if sheet == "all" {
-        args.search_all()?
-    } else {
-        args.parse_sheet(sheet);
-        args.search_one()?
-    };
+        // regex search
+        let mut args = Args {
+            sheet: 0,
+            cols_raw: &self.cols,
+            cols: Columns::new(&self.cols),
+            filter_raw: &self.filter,
+            filter: Columns::new(&self.filter),
+            no_header: self.no_header,
+            wtr,
+            re: Re::new(&self.pattern)?,
+            matched: 0,
+            workbook: open_workbook_auto(path)?,
+        };
 
-    if export {
-        println!("Matched rows: {}", args.matched);
-        println!("Saved to file: {}", out.display());
+        if self.sheet == "all" {
+            args.search_all()?
+        } else {
+            args.parse_sheet(&self.sheet);
+            args.search_one()?
+        };
+
+        if self.export {
+            println!("Matched rows: {}", args.matched);
+            println!("Saved to file: {}", out.display());
+        }
+
+        Ok(())
     }
-
-    Ok(())
 }
 
 impl<'a> Args<'a> {

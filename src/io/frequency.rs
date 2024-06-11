@@ -1,73 +1,70 @@
+use crate::args::Frequency;
 use crate::utils::column::Columns;
 use crate::utils::file;
 use crate::utils::filename::new_file;
-use crate::utils::util::print_frequency_table;
+use crate::utils::util::{print_frequency_table, valid_sep};
 use crate::utils::{cli_result::CliResult, reader::IoReader};
 use dashmap::DashMap;
 
-pub fn run(
-    no_header: bool,
-    sep: &str,
-    cols: &str,
-    ascending: bool,
-    top_n: i32,
-    export: bool,
-) -> CliResult {
-    let lines = IoReader::new().lines();
+impl Frequency {
+    pub fn io_run(&self) -> CliResult {
+        let lines = IoReader::new().lines();
 
-    if lines.is_empty() {
-        return Ok(());
-    }
+        if lines.is_empty() {
+            return Ok(());
+        }
+        let sep = valid_sep(&self.sep);
 
-    // cols
-    let n = lines[0].split(sep).count();
-    let col = Columns::new(cols).total_col(n).parse();
+        // cols
+        let n = lines[0].split(&sep).count();
+        let col = Columns::new(&self.cols).total_col(n).parse();
 
-    // open file and header
+        // open file and header
 
-    let names: Vec<String> = if no_header {
-        col.artificial_cols_with_appended_n()
-    } else {
-        let r = lines[0].split(sep).collect::<Vec<_>>();
-        if col.max >= r.len() {
-            println!("[info] ignore a bad line # {r:?}!");
+        let names: Vec<String> = if self.no_header {
             col.artificial_cols_with_appended_n()
         } else {
-            col.select_owned_vector_and_append_n(&r)
-        }
-    };
+            let r = lines[0].split(&sep).collect::<Vec<_>>();
+            if col.max >= r.len() {
+                println!("[info] ignore a bad line # {r:?}!");
+                col.artificial_cols_with_appended_n()
+            } else {
+                col.select_owned_vector_and_append_n(&r)
+            }
+        };
 
-    let freq = DashMap::new();
-    for r in &lines[(1 - no_header as usize)..] {
-        let r = r.split(sep).collect::<Vec<_>>();
-        if col.max >= r.len() {
-            println!("[info] ignore a bad line # {r:?}!");
+        let freq = DashMap::new();
+        for r in &lines[(1 - self.no_header as usize)..] {
+            let r = r.split(&sep).collect::<Vec<_>>();
+            if col.max >= r.len() {
+                println!("[info] ignore a bad line # {r:?}!");
+            } else {
+                let r = col.select_owned_string(&r);
+                *freq.entry(r).or_insert(0) += 1;
+            }
+        }
+
+        let mut freq = freq.into_iter().collect::<Vec<(_, _)>>();
+        if self.ascending {
+            freq.sort_by(|a, b| a.1.cmp(&b.1));
         } else {
-            let r = col.select_owned_string(&r);
-            *freq.entry(r).or_insert(0) += 1;
+            freq.sort_by(|a, b| b.1.cmp(&a.1));
         }
-    }
 
-    let mut freq = freq.into_iter().collect::<Vec<(_, _)>>();
-    if ascending {
-        freq.sort_by(|a, b| a.1.cmp(&b.1));
-    } else {
-        freq.sort_by(|a, b| b.1.cmp(&a.1));
-    }
+        // apply head n
+        if self.n > 0 {
+            freq.truncate(self.n as usize)
+        }
 
-    // apply head n
-    if top_n > 0 {
-        freq.truncate(top_n as usize)
-    }
+        // export or print
+        if self.export {
+            let out = new_file("frequency.csv");
+            file::write_frequency_to_csv(&out, &names, freq);
+            println!("Saved to file: {}", out.display());
+        } else {
+            print_frequency_table(&names, freq)
+        }
 
-    // export or print
-    if export {
-        let out = new_file("frequency.csv");
-        file::write_frequency_to_csv(&out, &names, freq);
-        println!("Saved to file: {}", out.display());
-    } else {
-        print_frequency_table(&names, freq)
+        Ok(())
     }
-
-    Ok(())
 }

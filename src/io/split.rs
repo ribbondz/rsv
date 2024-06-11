@@ -1,3 +1,4 @@
+use crate::args::Split;
 use crate::utils::cli_result::CliResult;
 use crate::utils::filename::{dir_file, new_file, str_to_filename};
 use crate::utils::util::datetime_str;
@@ -9,90 +10,79 @@ use std::fs::create_dir;
 use std::io::{stdin, BufRead};
 use std::path::Path;
 
-struct Args {
-    no_header: bool,
-    col: usize,
-    is_sequential_split: bool,
-    chunk: usize,
-}
+impl Split {
+    pub fn io_run(&self) -> CliResult {
+        let is_sequential_split = self.size.is_some();
 
-pub fn run(no_header: bool, sep: &str, col: usize, size: &Option<usize>) -> CliResult {
-    let is_sequential_split = size.is_some();
-    let mut args = Args {
-        no_header,
-        col,
-        is_sequential_split,
-        chunk: 1,
-    };
+        // new directory
+        let dir = format!("split-{}", datetime_str());
+        let dir = new_file(&dir);
+        create_dir(&dir)?;
 
-    // new directory
-    let dir = format!("split-{}", datetime_str());
-    let dir = new_file(&dir);
-    create_dir(&dir)?;
+        // open file and header
+        let mut rdr = stdin().lock().lines();
+        let first_row = if self.no_header {
+            String::new()
+        } else {
+            let Some(r) = rdr.next() else { return Ok(()) };
+            r?
+        };
 
-    // open file and header
-    let mut rdr = stdin().lock().lines();
-    let first_row = if no_header {
-        String::new()
-    } else {
-        let Some(r) = rdr.next() else { return Ok(()) };
-        r?
-    };
-
-    let header_inserted: DashMap<String, bool> = DashMap::new();
-    let mut n = 0;
-    let buffer = if is_sequential_split {
-        size.unwrap()
-    } else {
-        10000
-    };
-    let mut lines = Vec::with_capacity(buffer);
-    for r in rdr {
-        let r = r?;
-        n += 1;
-        lines.push(r);
-        if n >= buffer {
-            task_handle(&args, lines, sep, &dir, &first_row, &header_inserted)?;
-            lines = Vec::with_capacity(buffer);
-            n = 0;
-            args.chunk += 1;
+        let header_inserted: DashMap<String, bool> = DashMap::new();
+        let mut n = 0;
+        let buffer = if is_sequential_split {
+            self.size.unwrap()
+        } else {
+            10000
+        };
+        let mut chunk = 1;
+        let mut lines = Vec::with_capacity(buffer);
+        for r in rdr {
+            let r = r?;
+            n += 1;
+            lines.push(r);
+            if n >= buffer {
+                task_handle(self, chunk, lines, &dir, &first_row, &header_inserted)?;
+                lines = Vec::with_capacity(buffer);
+                n = 0;
+                chunk += 1;
+            }
         }
+
+        if !lines.is_empty() {
+            task_handle(self, chunk, lines, &dir, &first_row, &header_inserted)?;
+        }
+
+        println!("Saved to directory: {}", dir.display());
+
+        Ok(())
     }
-
-    if !lines.is_empty() {
-        task_handle(&args, lines, sep, &dir, &first_row, &header_inserted)?;
-    }
-
-    println!("Saved to directory: {}", dir.display());
-
-    Ok(())
 }
 
 #[allow(clippy::too_many_arguments)]
 fn task_handle(
-    args: &Args,
+    args: &Split,
+    chunk: usize,
     lines: Vec<String>,
-    sep: &str,
     dir: &Path,
     first_row: &str,
     header_inserted: &DashMap<String, bool>,
 ) -> Result<(), Box<dyn Error>> {
-    match args.is_sequential_split {
-        true => sequential_task_handle(args, lines, dir, first_row)?,
-        false => col_split_task_handle(args, lines, sep, dir, first_row, header_inserted)?,
+    match args.size.is_some() {
+        true => sequential_task_handle(chunk, lines, dir, first_row)?,
+        false => col_split_task_handle(args, lines, dir, first_row, header_inserted)?,
     }
-
     Ok(())
 }
 
 fn sequential_task_handle(
-    args: &Args,
+    chunk: usize,
     lines: Vec<String>,
     dir: &Path,
     first_row: &str,
 ) -> Result<(), Box<dyn Error>> {
     let mut out = dir.to_owned();
-    out.push(format!("split{}.csv", args.chunk));
+    out.push(format!("split{}.csv", chunk));
 
     // write
     let mut wtr = Writer::append_to(&out)?;
@@ -104,9 +94,8 @@ fn sequential_task_handle(
 
 #[allow(clippy::too_many_arguments)]
 fn col_split_task_handle(
-    args: &Args,
+    args: &Split,
     lines: Vec<String>,
-    sep: &str,
     dir: &Path,
     first_row: &str,
     header_inserted: &DashMap<String, bool>,
@@ -115,7 +104,7 @@ fn col_split_task_handle(
     let batch_work = DashMap::new();
 
     lines.par_iter().for_each(|r| {
-        let seg = r.split(sep).collect::<Vec<_>>();
+        let seg = r.split(&args.sep).collect::<Vec<_>>();
         if args.col >= r.len() {
             println!("[info] ignore a bad line, content is: {r:?}!");
             return;
@@ -132,31 +121,18 @@ fn col_split_task_handle(
         .collect::<Vec<(_, _)>>()
         .par_iter()
         .for_each(|(field, rows)| {
-            save_to_disk(args, dir, field, rows, header_inserted, first_row).unwrap();
+            // file path
+            let filename = str_to_filename(field) + ".csv";
+            let out = dir_file(dir, &filename);
+
+            // write
+            let mut wtr = Writer::append_to(&out).unwrap();
+            if !args.no_header && !header_inserted.contains_key(&filename) {
+                header_inserted.insert(filename, true);
+                wtr.write_str(first_row).unwrap();
+            }
+            wtr.write_strings(rows).unwrap();
         });
-
-    Ok(())
-}
-
-fn save_to_disk(
-    args: &Args,
-    dir: &Path,
-    field: &str,
-    rows: &[&String],
-    header_inserted: &DashMap<String, bool>,
-    first_row: &str,
-) -> Result<(), Box<dyn Error>> {
-    // file path
-    let filename = str_to_filename(field) + ".csv";
-    let out = dir_file(dir, &filename);
-
-    // write
-    let mut wtr = Writer::append_to(&out)?;
-    if !args.no_header && !header_inserted.contains_key(&filename) {
-        header_inserted.insert(filename, true);
-        wtr.write_str(first_row)?;
-    }
-    wtr.write_strings(rows)?;
 
     Ok(())
 }

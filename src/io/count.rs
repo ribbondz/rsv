@@ -1,16 +1,17 @@
+use crate::{args::Count, utils::cli_result::CliResult};
 use std::io::{stdin, BufRead};
 
-use crate::utils::cli_result::CliResult;
+impl Count {
+    pub fn io_run(&self) -> CliResult {
+        // progress
+        let mut n = stdin().lock().lines().count();
 
-pub fn run(no_header: bool) -> CliResult {
-    // progress
-    let mut n = stdin().lock().lines().count();
+        if !self.no_header && n > 0 {
+            n -= 1;
+        }
 
-    if !no_header && n > 0 {
-        n -= 1;
+        println!("{n}");
+
+        Ok(())
     }
-
-    println!("{n}");
-
-    Ok(())
 }

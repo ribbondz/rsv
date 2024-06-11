@@ -1,17 +1,22 @@
+use crate::args::Headers;
 use crate::utils::cli_result::CliResult;
+use crate::utils::util::valid_sep;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use std::path::Path;
 
-pub fn run(path: &Path, sep: &str) -> CliResult {
-    // open file and header
-    let mut rdr = BufReader::new(File::open(path)?).lines();
+impl Headers {
+    pub fn csv_run(&self) -> CliResult {
+        let sep = valid_sep(&self.sep);
 
-    if let Some(r) = rdr.next() {
-        r?.split(sep)
-            .enumerate()
-            .for_each(|(i, v)| println!(" {i:<5}{v}"));
-    };
+        // open file and header
+        let mut rdr = BufReader::new(File::open(self.path())?).lines();
 
-    Ok(())
+        if let Some(r) = rdr.next() {
+            r?.split(&sep)
+                .enumerate()
+                .for_each(|(i, v)| println!(" {i:<5}{v}"));
+        };
+
+        Ok(())
+    }
 }

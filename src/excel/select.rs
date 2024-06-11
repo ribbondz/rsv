@@ -1,3 +1,4 @@
+use crate::args::Select;
 use crate::utils::cli_result::CliResult;
 use crate::utils::column::Columns;
 use crate::utils::constants::COMMA;
@@ -6,56 +7,52 @@ use crate::utils::filename::new_path;
 use crate::utils::filter::Filter;
 use crate::utils::reader::ExcelReader;
 use crate::utils::writer::Writer;
-use std::path::Path;
 
-pub fn run(
-    path: &Path,
-    no_header: bool,
-    sheet: usize,
-    cols: &str,
-    filter: &str,
-    export: bool,
-) -> CliResult {
-    // out path
-    let out = new_path(path, "-selected").with_extension("csv");
+impl Select {
+    pub fn excel_run(&self) -> CliResult {
+        let path = &self.path();
 
-    // open file
-    let mut wtr = Writer::file_or_stdout(export, &out)?;
-    let mut rdr = ExcelReader::new(path, sheet)?;
+        // out path
+        let out = new_path(path, "-selected").with_extension("csv");
 
-    // cols and filters
-    let n = rdr.column_n();
-    let cols = Columns::new(cols).total_col(n).parse();
-    let filter = Filter::new(filter).total_col(n).parse();
+        // open file
+        let mut wtr = Writer::file_or_stdout(self.export, &out)?;
+        let mut rdr = ExcelReader::new(path, self.sheet)?;
 
-    // header
-    if !no_header {
-        let Some(r) = rdr.next() else { return Ok(()) };
-        if cols.select_all {
-            wtr.write_excel_line_unchecked(r, COMMA);
-        } else {
-            let r = cols.iter().map(|&i| r[i].to_string()).collect::<Vec<_>>();
-            wtr.write_fields_unchecked(&r, None);
-        }
-    }
+        // cols and filters
+        let n = rdr.column_n();
+        let cols = Columns::new(&self.cols).total_col(n).parse();
+        let filter = Filter::new(&self.filter).total_col(n).parse();
 
-    // read
-    rdr.iter().skip(rdr.next_called).for_each(|r| {
-        let r = datatype_vec_to_string_vec(r);
-        if filter.excel_record_is_valid(&r) {
-            match cols.select_all {
-                true => wtr.write_fields_unchecked(&r, None),
-                false => {
-                    let r = cols.iter().map(|&i| &r[i]).collect::<Vec<_>>();
-                    wtr.write_fields_unchecked(&r, None);
-                }
+        // header
+        if !self.no_header {
+            let Some(r) = rdr.next() else { return Ok(()) };
+            if cols.select_all {
+                wtr.write_excel_line_unchecked(r, COMMA);
+            } else {
+                let r = cols.iter().map(|&i| r[i].to_string()).collect::<Vec<_>>();
+                wtr.write_fields_unchecked(&r, None);
             }
         }
-    });
 
-    if export {
-        println!("\nSaved to file: {}", out.display())
+        // read
+        rdr.iter().skip(rdr.next_called).for_each(|r| {
+            let r = datatype_vec_to_string_vec(r);
+            if filter.excel_record_is_valid(&r) {
+                match cols.select_all {
+                    true => wtr.write_fields_unchecked(&r, None),
+                    false => {
+                        let r = cols.iter().map(|&i| &r[i]).collect::<Vec<_>>();
+                        wtr.write_fields_unchecked(&r, None);
+                    }
+                }
+            }
+        });
+
+        if self.export {
+            println!("\nSaved to file: {}", out.display())
+        }
+
+        Ok(())
     }
-
-    Ok(())
 }

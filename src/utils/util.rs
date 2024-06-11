@@ -14,6 +14,13 @@ pub fn is_tab(sep: &str) -> bool {
     sep == "\\t" || sep == "'\\t'" || sep == "\"\\t\""
 }
 
+pub fn valid_sep(sep: &str) -> String {
+    match is_tab(sep) {
+        true => '\t'.to_string(),
+        false => sep.to_owned(),
+    }
+}
+
 /// early return when pipeline closed
 pub fn print_frequency_table(names: &[String], freq: Vec<(String, usize)>) {
     let mut wtr = BufWriter::new(stdout());

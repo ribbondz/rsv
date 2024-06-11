@@ -1,17 +1,19 @@
+use crate::args::Table;
 use crate::utils::excel::datatype_vec_to_string_vec;
-use crate::utils::{cli_result::CliResult, reader::ExcelReader, table::Table};
-use std::path::Path;
+use crate::utils::{cli_result::CliResult, reader::ExcelReader, table::Table as T};
 
-pub fn run(path: &Path, sheet: usize) -> CliResult {
-    // rdr
-    let range = ExcelReader::new(path, sheet)?;
+impl Table {
+    pub fn excel_run(&self) -> CliResult {
+        // rdr
+        let range = ExcelReader::new(&self.path(), self.sheet)?;
 
-    let rows = range
-        .iter()
-        .map(datatype_vec_to_string_vec)
-        .collect::<Vec<_>>();
+        let rows = range
+            .iter()
+            .map(datatype_vec_to_string_vec)
+            .collect::<Vec<_>>();
 
-    Table::from_records(rows).print_blank()?;
+        T::from_records(rows).print_blank()?;
 
-    Ok(())
+        Ok(())
+    }
 }

@@ -1,3 +1,4 @@
+use crate::args::Sample;
 use crate::utils::cli_result::CliResult;
 use crate::utils::excel::datatype_vec_to_string;
 use crate::utils::filename::new_path;
@@ -12,56 +13,53 @@ use std::borrow::Cow;
 use std::path::Path;
 use std::time::Instant;
 
-pub fn run(
-    path: &Path,
-    sheet: usize,
-    no_header: bool,
-    n: usize,
-    seed: Option<usize>,
-    export: bool,
-    show_number: bool,
-    time_limit: f32,
-) -> CliResult {
-    // open files
-    let mut range = ExcelReader::new(path, sheet)?;
+impl Sample {
+    pub fn excel_run(&self) -> CliResult {
+        let path = &self.path();
+        let time_limit = (self.time_limit - 0.7).clamp(0.0, f32::MAX);
 
-    // header
-    let header = match no_header {
-        true => None,
-        false => match range.next() {
-            Some(r) => Some(datatype_vec_to_string(r)),
-            None => return Ok(()),
-        },
-    };
+        // open files
+        let mut range = ExcelReader::new(path, self.sheet)?;
 
-    // seed
-    let mut rng = match seed {
-        Some(s) => StdRng::seed_from_u64(s as u64),
-        None => StdRng::from_rng(thread_rng())?,
-    };
+        // header
+        let header = match self.no_header {
+            true => None,
+            false => match range.next() {
+                Some(r) => Some(datatype_vec_to_string(r)),
+                None => return Ok(()),
+            },
+        };
 
-    // read
-    let time = Instant::now();
-    let mut queue = PriorityQueue::with_capacity(n);
-    for (line_n, r) in range.iter().skip(range.next_called).enumerate() {
-        let priority = rng.gen::<f64>();
-        if queue.can_insert(priority) {
-            let line = datatype_vec_to_string(r);
-            queue.push(line_n, priority, line);
+        // seed
+        let mut rng = match self.seed {
+            Some(s) => StdRng::seed_from_u64(s as u64),
+            None => StdRng::from_rng(thread_rng())?,
+        };
+
+        // read
+        let time = Instant::now();
+        let mut queue = PriorityQueue::with_capacity(self.n);
+        for (line_n, r) in range.iter().skip(range.next_called).enumerate() {
+            let priority = rng.gen::<f64>();
+            if queue.can_insert(priority) {
+                let line = datatype_vec_to_string(r);
+                queue.push(line_n, priority, line);
+            }
+
+            if time_limit > 0.0 && line_n % 10000 == 0 && time.elapsed().as_secs_f32() >= time_limit
+            {
+                break;
+            }
         }
 
-        if time_limit > 0.0 && line_n % 10000 == 0 && time.elapsed().as_secs_f32() >= time_limit {
-            break;
+        match (self.export, self.show_number) {
+            (true, _) => write_to_file(path, header, queue),
+            (false, true) => print_to_stdout(header, queue),
+            (false, false) => print_to_stdout_no_number(header, queue),
         }
-    }
 
-    match (export, show_number) {
-        (true, _) => write_to_file(path, header, queue),
-        (false, true) => print_to_stdout(header, queue),
-        (false, false) => print_to_stdout_no_number(header, queue),
+        Ok(())
     }
-
-    Ok(())
 }
 
 fn write_to_file(path: &Path, header: Option<String>, queue: PriorityQueue<String>) {

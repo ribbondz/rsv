@@ -1,3 +1,4 @@
+use crate::args::Sample;
 use crate::utils::cli_result::CliResult;
 use crate::utils::filename::new_path;
 use crate::utils::priority_queue::PriorityQueue;
@@ -12,65 +13,63 @@ use std::io::{BufRead, BufReader};
 use std::path::Path;
 use std::time::Instant;
 
-pub fn run(
-    path: &Path,
-    no_header: bool,
-    n: usize,
-    seed: Option<usize>,
-    export: bool,
-    show_number: bool,
-    time_limit: f32,
-) -> CliResult {
-    // open files
-    let mut rdr = BufReader::new(File::open(path)?);
+impl Sample {
+    pub fn csv_run(&self) -> CliResult {
+        let path = &self.path();
+        let time_limit = (self.time_limit - 0.7).clamp(0.0, f32::MAX);
 
-    // header
-    let mut buf = vec![];
-    let header = match no_header {
-        true => None,
-        false => match rdr.read_until(b'\n', &mut buf) {
-            Ok(_) => Some(String::from_utf8_lossy(&buf).trim().to_string()),
-            Err(_) => return Ok(()),
-        },
-    };
-    buf.clear();
+        // open files
+        let mut rdr = BufReader::new(File::open(path)?);
 
-    // seed
-    let mut rng = match seed {
-        Some(s) => StdRng::seed_from_u64(s as u64),
-        None => StdRng::from_rng(thread_rng())?,
-    };
-
-    // read
-    let mut queue = PriorityQueue::with_capacity(n);
-    let mut line_n = 0;
-    let time = Instant::now();
-    while let Ok(bytes_read) = rdr.read_until(b'\n', &mut buf) {
-        if bytes_read == 0 {
-            break;
-        }
-
-        let priority = rng.gen::<f64>();
-        if queue.can_insert(priority) {
-            let line = buf[..bytes_read].to_owned();
-            queue.push(line_n, priority, line);
-        }
-
+        // header
+        let mut buf = vec![];
+        let header = match self.no_header {
+            true => None,
+            false => match rdr.read_until(b'\n', &mut buf) {
+                Ok(_) => Some(String::from_utf8_lossy(&buf).trim().to_string()),
+                Err(_) => return Ok(()),
+            },
+        };
         buf.clear();
-        line_n += 1;
 
-        if time_limit > 0.0 && line_n % 10000 == 0 && time.elapsed().as_secs_f32() >= time_limit {
-            break;
+        // seed
+        let mut rng = match self.seed {
+            Some(s) => StdRng::seed_from_u64(s as u64),
+            None => StdRng::from_rng(thread_rng())?,
+        };
+
+        // read
+        let mut queue = PriorityQueue::with_capacity(self.n);
+        let mut line_n = 0;
+        let time = Instant::now();
+        while let Ok(bytes_read) = rdr.read_until(b'\n', &mut buf) {
+            if bytes_read == 0 {
+                break;
+            }
+
+            let priority = rng.gen::<f64>();
+            if queue.can_insert(priority) {
+                let line = buf[..bytes_read].to_owned();
+                queue.push(line_n, priority, line);
+            }
+
+            buf.clear();
+            line_n += 1;
+
+            if time_limit > 0.0 && line_n % 10000 == 0 && time.elapsed().as_secs_f32() >= time_limit
+            {
+                break;
+            }
         }
-    }
 
-    match (export, show_number) {
-        (true, _) => write_to_file(path, header, queue),
-        (false, true) => print_to_stdout(header, queue),
-        (false, false) => print_to_stdout_no_number(header, queue),
-    }
+        match (self.export, self.show_number) {
+            (true, _) => write_to_file(path, header, queue),
+            (false, true) => print_to_stdout(header, queue),
+            (false, false) => print_to_stdout_no_number(header, queue),
+        }
 
-    Ok(())
+        Ok(())
+    }
 }
 
 fn write_to_file(path: &Path, header: Option<String>, queue: PriorityQueue<Vec<u8>>) {

@@ -1,3 +1,4 @@
+use crate::args::Split;
 use crate::utils::cli_result::CliResult;
 use crate::utils::constants::COMMA;
 use crate::utils::excel::datatype_vec_to_string_vec;
@@ -6,7 +7,6 @@ use crate::utils::progress::Progress;
 use crate::utils::reader::{ExcelChunkTask, ExcelReader};
 use crate::utils::util::{datetime_str, werr_exit};
 use crate::utils::writer::Writer;
-use calamine::Data;
 use crossbeam_channel::bounded;
 use dashmap::DashMap;
 use rayon::prelude::*;
@@ -15,70 +15,59 @@ use std::fs::create_dir;
 use std::path::Path;
 use std::thread;
 
-pub fn run(
-    path: &Path,
-    sheet: usize,
-    no_header: bool,
-    col: usize,
-    size: &Option<usize>,
-) -> CliResult {
-    let is_sequential_split = size.is_some();
+impl Split {
+    pub fn excel_run(&self) -> CliResult {
+        let path = &self.path();
+        let is_sequential_split = self.size.is_some();
 
-    // new directory
-    let dir = path.with_file_name(format!(
-        "{}-split-{}",
-        path.file_stem().unwrap().to_string_lossy(),
-        datetime_str()
-    ));
-    create_dir(&dir)?;
+        // new directory
+        let dir = path.with_file_name(format!(
+            "{}-split-{}",
+            path.file_stem().unwrap().to_string_lossy(),
+            datetime_str()
+        ));
+        create_dir(&dir)?;
 
-    // open file and header
-    let mut range = ExcelReader::new(path, sheet)?;
-    let first_row = if no_header {
-        String::new()
-    } else {
-        let Some(r) = range.next() else { return Ok(()) };
-        if col >= r.len() {
-            werr_exit!("Error: column index out of range!");
+        // open file and header
+        let mut range = ExcelReader::new(path, self.sheet)?;
+        let first_row = if self.no_header {
+            String::new()
+        } else {
+            let Some(r) = range.next() else { return Ok(()) };
+            if self.col >= r.len() {
+                werr_exit!("Error: column index out of range!");
+            };
+            datatype_vec_to_string_vec(r).join(",")
         };
-        datatype_vec_to_string_vec(r).join(",")
-    };
 
-    let (tx, rx) = bounded(1);
-    // read
-    let buffer_size = if is_sequential_split { *size } else { None };
-    thread::spawn(move || range.send_to_channel_by_chunk(tx, buffer_size));
+        let (tx, rx) = bounded(1);
+        // read
+        let buffer_size = if is_sequential_split { self.size } else { None };
+        thread::spawn(move || range.send_to_channel_by_chunk(tx, buffer_size));
 
-    // process batch work
-    let mut prog = Progress::new();
-    match is_sequential_split {
-        true => {
-            let stem = path.file_stem().unwrap().to_string_lossy();
-            for task in rx {
-                let mut out = dir.to_owned();
-                out.push(format!("{}-split{}.csv", stem, task.chunk));
-                sequential_task_handle(task, &mut prog, &out, &first_row)?;
+        // process batch work
+        let mut prog = Progress::new();
+        match is_sequential_split {
+            true => {
+                let stem = path.file_stem().unwrap().to_string_lossy();
+                for task in rx {
+                    let mut out = dir.to_owned();
+                    out.push(format!("{}-split{}.csv", stem, task.chunk));
+                    sequential_task_handle(task, &mut prog, &out, &first_row)?;
+                }
+            }
+            false => {
+                let header_inserted: DashMap<String, bool> = DashMap::new();
+                for task in rx {
+                    task_handle(&self, task, &mut prog, &dir, &first_row, &header_inserted)?
+                }
             }
         }
-        false => {
-            let header_inserted: DashMap<String, bool> = DashMap::new();
-            for task in rx {
-                task_handle(
-                    task,
-                    &mut prog,
-                    no_header,
-                    col,
-                    &dir,
-                    &first_row,
-                    &header_inserted,
-                )?
-            }
-        }
+
+        println!("\nSaved to directory: {}", dir.display());
+
+        Ok(())
     }
-
-    println!("\nSaved to directory: {}", dir.display());
-
-    Ok(())
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -104,10 +93,9 @@ fn sequential_task_handle(
 
 #[allow(clippy::too_many_arguments)]
 fn task_handle(
+    options: &Split,
     task: ExcelChunkTask,
     prog: &mut Progress,
-    no_header: bool,
-    col: usize,
     dir: &Path,
     first_row: &str,
     header_inserted: &DashMap<String, bool>,
@@ -119,11 +107,11 @@ fn task_handle(
     // parallel process
     let batch_work = DashMap::new();
     task.lines.par_iter().for_each(|r| {
-        if col >= r.len() {
+        if options.col >= r.len() {
             println!("[info] ignore a bad line, content is: {r:?}!");
         } else {
             batch_work
-                .entry(r[col].to_string())
+                .entry(r[options.col].to_string())
                 .or_insert_with(Vec::new)
                 .push(r);
         }
@@ -134,34 +122,20 @@ fn task_handle(
         .into_iter()
         .collect::<Vec<(_, _)>>()
         .par_iter()
-        .for_each(|(a, b)| {
-            save_to_disk(dir, a, b, no_header, header_inserted, first_row).unwrap();
+        .for_each(|(field, rows)| {
+            // file path
+            let filename = str_to_filename(field) + ".csv";
+            let out = dir_file(dir, &filename);
+            // write
+            let mut wtr = Writer::append_to(&out).unwrap();
+            if !options.no_header && !header_inserted.contains_key(&filename) {
+                header_inserted.insert(filename, true);
+                wtr.write_str(first_row).unwrap();
+            }
+            wtr.write_excel_lines_by_ref(rows, COMMA).unwrap();
         });
 
     prog.print();
-
-    Ok(())
-}
-
-fn save_to_disk(
-    dir: &Path,
-    field: &str,
-    rows: &[&Vec<Data>],
-    no_header: bool,
-    header_inserted: &DashMap<String, bool>,
-    first_row: &str,
-) -> Result<(), Box<dyn Error>> {
-    // file path
-    let filename = str_to_filename(field) + ".csv";
-    let out = dir_file(dir, &filename);
-
-    // write
-    let mut wtr = Writer::append_to(&out)?;
-    if !no_header && !header_inserted.contains_key(&filename) {
-        header_inserted.insert(filename, true);
-        wtr.write_str(first_row)?;
-    }
-    wtr.write_excel_lines_by_ref(rows, COMMA)?;
 
     Ok(())
 }

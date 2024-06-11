@@ -1,19 +1,21 @@
+use crate::args::Count;
 use crate::utils::progress::Progress;
 use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
-
 extern crate bytecount;
 
-pub fn run(path: &Path, no_header: bool) -> Result<(), Box<dyn Error>> {
-    // current file
-    match path.is_dir() {
-        true => count_dir_files(path)?,
-        false => count_file_lines(path, no_header)?,
-    };
+impl Count {
+    pub fn csv_run(&self) -> Result<(), Box<dyn Error>> {
+        // current file
+        match self.path().is_dir() {
+            true => count_dir_files(&self.path())?,
+            false => count_file_lines(&self.path(), self.no_header)?,
+        };
 
-    Ok(())
+        Ok(())
+    }
 }
 
 fn count_file_lines(path: &Path, no_header: bool) -> Result<(), Box<dyn Error>> {
