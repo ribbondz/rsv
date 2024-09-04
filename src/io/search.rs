@@ -2,14 +2,12 @@ use crate::args::Search;
 use crate::utils::column::Columns;
 use crate::utils::filename::new_file;
 use crate::utils::regex::Re;
-use crate::utils::util::valid_sep;
 use crate::utils::{cli_result::CliResult, writer::Writer};
 use std::io::{self, BufRead};
 
 impl Search {
     pub fn io_run(&self) -> CliResult {
         // wtr and rdr
-        let sep = valid_sep(&self.sep);
         let out = new_file("searched.csv");
         let mut wtr = Writer::file_or_stdout(self.export, &out)?;
         let mut cols = Columns::new(&self.cols);
@@ -23,7 +21,7 @@ impl Search {
             let Some(r) = rdr.next() else { return Ok(()) };
             let r = r?;
 
-            let mut fields = r.split(&sep).collect::<Vec<_>>();
+            let mut fields = self.split_row_to_vec(&r);
             cols = cols.total_col(fields.len()).parse();
             filter = filter.total_col(fields.len()).parse();
 
@@ -31,7 +29,7 @@ impl Search {
                 wtr.write_str_unchecked(&r)
             } else {
                 fields = cols.iter().map(|&i| fields[i]).collect();
-                wtr.write_fields_unchecked(&fields, Some(&sep.as_bytes()));
+                wtr.write_fields_unchecked(&fields);
             }
         }
 
@@ -42,11 +40,11 @@ impl Search {
             let r = r?;
 
             if !cols.parsed {
-                let n = r.split(&sep).count();
+                let n = self.row_field_count(&r);
                 cols = cols.total_col(n).parse();
             }
             if !filter.parsed {
-                let n = r.split(&sep).count();
+                let n = self.row_field_count(&r);
                 filter = filter.total_col(n).parse();
             }
 
@@ -58,23 +56,23 @@ impl Search {
                     }
                 }
                 (true, false) => {
-                    let f = r.split(&sep).collect::<Vec<_>>();
+                    let f = self.split_row_to_vec(&r);
                     if filter.iter().any(|&i| re.is_match(f[i])) {
                         wtr.write_str(&r)?;
                     }
                 }
                 (false, true) => {
                     if re.is_match(&r) {
-                        let r = r.split(&sep).collect::<Vec<_>>();
+                        let r = self.split_row_to_vec(&r);
                         let r = cols.iter().map(|&i| r[i]).collect::<Vec<_>>();
-                        wtr.write_fields_unchecked(&r, Some(&sep.as_bytes()))
+                        wtr.write_fields_unchecked(&r)
                     }
                 }
                 (false, false) => {
-                    let r = r.split(&sep).collect::<Vec<_>>();
+                    let r = self.split_row_to_vec(&r);
                     if filter.iter().any(|&i| re.is_match(r[i])) {
                         let r = cols.iter().map(|&i| r[i]).collect::<Vec<_>>();
-                        wtr.write_fields_unchecked(&r, Some(&sep.as_bytes()))
+                        wtr.write_fields_unchecked(&r)
                     }
                 }
             }

@@ -28,7 +28,7 @@ impl Clean {
 
         // copy
         let re = Regex::new(&self.escape)?;
-        let empty_bytes = &b""[..];
+        let empty_bytes = b"";
 
         let mut buf = vec![];
         let mut i = 0;

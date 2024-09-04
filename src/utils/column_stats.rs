@@ -1,5 +1,6 @@
 use super::{
     column_type::{ColumnType, ColumnTypes},
+    row_split::CsvRow,
     util,
 };
 use ahash::HashSet;
@@ -84,8 +85,8 @@ impl ColumnStats {
         self.rows += 1;
     }
 
-    pub fn parse_line(&mut self, line: &str, sep: &str) {
-        let v = line.split(sep).collect::<Vec<_>>();
+    pub fn parse_line(&mut self, line: &str, sep: char, quote: char) {
+        let v = CsvRow::new(line).split(sep, quote).collect::<Vec<_>>();
         self.parse_line_by_fields(&v);
     }
 

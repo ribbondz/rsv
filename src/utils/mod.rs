@@ -13,6 +13,7 @@ pub mod priority_queue;
 pub mod progress;
 pub mod reader;
 pub mod regex;
+pub mod row_split;
 pub mod sort;
 pub mod table;
 pub mod to;

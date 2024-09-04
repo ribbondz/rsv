@@ -325,7 +325,3 @@ rsv slice -s 1000 -e 2000 data.csv | rsv to out.xlsx         # export to EXCEL
 rsv search pattern data.xlsx | rsv to out.tsv                # export to TSV
 rsv select -f "0N>=10" pattern data.xlsx | rsv to out.txt    # export to TXT
 ```
-
-## Next
-
-new features will be added in the future.

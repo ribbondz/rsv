@@ -1,4 +1,4 @@
-use crate::utils::{cli_result::E, file::is_excel, filename::full_path};
+use crate::utils::{cli_result::E, file::is_excel, filename::full_path, util::get_valid_sep};
 use clap::Args;
 use std::path::PathBuf;
 
@@ -27,9 +27,6 @@ pub struct Estimate {
 pub struct Head {
     /// File to open
     pub filename: Option<String>,
-    /// Separator
-    #[arg(short, long, default_value_t = String::from(","))]
-    pub sep: String,
     /// Whether the file has a header
     #[arg(long, default_value_t = false)]
     pub no_header: bool,
@@ -48,9 +45,6 @@ pub struct Head {
 pub struct Tail {
     /// File to open
     pub filename: Option<String>,
-    /// Separator
-    #[arg(short, long, default_value_t = String::from(","))]
-    pub sep: String,
     /// Whether the file has a header
     #[arg(long, default_value_t = false)]
     pub no_header: bool,
@@ -70,8 +64,11 @@ pub struct Headers {
     /// File to open
     pub filename: Option<String>,
     /// Field separator
-    #[arg(short, long, default_value_t = String::from(","))]
-    pub sep: String,
+    #[arg(short, long, default_value_t = ',', value_parser=get_valid_sep)]
+    pub sep: char,
+    /// Quote char
+    #[arg(short, long, default_value_t = '"')]
+    pub quote: char,
     /// Get the nth worksheet of EXCEL file
     #[arg(short = 'S', long, default_value_t = 0)]
     pub sheet: usize,
@@ -94,8 +91,11 @@ pub struct Flatten {
     /// File to open
     pub filename: Option<String>,
     /// Separator
-    #[arg(short, long, default_value_t = String::from(","))]
-    pub sep: String,
+    #[arg(short, long, default_value_t = ',', value_parser=get_valid_sep)]
+    pub sep: char,
+    /// Quote char
+    #[arg(short, long, default_value_t = '"')]
+    pub quote: char,
     /// Whether the file has a header
     #[arg(long, default_value_t = false)]
     pub no_header: bool,
@@ -115,8 +115,11 @@ pub struct Frequency {
     /// File to open
     pub filename: Option<String>,
     /// Separator
-    #[arg(short, long, default_value_t = String::from(","))]
-    pub sep: String,
+    #[arg(short, long, default_value_t = ',', value_parser=get_valid_sep)]
+    pub sep: char,
+    /// Quote char
+    #[arg(short, long, default_value_t = '"')]
+    pub quote: char,
     /// Whether the file has a header
     #[arg(long, default_value_t = false)]
     pub no_header: bool,
@@ -142,8 +145,11 @@ pub struct Split {
     /// File to open
     pub filename: Option<String>,
     /// Separator
-    #[arg(short, long, default_value_t = String::from(","))]
-    pub sep: String,
+    #[arg(short, long, default_value_t = ',', value_parser=get_valid_sep)]
+    pub sep: char,
+    /// Quote char
+    #[arg(short, long, default_value_t = '"')]
+    pub quote: char,
     /// Whether the file has a header
     #[arg(long, default_value_t = false)]
     pub no_header: bool,
@@ -190,8 +196,11 @@ pub struct Select {
     /// File to open
     pub filename: Option<String>,
     /// Separator
-    #[arg(short, long, default_value_t = String::from(","))]
-    pub sep: String,
+    #[arg(short, long, default_value_t = ',', value_parser=get_valid_sep)]
+    pub sep: char,
+    /// Separator
+    #[arg(short, long, default_value_t = ',')]
+    pub quote: char,
     /// Whether the file has a header
     #[arg(long, default_value_t = false)]
     pub no_header: bool,
@@ -214,8 +223,11 @@ pub struct Stats {
     /// File to open
     pub filename: Option<String>,
     /// Separator
-    #[arg(short, long, default_value_t = String::from(","))]
-    pub sep: String,
+    #[arg(short, long, default_value_t = ',', value_parser=get_valid_sep)]
+    pub sep: char,
+    /// Quote Char
+    #[arg(short, long, default_value_t = ',')]
+    pub quote: char,
     /// Whether the file has a header
     #[arg(long, default_value_t = false)]
     pub no_header: bool,
@@ -237,9 +249,12 @@ pub struct Excel2csv {
     /// Get the nth worksheet of EXCEL file
     #[arg(short = 'S', long, default_value_t = 0)]
     pub sheet: usize,
-    /// Separator
-    #[arg(short, long, default_value_t = String::from(","))]
-    pub sep: String,
+    /// Separator Char
+    #[arg(short, long, default_value_t = ',', value_parser=get_valid_sep)]
+    pub sep: char,
+    /// Quote Char
+    #[arg(short, long, default_value_t = '"')]
+    pub quote: char,
 }
 
 #[derive(Debug, Args)]
@@ -249,9 +264,12 @@ pub struct Table {
     /// Get the nth worksheet of EXCEL file
     #[arg(short = 'S', long, default_value_t = 0)]
     pub sheet: usize,
-    /// Separator
-    #[arg(short, long, default_value_t = String::from(","))]
-    pub sep: String,
+    /// Separator Char
+    #[arg(short, long, default_value_t = ',', value_parser=get_valid_sep)]
+    pub sep: char,
+    /// Quote Char
+    #[arg(short, long, default_value_t = '"')]
+    pub quote: char,
 }
 
 #[derive(Debug, Args)]
@@ -263,9 +281,12 @@ pub struct Search {
     /// Whether the file has a header
     #[arg(long, default_value_t = false)]
     pub no_header: bool,
-    /// Separator
-    #[arg(short, long, default_value_t = String::from(","))]
-    pub sep: String,
+    /// Separator Char
+    #[arg(short, long, default_value_t = ',', value_parser=get_valid_sep)]
+    pub sep: char,
+    /// Quote Char
+    #[arg(short, long, default_value_t = '"')]
+    pub quote: char,
     /// Search specific columns, e.g. -f=0,1 to search first two columns; Default to all columns
     #[arg(short, long, default_value_t = String::from(""), allow_hyphen_values=true)]
     pub filter: String,
@@ -285,8 +306,11 @@ pub struct Sort {
     /// File to open
     pub filename: Option<String>,
     /// Separator
-    #[arg(short, long, default_value_t = String::from(","))]
-    pub sep: String,
+    #[arg(short, long, default_value_t=',', value_parser=get_valid_sep )]
+    pub sep: char,
+    /// Quote Char
+    #[arg(short, long, default_value_t = '"')]
+    pub quote: char,
     /// Whether the file has a header
     #[arg(long, default_value_t = false)]
     pub no_header: bool,
@@ -331,22 +355,22 @@ pub struct Sample {
 
 #[derive(Debug, Args)]
 pub struct To {
+    /// Output file, a file name or a file format
+    pub out: String,
     /// File to open
     pub filename: Option<String>,
     /// Whether the file has a header
     #[arg(long, default_value_t = false)]
     pub no_header: bool,
     /// Input file Separator
-    #[arg(short, long, default_value_t = String::from(","))]
-    pub sep: String,
-    /// Output file Separator
-    #[arg(short, long, default_value_t = String::from(","))]
-    pub outsep: String,
+    #[arg(short, long, default_value_t = ',', value_parser=get_valid_sep)]
+    pub sep: char,
+    /// Quote char
+    #[arg(short, long, default_value_t = '"')]
+    pub quote: char,
     /// Get the nth worksheet of EXCEL file
     #[arg(short = 'S', long, default_value_t = 0)]
     pub sheet: usize,
-    /// Output file, a file name or a file format
-    pub out: String,
 }
 
 #[derive(Debug, Args)]
@@ -354,8 +378,11 @@ pub struct Unique {
     /// File to open
     pub filename: Option<String>,
     /// Separator
-    #[arg(short, long, default_value_t = String::from(","))]
-    pub sep: String,
+    #[arg(short, long, default_value_t = ',', value_parser=get_valid_sep)]
+    pub sep: char,
+    /// Separator
+    #[arg(short, long, default_value_t = '"')]
+    pub quote: char,
     /// Whether the file has a header
     #[arg(long, default_value_t = false)]
     pub no_header: bool,
@@ -383,13 +410,10 @@ macro_rules! command_run {
 
             pub fn run(&self) {
                 match &self.filename {
-                    Some(f) => {
-                        let path = full_path(f);
-                        match is_excel(&path) {
-                            true => self.excel_run(),
-                            false => self.csv_run(),
-                        }
-                    }
+                    Some(f) => match is_excel(&full_path(f)) {
+                        true => self.excel_run(),
+                        false => self.csv_run(),
+                    },
                     None => self.io_run(),
                 }
                 .handle_err()
@@ -417,3 +441,80 @@ command_run!(Search);
 command_run!(Sample);
 command_run!(To);
 command_run!(Unique);
+
+macro_rules! impl_row_split {
+    ($method:ident) => {
+        impl $method {
+            #[allow(dead_code)]
+            pub fn split_row_to_vec<'a>(&self, row: &'a str) -> Vec<&'a str> {
+                let mut fields = vec![];
+
+                let mut start = 0;
+                let mut in_quoted_field = false;
+                let mut is_second_quote = true;
+                row.chars().enumerate().for_each(|(i, c)| {
+                    if c == self.sep && !in_quoted_field {
+                        fields.push(unsafe { row.get_unchecked(start..i) });
+                        start = i + 1;
+                    } else if c == self.quote {
+                        is_second_quote = !is_second_quote;
+                        in_quoted_field = !is_second_quote;
+                    }
+                });
+                fields.push(unsafe { row.get_unchecked(start..) });
+
+                fields
+            }
+
+            #[allow(dead_code)]
+            pub fn split_row_to_owned_vec<'a>(&self, row: &'a str) -> Vec<String> {
+                let mut fields = vec![];
+
+                let mut start = 0;
+                let mut in_quoted_field = false;
+                let mut is_second_quote = true;
+                row.chars().enumerate().for_each(|(i, c)| {
+                    if c == self.sep && !in_quoted_field {
+                        fields.push(unsafe { row.get_unchecked(start..i).to_owned() });
+                        start = i + 1;
+                    } else if c == self.quote {
+                        is_second_quote = !is_second_quote;
+                        in_quoted_field = !is_second_quote;
+                    }
+                });
+                fields.push(unsafe { row.get_unchecked(start..).to_owned() });
+
+                fields
+            }
+
+            #[allow(dead_code)]
+            pub fn row_field_count<'a>(&self, row: &'a str) -> usize {
+                let mut field_n = 0;
+
+                let mut in_quoted_field = false;
+                let mut is_second_quote = true;
+                row.chars().for_each(|c| {
+                    if c == self.sep && !in_quoted_field {
+                        field_n += 1;
+                    } else if c == self.quote {
+                        is_second_quote = !is_second_quote;
+                        in_quoted_field = !is_second_quote;
+                    }
+                });
+
+                field_n + 1
+            }
+        }
+    };
+}
+
+impl_row_split!(Frequency);
+impl_row_split!(Select);
+impl_row_split!(Stats);
+impl_row_split!(To);
+impl_row_split!(Flatten);
+impl_row_split!(Unique);
+impl_row_split!(Search);
+impl_row_split!(Table);
+impl_row_split!(Split);
+impl_row_split!(Excel2csv);

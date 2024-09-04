@@ -1,4 +1,5 @@
 use super::excel::write_datatype_to_string;
+use super::row_split::CsvRow;
 use crate::utils::util::werr_exit;
 use calamine::Data;
 use std::fs::File;
@@ -8,7 +9,8 @@ use std::path::Path;
 #[derive(Debug)]
 pub struct Columns<'a> {
     path: Option<&'a Path>,
-    sep: &'a str,
+    sep: char,
+    quote: char,
     pub cols: Vec<usize>,
     pub max: usize,
     pub select_all: bool,
@@ -45,7 +47,8 @@ impl<'a> Columns<'a> {
     pub fn new(raw: &str) -> Columns {
         Columns {
             path: None,
-            sep: "",
+            sep: ',',
+            quote: '"',
             cols: vec![],
             max: 0,
             select_all: true,
@@ -60,9 +63,10 @@ impl<'a> Columns<'a> {
         self
     }
 
-    pub fn total_col_of(mut self, path: &'a Path, sep: &'a str) -> Self {
+    pub fn total_col_of(mut self, path: &'a Path, sep: char, quote: char) -> Self {
         self.path = Some(path);
         self.sep = sep;
+        self.quote = quote;
         self
     }
 
@@ -118,7 +122,7 @@ impl<'a> Columns<'a> {
                 BufReader::new(f)
                     .read_line(&mut first_line)
                     .expect("read error.");
-                self.total = Some(first_line.split(self.sep).count());
+                self.total = Some(CsvRow::new(&first_line).split(self.sep, self.quote).count());
             }
             let i = (self.total.unwrap() as i32) + parse_i32(col);
             if i < 0 {

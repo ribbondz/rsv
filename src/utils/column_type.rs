@@ -1,4 +1,6 @@
-use super::{cli_result::CliResult, column::Columns, reader::ExcelReader, util::is_null};
+use super::{
+    cli_result::CliResult, column::Columns, reader::ExcelReader, row_split::CsvRow, util::is_null,
+};
 use crate::utils::column;
 use calamine::{Data, DataType};
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
@@ -45,7 +47,8 @@ impl ColumnTypes {
     // parallel guess based on columns
     pub fn guess_from_csv(
         path: &Path,
-        sep: &str,
+        sep: char,
+        quote: char,
         no_header: bool,
         cols: &column::Columns,
     ) -> Result<Option<Self>, Box<dyn Error>> {
@@ -64,7 +67,7 @@ impl ColumnTypes {
         // split
         let lines = lines
             .iter()
-            .map(|r| r.split(sep).collect::<Vec<_>>())
+            .map(|r| CsvRow::new(r).split(sep, quote).collect::<Vec<_>>())
             .collect::<Vec<_>>();
 
         let guess = cols

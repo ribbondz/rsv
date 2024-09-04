@@ -1,6 +1,8 @@
 use super::{cli_result::CliResult, filename::new_file, reader::ExcelReader, writer::Writer};
-use crate::utils::{column::Columns, column_type::ColumnTypes};
-use regex::bytes::Regex;
+use crate::{
+    args::To,
+    utils::{column::Columns, column_type::ColumnTypes, row_split::CsvRow},
+};
 use std::{
     fs::File,
     io::{stdin, BufRead, BufReader, BufWriter, Write},
@@ -20,7 +22,7 @@ pub fn is_valid_excel(f: &str) -> bool {
     f.ends_with("xlsx") || f.ends_with("xls")
 }
 
-pub fn csv_or_io_to_csv(path: Option<&Path>, sep: &str, outsep: &str, out: &str) -> CliResult {
+pub fn csv_or_io_to_csv(path: Option<&Path>, out: &str) -> CliResult {
     // out path
     let out = out_filename(out);
 
@@ -32,20 +34,12 @@ pub fn csv_or_io_to_csv(path: Option<&Path>, sep: &str, outsep: &str, out: &str)
     let mut wtr = BufWriter::new(File::create(&out)?);
 
     // copy
-    let re = Regex::new(sep)?;
-    let outsep_bytes = outsep.as_bytes();
     let mut buf = vec![];
     while let Ok(bytes) = rdr.read_until(b'\n', &mut buf) {
         if bytes == 0 {
             break;
         }
-        if sep == outsep {
-            wtr.write_all(&buf[..bytes])?;
-        } else {
-            let str = re.replace_all(&buf[..bytes], outsep_bytes);
-            wtr.write_all(&str)?;
-        }
-
+        wtr.write_all(&buf[..bytes])?;
         buf.clear();
     }
 
@@ -73,7 +67,7 @@ pub fn excel_to_csv(path: &Path, sheet: usize, sep: &str, out: &str) -> CliResul
     Ok(())
 }
 
-pub fn csv_to_excel(path: &Path, sep: &str, out: &str, no_header: bool) -> CliResult {
+pub fn csv_to_excel(path: &Path, sep: char, quote: char, out: &str, no_header: bool) -> CliResult {
     // out path
     let out = out_filename(out);
 
@@ -83,8 +77,8 @@ pub fn csv_to_excel(path: &Path, sep: &str, out: &str, no_header: bool) -> CliRe
     let mut sheet = workbook.add_worksheet(None)?;
 
     // column type
-    let cols = Columns::new("").total_col_of(path, sep).parse();
-    let ctypes = match ColumnTypes::guess_from_csv(path, sep, no_header, &cols)? {
+    let cols = Columns::new("").total_col_of(path, sep, quote).parse();
+    let ctypes = match ColumnTypes::guess_from_csv(path, sep, quote, no_header, &cols)? {
         Some(v) => v,
         None => return Ok(()),
     };
@@ -94,7 +88,7 @@ pub fn csv_to_excel(path: &Path, sep: &str, out: &str, no_header: bool) -> CliRe
     // copy
     for (n, r) in rdr.lines().enumerate() {
         let r = r?;
-        let l = r.split(sep).collect::<Vec<_>>();
+        let l = CsvRow::new(&r).split(sep, quote).collect::<Vec<_>>();
         write_excel_line(&mut sheet, n, &l, ctypes.as_ref())?;
     }
 
@@ -103,7 +97,7 @@ pub fn csv_to_excel(path: &Path, sep: &str, out: &str, no_header: bool) -> CliRe
     Ok(())
 }
 
-pub fn io_to_excel(sep: &str, no_header: bool, out: &str) -> CliResult {
+pub fn io_to_excel(args: &To, out: &str) -> CliResult {
     // out path
     let out = out_filename(out);
 
@@ -115,7 +109,7 @@ pub fn io_to_excel(sep: &str, no_header: bool, out: &str) -> CliResult {
         .collect::<Vec<_>>();
     let lines = lines
         .iter()
-        .map(|i| i.split(sep).collect::<Vec<_>>())
+        .map(|i| args.split_row_to_vec(i))
         .collect::<Vec<_>>();
 
     if lines.is_empty() {
@@ -128,7 +122,7 @@ pub fn io_to_excel(sep: &str, no_header: bool, out: &str) -> CliResult {
     let ctypes = if equal_width(&lines) {
         // column type
         let cols = Columns::new("").total_col(lines[0].len()).parse();
-        let ctypes = ColumnTypes::guess_from_io(&lines[(1 - no_header as usize)..], &cols);
+        let ctypes = ColumnTypes::guess_from_io(&lines[(1 - args.no_header as usize)..], &cols);
         ctypes.update_excel_column_width(&mut sheet)?;
         Some(ctypes)
     } else {

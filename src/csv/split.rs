@@ -4,7 +4,7 @@ use crate::utils::file::estimate_line_count_by_mb;
 use crate::utils::filename::{dir_file, str_to_filename};
 use crate::utils::progress::Progress;
 use crate::utils::reader::{ChunkReader, Task};
-use crate::utils::util::{datetime_str, valid_sep, werr_exit};
+use crate::utils::util::{datetime_str, werr_exit};
 use crate::utils::writer::Writer;
 use crossbeam_channel::bounded;
 use dashmap::DashMap;
@@ -16,7 +16,6 @@ use std::thread;
 
 impl Split {
     pub fn csv_run(&self) -> CliResult {
-        let sep = valid_sep(&self.sep);
         let path = &self.path();
         let is_sequential_split = self.size.is_some();
 
@@ -37,7 +36,7 @@ impl Split {
                 return Ok(());
             };
             let r = r?;
-            if self.col >= r.split(&sep).count() {
+            if self.col >= self.row_field_count(&r) {
                 werr_exit!("column index out of range!");
             }
             r
@@ -105,7 +104,7 @@ fn sequential_task_handle(
 
 #[allow(clippy::too_many_arguments)]
 fn task_handle(
-    options: &Split,
+    args: &Split,
     task: Task,
     prog: &mut Progress,
     dir: &Path,
@@ -119,13 +118,13 @@ fn task_handle(
     // parallel process
     let batch_work = DashMap::new();
     task.lines.par_iter().for_each(|r| {
-        let seg = r.split(&options.sep).collect::<Vec<_>>();
-        if options.col >= r.len() {
+        let seg = args.split_row_to_vec(r);
+        if args.col >= r.len() {
             println!("[info] ignore a bad line, content is: {r:?}!");
             return;
         }
         batch_work
-            .entry(seg[options.col])
+            .entry(seg[args.col])
             .or_insert_with(Vec::new)
             .push(r);
     });
@@ -142,7 +141,7 @@ fn task_handle(
 
             // write
             let mut wtr = Writer::append_to(&out).unwrap();
-            if !options.no_header && !header_inserted.contains_key(&filename) {
+            if !args.no_header && !header_inserted.contains_key(&filename) {
                 header_inserted.insert(filename, true);
                 wtr.write_str(first_row).unwrap()
             }

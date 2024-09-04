@@ -1,4 +1,7 @@
-use super::math_expr_parser::{CompiledExpr, AST};
+use super::{
+    math_expr_parser::{CompiledExpr, AST},
+    row_split::CsvRow,
+};
 use crate::utils::util::werr_exit;
 use regex::Regex;
 use std::{
@@ -46,7 +49,8 @@ pub struct Filter<'a> {
     raw: &'a str,
     total: Option<usize>,
     path: Option<&'a Path>,
-    sep: &'a str,
+    sep: char,
+    quote: char,
     filters: Vec<FilterItem>,
     pub parsed: bool,
 }
@@ -75,7 +79,8 @@ impl<'a> Filter<'a> {
             raw,
             total: None,
             path: None,
-            sep: "",
+            sep: ',',
+            quote: '"',
             filters: vec![],
             parsed: false,
         }
@@ -90,9 +95,10 @@ impl<'a> Filter<'a> {
         self
     }
 
-    pub fn total_col_of(mut self, path: &'a Path, sep: &'a str) -> Self {
+    pub fn total_col_of(mut self, path: &'a Path, sep: char, quote: char) -> Self {
         self.path = Some(path);
         self.sep = sep;
+        self.quote = quote;
         self
     }
 
@@ -104,7 +110,7 @@ impl<'a> Filter<'a> {
                 BufReader::new(f)
                     .read_line(&mut first_line)
                     .expect("read error.");
-                self.total = Some(first_line.split(self.sep).count());
+                self.total = Some(CsvRow::new(&first_line).split(self.sep, self.quote).count());
             }
             let i = (self.total.unwrap() as i32) + parse_i32(col);
             if i < 0 {
@@ -240,13 +246,14 @@ impl<'a> Filter<'a> {
     pub fn record_valid_map<'b>(
         &self,
         row: &'b str,
-        sep: &str,
+        sep: char,
+        quote: char,
     ) -> Option<(Option<&'b str>, Option<Vec<&'b str>>)> {
         if self.is_empty() {
             return Some((Some(row), None));
         }
 
-        let v = row.split(sep).collect::<Vec<_>>();
+        let v = CsvRow::new(row).split(sep, quote).collect::<Vec<_>>();
         if self.record_is_valid(&v) {
             Some((Some(row), Some(v)))
         } else {

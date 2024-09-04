@@ -104,7 +104,7 @@ fn col_split_task_handle(
     let batch_work = DashMap::new();
 
     lines.par_iter().for_each(|r| {
-        let seg = r.split(&args.sep).collect::<Vec<_>>();
+        let seg = args.split_row_to_vec(r);
         if args.col >= r.len() {
             println!("[info] ignore a bad line, content is: {r:?}!");
             return;

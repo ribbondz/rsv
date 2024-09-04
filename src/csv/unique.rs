@@ -2,7 +2,6 @@ use crate::args::Unique;
 use crate::utils::cli_result::CliResult;
 use crate::utils::column::Columns;
 use crate::utils::filename::new_path;
-use crate::utils::util::valid_sep;
 use crate::utils::writer::Writer;
 use ahash::HashMapExt;
 use std::fs::File;
@@ -11,7 +10,6 @@ use std::path::Path;
 
 impl Unique {
     pub fn csv_run(&self) -> CliResult {
-        let sep = valid_sep(&self.sep);
         let path = &self.path();
         let all_cols = self.cols == "-1";
 
@@ -19,7 +17,11 @@ impl Unique {
         let cols = if all_cols {
             None
         } else {
-            Some(Columns::new(&self.cols).total_col_of(path, &sep).parse())
+            Some(
+                Columns::new(&self.cols)
+                    .total_col_of(path, self.sep, self.quote)
+                    .parse(),
+            )
         };
 
         // wtr and rdr
@@ -36,16 +38,11 @@ impl Unique {
         // read
         match (self.keep_last, all_cols) {
             (true, true) => keep_last_and_all_cols(&mut rdr, &mut wtr, path, self.no_header)?,
-            (true, false) => keep_last_and_partial_cols(
-                &mut rdr,
-                &mut wtr,
-                cols.unwrap(),
-                &sep,
-                path,
-                self.no_header,
-            )?,
+            (true, false) => {
+                keep_last_and_partial_cols(self, &mut rdr, &mut wtr, cols.unwrap(), path)?
+            }
             (false, true) => keep_first_and_all_cols(&mut rdr, &mut wtr)?,
-            (false, false) => keep_first_and_partial_cols(&mut rdr, &mut wtr, cols.unwrap(), &sep)?,
+            (false, false) => keep_first_and_partial_cols(&mut rdr, &mut wtr, cols.unwrap(), self)?,
         }
 
         if self.export {
@@ -73,12 +70,12 @@ fn keep_first_and_partial_cols(
     rdr: &mut Lines<BufReader<File>>,
     wtr: &mut Writer,
     cols: Columns,
-    sep: &str,
+    args: &Unique,
 ) -> CliResult {
     let mut unique_holder = ahash::HashSet::default();
     for r in rdr {
         let r = r?;
-        let segs = r.split(sep).collect::<Vec<_>>();
+        let segs = args.split_row_to_vec(&r);
         let p = cols.select_owned_string(&segs);
         if !unique_holder.contains(&p) {
             wtr.write_str_unchecked(&r);
@@ -118,20 +115,19 @@ fn keep_last_and_all_cols(
 }
 
 fn keep_last_and_partial_cols(
+    args: &Unique,
     rdr: &mut Lines<BufReader<File>>,
     wtr: &mut Writer,
     cols: Columns,
-    sep: &str,
     path: &Path,
-    no_header: bool,
 ) -> CliResult {
     let mut unique_n = ahash::HashMap::new();
 
     // first scan to locate record location
     let rdr2 = BufReader::new(File::open(path)?).lines();
-    for r in rdr2.skip(1 - (no_header as usize)) {
+    for r in rdr2.skip(1 - (args.no_header as usize)) {
         let r = r?;
-        let segs = r.split(sep).collect::<Vec<_>>();
+        let segs = args.split_row_to_vec(&r);
         let p = cols.select_owned_string(&segs);
         *unique_n.entry(p).or_insert(0) += 1;
     }
@@ -139,7 +135,7 @@ fn keep_last_and_partial_cols(
     // second scan
     for r in rdr {
         let r = r?;
-        let segs = r.split(sep).collect::<Vec<_>>();
+        let segs = args.split_row_to_vec(&r);
         let p = cols.select_owned_string(&segs);
         if unique_n[&p] == 1 {
             wtr.write_str_unchecked(&r);

@@ -21,26 +21,21 @@ impl Flatten {
         };
 
         // read file
-        let n = if self.n <= 0 {
-            usize::MAX
-        } else {
-            self.n as usize
-        };
-        let mut rdr = range.iter().skip(range.next_called).take(n).peekable();
-        while let Some(l) = rdr.next() {
-            let r = l
-                .iter()
-                .zip(&columns)
-                .map(|(v, k)| [k.to_owned(), v.to_string()])
-                .collect::<Vec<_>>();
-            Table::from_records(r).print_blank()?;
-
-            if rdr.peek().is_some() {
-                println!(" {}", &self.delimiter);
-            } else {
-                println!();
-            }
-        }
+        let n = self.n as usize; // overflow is allowed when self.n is negative.
+        range
+            .iter()
+            .skip(range.next_called)
+            .take(n)
+            .enumerate()
+            .for_each(|(i, l)| {
+                println!(" {}row{}", &self.delimiter, i + 1);
+                let r = l
+                    .iter()
+                    .zip(&columns)
+                    .map(|(v, k)| [k.to_owned(), v.to_string()])
+                    .collect::<Vec<_>>();
+                Table::from_records(r).print_blank().unwrap();
+            });
 
         Ok(())
     }

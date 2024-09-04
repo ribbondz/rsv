@@ -6,7 +6,6 @@ use crate::utils::filename::new_path;
 use crate::utils::progress::Progress;
 use crate::utils::reader::ChunkReader;
 use crate::utils::regex::Re;
-use crate::utils::util::valid_sep;
 use crate::utils::writer::Writer;
 use crossbeam_channel::bounded;
 use rayon::prelude::*;
@@ -14,10 +13,13 @@ use std::thread;
 
 impl Search {
     pub fn csv_run(&self) -> CliResult {
-        let sep = valid_sep(&self.sep);
         let path = &self.path();
-        let cols = Columns::new(&self.cols).total_col_of(path, &sep).parse();
-        let filter = Columns::new(&self.filter).total_col_of(path, &sep).parse();
+        let cols = Columns::new(&self.cols)
+            .total_col_of(path, self.sep, self.quote)
+            .parse();
+        let filter = Columns::new(&self.filter)
+            .total_col_of(path, self.sep, self.quote)
+            .parse();
 
         // wtr and rdr
         let out = new_path(path, "-searched");
@@ -31,9 +33,9 @@ impl Search {
             if cols.select_all {
                 wtr.write_str_unchecked(&r)
             } else {
-                let mut r = r.split(&sep).collect::<Vec<_>>();
+                let mut r = self.split_row_to_vec(&r);
                 r = cols.iter().map(|&i| r[i]).collect();
-                wtr.write_fields_unchecked(&r, Some(&sep.as_bytes()));
+                wtr.write_fields_unchecked(&r);
             }
         }
 
@@ -65,12 +67,12 @@ impl Search {
                         .par_iter()
                         .filter_map(|r| {
                             re.is_match(r).then_some({
-                                let r = r.split(&sep).collect::<Vec<_>>();
+                                let r = self.split_row_to_vec(r);
                                 cols.iter().map(|&i| r[i]).collect::<Vec<_>>()
                             })
                         })
                         .collect::<Vec<_>>();
-                    wtr.write_fields_of_lines_unchecked(&lines, Some(&sep.as_bytes()));
+                    wtr.write_fields_of_lines_unchecked(&lines);
                     lines.len()
                 }
                 (false, true) => {
@@ -78,7 +80,7 @@ impl Search {
                         .lines
                         .par_iter()
                         .filter(|r| {
-                            let r = r.split(&sep).collect::<Vec<_>>();
+                            let r = self.split_row_to_vec(r);
                             filter.iter().any(|&i| re.is_match(r[i]))
                         })
                         .collect::<Vec<_>>();
@@ -90,14 +92,14 @@ impl Search {
                         .lines
                         .par_iter()
                         .filter_map(|r| {
-                            let r = r.split(&sep).collect::<Vec<_>>();
+                            let r = self.split_row_to_vec(r);
                             filter
                                 .iter()
                                 .any(|&i| re.is_match(r[i]))
                                 .then_some(cols.iter().map(|&i| r[i]).collect::<Vec<_>>())
                         })
                         .collect::<Vec<_>>();
-                    wtr.write_fields_of_lines_unchecked(&lines, Some(&sep.as_bytes()));
+                    wtr.write_fields_of_lines_unchecked(&lines);
                     lines.len()
                 }
             };

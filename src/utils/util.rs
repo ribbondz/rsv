@@ -1,4 +1,4 @@
-use std::io::{stdout, BufWriter, Write};
+use std::io::{stdout, BufWriter, Error, Write};
 
 pub fn datetime_str() -> String {
     let t = chrono::offset::Local::now();
@@ -10,14 +10,17 @@ pub fn is_null(s: &str) -> bool {
     s.is_empty() || s == "NA" || s == "Na" || s == "na" || s == "NULL" || s == "Null" || s == "null"
 }
 
-pub fn is_tab(sep: &str) -> bool {
-    sep == "\\t" || sep == "'\\t'" || sep == "\"\\t\""
-}
+pub fn get_valid_sep(sep: &str) -> Result<char, Error> {
+    let cleaned_sep = sep.replace("\"", "").replace("'", "");
 
-pub fn valid_sep(sep: &str) -> String {
-    match is_tab(sep) {
-        true => '\t'.to_string(),
-        false => sep.to_owned(),
+    if cleaned_sep == "\\t" || cleaned_sep == "t" {
+        Ok('\t')
+    } else if cleaned_sep == "," {
+        Ok(',')
+    } else if cleaned_sep.len() == 1 {
+        Ok(cleaned_sep.chars().next().unwrap())
+    } else {
+        werr_exit!("cannot parse separator <{}>.", sep);
     }
 }
 

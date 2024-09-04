@@ -1,11 +1,10 @@
 use crate::{
     args::Flatten,
-    utils::{cli_result::CliResult, reader::IoReader, table::Table, util::valid_sep},
+    utils::{cli_result::CliResult, reader::IoReader, row_split::CsvRow, table::Table},
 };
 
 impl Flatten {
     pub fn io_run(&self) -> CliResult {
-        let sep = valid_sep(&self.sep);
         let n = if self.n <= 0 {
             usize::MAX - 10
         } else {
@@ -21,29 +20,27 @@ impl Flatten {
         }
 
         let columns: Vec<String> = if self.no_header {
-            (1..=lines[0].split(&sep).count())
+            (1..=self.row_field_count(&lines[0]))
                 .map(|i| format!("col{i}"))
                 .collect::<Vec<_>>()
         } else {
-            lines[0].split(&sep).map(String::from).collect::<Vec<_>>()
+            self.split_row_to_owned_vec(&lines[0])
         };
 
         // read file
-        let mut rdr = lines.iter().skip(1 - self.no_header as usize).peekable();
-        while let Some(l) = rdr.next() {
-            let r = l
-                .split(&sep)
-                .zip(&columns)
-                .map(|(v, k)| [k.as_str(), v])
-                .collect::<Vec<_>>();
-            Table::from_records(r).print_blank()?;
-
-            if rdr.peek().is_some() {
-                println!(" {}", &self.delimiter);
-            } else {
-                println!();
-            }
-        }
+        lines
+            .iter()
+            .skip(1 - self.no_header as usize)
+            .enumerate()
+            .for_each(|(i, l)| {
+                println!(" {}row{}", &self.delimiter, i + 1);
+                let r = CsvRow::new(l)
+                    .split(self.sep, self.quote)
+                    .zip(&columns)
+                    .map(|(v, k)| [k.as_str(), v])
+                    .collect::<Vec<_>>();
+                Table::from_records(r).print_blank().unwrap();
+            });
 
         Ok(())
     }

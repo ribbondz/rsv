@@ -5,15 +5,13 @@ use crate::utils::column_stats::ColumnStats;
 use crate::utils::column_type::ColumnTypes;
 use crate::utils::filename::new_file;
 use crate::utils::reader::IoReader;
-use crate::utils::util::valid_sep;
+use crate::utils::row_split::CsvRow;
 use rayon::prelude::*;
 use std::fs::File;
 use std::io::{BufWriter, Write};
 
 impl Stats {
     pub fn io_run(&self) -> CliResult {
-        let sep = valid_sep(&self.sep);
-
         // read
         let rows = IoReader::new().lines();
 
@@ -23,11 +21,11 @@ impl Stats {
         }
 
         // split rows
-        let n = rows[0].split(&sep).count();
+        let n = CsvRow::new(&rows[0]).split(self.sep, self.quote).count();
         let cols = Columns::new(&self.cols).total_col(n).parse();
         let rows = rows
             .par_iter()
-            .map(|r| r.split(&sep).collect::<Vec<_>>())
+            .map(|r| self.split_row_to_vec(r))
             .collect::<Vec<_>>();
 
         // header

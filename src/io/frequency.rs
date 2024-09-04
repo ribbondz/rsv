@@ -2,7 +2,7 @@ use crate::args::Frequency;
 use crate::utils::column::Columns;
 use crate::utils::file;
 use crate::utils::filename::new_file;
-use crate::utils::util::{print_frequency_table, valid_sep};
+use crate::utils::util::print_frequency_table;
 use crate::utils::{cli_result::CliResult, reader::IoReader};
 use dashmap::DashMap;
 
@@ -13,10 +13,9 @@ impl Frequency {
         if lines.is_empty() {
             return Ok(());
         }
-        let sep = valid_sep(&self.sep);
 
         // cols
-        let n = lines[0].split(&sep).count();
+        let n = self.row_field_count(&lines[0]);
         let col = Columns::new(&self.cols).total_col(n).parse();
 
         // open file and header
@@ -24,7 +23,7 @@ impl Frequency {
         let names: Vec<String> = if self.no_header {
             col.artificial_cols_with_appended_n()
         } else {
-            let r = lines[0].split(&sep).collect::<Vec<_>>();
+            let r = self.split_row_to_vec(&lines[0]);
             if col.max >= r.len() {
                 println!("[info] ignore a bad line # {r:?}!");
                 col.artificial_cols_with_appended_n()
@@ -35,7 +34,7 @@ impl Frequency {
 
         let freq = DashMap::new();
         for r in &lines[(1 - self.no_header as usize)..] {
-            let r = r.split(&sep).collect::<Vec<_>>();
+            let r = self.split_row_to_vec(r);
             if col.max >= r.len() {
                 println!("[info] ignore a bad line # {r:?}!");
             } else {

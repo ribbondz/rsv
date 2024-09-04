@@ -5,7 +5,7 @@ use crate::utils::file::{self, estimate_line_count_by_mb};
 use crate::utils::filename;
 use crate::utils::progress::Progress;
 use crate::utils::reader::ChunkReader;
-use crate::utils::util::{print_frequency_table, valid_sep};
+use crate::utils::util::print_frequency_table;
 use crossbeam_channel::bounded;
 use dashmap::DashMap;
 use rayon::prelude::*;
@@ -13,11 +13,12 @@ use std::thread;
 
 impl Frequency {
     pub fn csv_run(&self) -> CliResult {
-        let sep = valid_sep(&self.sep);
         let path = &self.path();
 
         // cols
-        let col = Columns::new(&self.cols).total_col_of(path, &sep).parse();
+        let col = Columns::new(&self.cols)
+            .total_col_of(path, self.sep, self.quote)
+            .parse();
 
         // open file and header
         let mut rdr = ChunkReader::new(path)?;
@@ -26,7 +27,7 @@ impl Frequency {
         } else {
             let Some(r) = rdr.next() else { return Ok(()) };
             let r = r?;
-            let r = r.split(&sep).collect::<Vec<_>>();
+            let r = self.split_row_to_vec(&r);
             if col.max >= r.len() {
                 println!("[info] ignore a bad line # {r:?}!");
                 col.artificial_cols_with_appended_n()
@@ -45,7 +46,7 @@ impl Frequency {
         let mut prog = Progress::new();
         for task in rx {
             task.lines.par_iter().for_each(|r| {
-                let r = r.split(&sep).collect::<Vec<_>>();
+                let r = self.split_row_to_vec(r);
                 if col.max >= r.len() {
                     println!("[info] ignore a bad line # {r:?}!");
                 } else {

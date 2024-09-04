@@ -1,6 +1,6 @@
 use crate::{
     args::Table,
-    utils::{cli_result::CliResult, table::Table as T, util::valid_sep},
+    utils::{cli_result::CliResult, table::Table as T},
 };
 use std::{
     fs::File,
@@ -9,15 +9,13 @@ use std::{
 
 impl Table {
     pub fn csv_run(&self) -> CliResult {
-        let sep = valid_sep(&self.sep);
-
         // rdr
         let rdr = BufReader::new(File::open(&self.path())?);
 
         let rows = rdr
             .lines()
             .filter_map(|r| r.ok())
-            .map(|r| r.split(&sep).map(String::from).collect::<Vec<_>>())
+            .map(|r| self.split_row_to_owned_vec(&r))
             .collect::<Vec<_>>();
 
         T::from_records(rows).print_blank()?;

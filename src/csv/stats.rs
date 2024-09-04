@@ -7,7 +7,6 @@ use crate::utils::file::{column_n, estimate_line_count_by_mb};
 use crate::utils::filename::new_path;
 use crate::utils::progress::Progress;
 use crate::utils::reader::{ChunkReader, Task};
-use crate::utils::util::valid_sep;
 use crossbeam_channel::{bounded, unbounded, Sender};
 use rayon::ThreadPoolBuilder;
 use std::fs::File;
@@ -15,12 +14,15 @@ use std::io::{BufWriter, Write};
 
 impl Stats {
     pub fn csv_run(&self) -> CliResult {
-        let sep = valid_sep(&self.sep);
         let path = &self.path();
 
         // Column
-        let cols = Columns::new(&self.cols).total_col_of(path, &sep).parse();
-        let Some(col_type) = ColumnTypes::guess_from_csv(path, &sep, self.no_header, &cols)? else {
+        let cols = Columns::new(&self.cols)
+            .total_col_of(path, self.sep, self.quote)
+            .parse();
+        let Some(col_type) =
+            ColumnTypes::guess_from_csv(path, self.sep, self.quote, self.no_header, &cols)?
+        else {
             return Ok(());
         };
 
@@ -29,13 +31,13 @@ impl Stats {
 
         // header
         let name = if self.no_header {
-            let Some(n) = column_n(path, &sep)? else {
+            let Some(n) = column_n(path, self.sep, self.quote)? else {
                 return Ok(());
             };
             cols.artificial_n_cols(n)
         } else {
             let Some(r) = rdr.next() else { return Ok(()) };
-            r?.split(&sep).map(String::from).collect()
+            self.split_row_to_owned_vec(&r?)
         };
 
         // stats holder
@@ -66,9 +68,10 @@ impl Stats {
 
                     let tx = tx_result.clone();
                     let st = empty_stat.clone();
-                    let sep_inner = sep.to_owned();
+                    let sep_inner = self.sep;
+                    let quote_inner = self.quote;
                     // println!("dispatch........");
-                    pool.spawn(move || parse_chunk(task, tx, st, &sep_inner));
+                    pool.spawn(move || parse_chunk(task, tx, st, sep_inner, quote_inner));
                 }
 
                 drop(tx_result);
@@ -115,9 +118,9 @@ struct ChunkResult {
     stat: ColumnStats,
 }
 
-fn parse_chunk(task: Task, tx: Sender<ChunkResult>, mut stat: ColumnStats, sep: &str) {
+fn parse_chunk(task: Task, tx: Sender<ChunkResult>, mut stat: ColumnStats, sep: char, quote: char) {
     for l in task.lines {
-        stat.parse_line(&l, sep)
+        stat.parse_line(&l, sep, quote)
     }
 
     tx.send(ChunkResult {

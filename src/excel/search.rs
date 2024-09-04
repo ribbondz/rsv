@@ -121,13 +121,13 @@ impl<'a> Args<'a> {
             match (self.cols.select_all, self.filter.select_all) {
                 (true, true) => {
                     if r.iter().any(|i| self.re.is_match(i)) {
-                        self.wtr.write_fields_unchecked(&r, None);
+                        self.wtr.write_fields_unchecked(&r);
                         self.matched += 1;
                     }
                 }
                 (true, false) => {
                     if self.filter.iter().any(|&i| self.re.is_match(&r[i])) {
-                        self.wtr.write_fields_unchecked(&r, None);
+                        self.wtr.write_fields_unchecked(&r);
                         self.matched += 1;
                     }
                 }

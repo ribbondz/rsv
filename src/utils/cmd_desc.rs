@@ -32,6 +32,7 @@ Arguments:
 
 Options:
   -s, --sep <SEP>      Field separator [default: ,]
+  -q, --quote <QUOTE>  Quote char [default: \"]
   -S, --sheet <SHEET>  Get the nth worksheet of EXCEL file [default: 0] 
   -h, --help           Print help information";
 
@@ -50,7 +51,6 @@ Arguments:
   <FILENAME>  File to open, e.g., CSV, TXT, EXCEL or OTHERS
 
 Options:
-  -s, --sep <SEP>      Separator [default: ,]
       --no-header      Whether the file has a header
   -n, --n <N>          Number of records to show [default: 10]
   -S, --sheet <SHEET>  Get the nth worksheet of EXCEL file [default: 0]
@@ -70,7 +70,6 @@ Arguments:
   [FILENAME]  File to open
 
 Options:
-  -s, --sep <SEP>      Separator [default: ,]
       --no-header      Whether the file has a header
   -n, --n <N>          Number of records to show [default: 10]
   -S, --sheet <SHEET>  Get the nth worksheet of EXCEL file [default: 0]
@@ -137,6 +136,7 @@ Arguments:
 
 Options:
   -s, --sep <SEP>              Separator [default: ,]
+  -q, --quote <QUOTE>          Quote Char [default: \"]
       --no-header              Whether the file has a header
   -d, --delimiter <DELIMITER>  Line delimiter for printing [default: #]
   -n, --n <N>                  Number of records to show, n=-1 to show all [default: 5]
@@ -207,6 +207,7 @@ Arguments:
 
 Options:
   -s, --sep <SEP>      Separator [default: ,]
+  -q, --quote <QUOTE>  Quote Char [default: \"]
       --no-header      Whether the file has a header
   -c, --cols <COLS>    Columns to generate frequency table [default: 0]
   -a, --ascending      Ascending order or not
@@ -252,6 +253,7 @@ Sequential Split options:
 
 Column-based Split Options: 
   -s, --sep <SEP>      Separator [default: ,]
+  -q, --quote <QUOTE>  Quote Char [default: \"]
       --no-header      Whether the file has a header
   -c, --col <COL>      Column to split upon [default: 0]
   -S, --sheet <SHEET>  Get the nth worksheet of EXCEL file [default: 0]
@@ -276,6 +278,7 @@ Arguments:
 
 Options:
   -s, --sep <SEP>        Separator [default: ,]
+  -q, --quote <QUOTE>    Quote Char [default: \"]
       --no-header        Whether the file has a header
   -c, --cols <COLS>      Columns to select, see column select syntax below; Default to select ALL
   -f, --filter <FILTER>  Row filter, see row filter syntax below; Default to NONE
@@ -341,6 +344,7 @@ Arguments:
 Options:
   -S, --sheet <SHEET>  Get the nth worksheet of EXCEL file [default: 0]
   -s, --sep <SEP>      Separator [default: ,]
+  -q, --quote <QUOTE>  Quote char [default: \"]
   -h, --help           Print help information
 ";
 
@@ -352,8 +356,9 @@ Usage:
   rsv slice -s 10 -e 15 data.csv | rsv table   # convert result to an aligned table
 
 Options:
-  -s, --sep <SEP>  Separator [default: ,]
-  -h, --help       Print help information
+  -s, --sep <SEP>      Separator [default: ,]
+  -q, --quote <QUOTE>  Quote char [default: \"]
+  -h, --help           Print help information
 ";
 
 pub const SEARCH_DESC: &str = "Search with regexes. Regex syntax is to be found at: https://docs.rs/regex/latest/regex/#syntax. 
@@ -373,8 +378,9 @@ Arguments:
   <FILENAME>  File to open
 
 Options:
-      --no-header        Whether the file has a header
   -s, --sep <SEP>        Separator [default: ,]
+  -q, --quote <QUOTE>    Quote char [default: \"]
+      --no-header        Whether the file has a header
   -f, --filter <FILTER>  Columns to search [default: all]
   -c, --cols <COLS>      Columns to keep in output [default: all]
   -S, --sheet <SHEET>    Search the nth worksheet of EXCEL file [default: 0], can search all sheets with -S all
@@ -415,6 +421,7 @@ Arguments:
 
 Options:
   -s, --sep <SEP>      Separator [default: ,]
+  -q, --quote <QUOTE>  Quote char [default: \"]
       --no-header      Whether the file has a header
   -c, --cols <COLS>    Columns to sort by, e.g., -c 0, -c 0N, -c 0ND [default: 0]
   -S, --sheet <SHEET>  Get the nth worksheet of EXCEL file [default: 0]
@@ -441,6 +448,7 @@ Arguments:
 Options:
       --no-header        Whether the file has a header
   -s, --sep <SEP>        Input file Separator [default: ,]
+  -q, --quote <QUOTE>    Quote char [default: \"]
   -o, --outsep <OUTSEP>  Output file Separator [default: ,]
   -S, --sheet <SHEET>    Get the nth worksheet of EXCEL file [default: 0]
   -h, --help             Print help
@@ -492,6 +500,7 @@ Arguments:
 
 Options:
   -s, --sep <SEP>      Separator [default: ,]
+  -q, --quote <QUOTE>  Quote char [default: \"]
       --no-header      Whether the file has a header
   -c, --cols <COLS>    Columns to filter [default: all columns]
       --keep-last      keep first or last

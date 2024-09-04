@@ -2,13 +2,12 @@ use crate::args::Select;
 use crate::utils::column::Columns;
 use crate::utils::filename::new_file;
 use crate::utils::filter::Filter;
-use crate::utils::util::valid_sep;
+use crate::utils::row_split::CsvRow;
 use crate::utils::{cli_result::CliResult, writer::Writer};
 use std::io::{stdin, BufRead};
 
 impl Select {
     pub fn io_run(&self) -> CliResult {
-        let sep = valid_sep(&self.sep);
         // current file
         let out = new_file("selected.csv");
 
@@ -20,15 +19,12 @@ impl Select {
         let mut wtr = Writer::file_or_stdout(self.export, &out)?;
         let mut rdr = stdin().lock().lines();
 
-        // const
-        let sep_bytes = &sep.as_bytes();
-
         // header
         if !self.no_header {
             let Some(r) = rdr.next() else { return Ok(()) };
             let r = r?;
 
-            let fields = r.split(&sep).collect::<Vec<_>>();
+            let fields = self.split_row_to_vec(&r);
             col = col.total_col(fields.len()).parse();
             filter = filter.total_col(fields.len()).parse();
 
@@ -36,7 +32,7 @@ impl Select {
                 wtr.write_str_unchecked(&r)
             } else {
                 let r = col.iter().map(|&i| fields[i]).collect::<Vec<_>>();
-                wtr.write_fields_unchecked(&r, Some(sep_bytes));
+                wtr.write_fields_unchecked(&r);
             }
         }
 
@@ -44,11 +40,11 @@ impl Select {
             let r = r?;
 
             if !col.parsed {
-                let n = r.split(&sep).count();
+                let n = CsvRow::new(&r).split(self.sep, self.quote).count();
                 col = col.total_col(n).parse();
             }
             if !filter.parsed {
-                let n = r.split(&sep).count();
+                let n = CsvRow::new(&r).split(self.sep, self.quote).count();
                 filter = filter.total_col(n).parse();
             }
 
@@ -57,7 +53,7 @@ impl Select {
                 continue;
             }
 
-            let mut f = r.split(&sep).collect::<Vec<_>>();
+            let mut f = self.split_row_to_vec(&r);
             if !filter.is_empty() && !filter.record_is_valid(&f) {
                 continue;
             }
@@ -66,7 +62,7 @@ impl Select {
                 f = col.iter().map(|&i| f[i]).collect();
             }
 
-            wtr.write_fields_unchecked(&f, Some(sep_bytes));
+            wtr.write_fields_unchecked(&f);
         }
 
         if self.export {

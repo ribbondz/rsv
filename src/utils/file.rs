@@ -7,6 +7,7 @@ use std::{
 };
 
 use super::constants::MB_USIZE;
+use super::row_split::CsvRow;
 
 pub fn estimate_row_bytes(path: &Path) -> Result<f64, Box<dyn Error>> {
     // read 20000 lines to estimate bytes per line
@@ -26,7 +27,7 @@ pub fn estimate_row_bytes(path: &Path) -> Result<f64, Box<dyn Error>> {
     Ok((bytes as f64) / (n as f64))
 }
 
-pub fn column_n(path: &Path, sep: &str) -> Result<Option<usize>, Box<dyn Error>> {
+pub fn column_n(path: &Path, sep: char, quote: char) -> Result<Option<usize>, Box<dyn Error>> {
     // read
     let rdr = BufReader::new(File::open(path)?);
     let n = rdr
@@ -34,7 +35,7 @@ pub fn column_n(path: &Path, sep: &str) -> Result<Option<usize>, Box<dyn Error>>
         .next()
         .map(|i| i.ok())
         .unwrap_or_default()
-        .map(|i| i.split(sep).count());
+        .map(|i| CsvRow::new(&i).split(sep, quote).count());
 
     Ok(n)
 }

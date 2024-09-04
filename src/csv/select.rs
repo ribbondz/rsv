@@ -6,7 +6,6 @@ use crate::utils::filename::new_path;
 use crate::utils::filter::Filter;
 use crate::utils::progress::Progress;
 use crate::utils::reader::{ChunkReader, Task};
-use crate::utils::util::valid_sep;
 use crate::utils::writer::Writer;
 use crossbeam_channel::bounded;
 use rayon::prelude::*;
@@ -14,20 +13,20 @@ use std::thread;
 
 impl Select {
     pub fn csv_run(&self) -> CliResult {
-        let sep = valid_sep(&self.sep);
         let path = &self.path();
 
         // filters and cols
-        let filter = Filter::new(&self.filter).total_col_of(path, &sep).parse();
-        let cols = Columns::new(&self.cols).total_col_of(path, &sep).parse();
+        let filter = Filter::new(&self.filter)
+            .total_col_of(path, self.sep, self.quote)
+            .parse();
+        let cols = Columns::new(&self.cols)
+            .total_col_of(path, self.sep, self.quote)
+            .parse();
 
         // wtr and rdr
         let out = new_path(path, "-selected");
         let mut wtr = Writer::file_or_stdout(self.export, &out)?;
         let mut rdr = ChunkReader::new(path)?;
-
-        // const
-        let sep_bytes = &sep.as_bytes();
 
         // header
         if !self.no_header {
@@ -36,9 +35,9 @@ impl Select {
             if cols.select_all {
                 wtr.write_str_unchecked(&r)
             } else {
-                let mut r = r.split(&sep).collect::<Vec<_>>();
+                let mut r = self.split_row_to_vec(&r);
                 r = cols.iter().map(|&i| r[i]).collect();
-                wtr.write_fields_unchecked(&r, Some(sep_bytes));
+                wtr.write_fields_unchecked(&r);
             }
         }
 
@@ -52,7 +51,7 @@ impl Select {
         // process
         let mut prog = Progress::new();
         for task in rx {
-            handle_task(self, task, &filter, &cols, &mut wtr, sep_bytes, &mut prog)
+            handle_task(self, task, &filter, &cols, &mut wtr, &mut prog)
         }
 
         if self.export {
@@ -70,14 +69,13 @@ fn handle_task(
     filter: &Filter,
     cols: &Columns,
     wtr: &mut Writer,
-    sep_bytes: &[u8],
     prog: &mut Progress,
 ) {
     // filter
     let filtered = task
         .lines
         .par_iter()
-        .filter_map(|row| filter.record_valid_map(row, &args.sep))
+        .filter_map(|row| filter.record_valid_map(row, args.sep, args.quote))
         .collect::<Vec<(_, _)>>();
 
     // write
@@ -89,9 +87,9 @@ fn handle_task(
         }
 
         // write by fields
-        let f = f.unwrap_or_else(|| r.unwrap().split(&args.sep).collect());
+        let f = f.unwrap_or_else(|| args.split_row_to_vec(r.unwrap()));
         let row = cols.iter().map(|&i| f[i]).collect::<Vec<_>>();
-        wtr.write_fields_unchecked(&row, Some(sep_bytes));
+        wtr.write_fields_unchecked(&row);
     }
 
     if args.export {

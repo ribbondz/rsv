@@ -12,10 +12,9 @@ impl Clean {
 
         // copy
         let re = Regex::new(&self.escape)?;
-        let empty_bytes = &b""[..];
+        let empty_bytes = b"";
 
         let mut buf = vec![];
-
         while let Ok(bytes_read) = rdr.read_until(b'\n', &mut buf) {
             if bytes_read == 0 {
                 break;

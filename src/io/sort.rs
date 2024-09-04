@@ -1,14 +1,11 @@
 use crate::args::Sort;
 use crate::utils::sort::SortColumns;
-use crate::utils::util::valid_sep;
 use crate::utils::writer::Writer;
 use crate::utils::{cli_result::CliResult, filename::new_file};
 use std::io::{stdin, BufRead};
 
 impl Sort {
     pub fn io_run(&self) -> CliResult {
-        let sep = valid_sep(&self.sep);
-
         // rdr and wtr
         let mut rdr = stdin().lock().lines();
         let out = new_file("sorted.csv");
@@ -27,7 +24,7 @@ impl Sort {
         let lines = rdr.filter_map(|i| i.ok()).collect::<Vec<_>>();
 
         // sort
-        cols.sort_and_write(&lines, &sep, &mut wtr)?;
+        cols.sort_and_write(&lines, self.sep, self.quote, &mut wtr)?;
 
         if self.export {
             println!("Saved to file: {}", out.display())

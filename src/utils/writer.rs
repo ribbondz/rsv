@@ -93,22 +93,19 @@ impl Writer {
         }
     }
 
-    pub fn write_fields<T: AsRef<str>>(&mut self, line: &[T], sep: Option<&[u8]>) -> CliResult {
+    pub fn write_fields<T: AsRef<str>>(&mut self, line: &[T]) -> CliResult {
         let mut l = line.iter().peekable();
         while let Some(f) = l.next() {
             self.0.write_all(f.as_ref().as_bytes())?;
-            self.0.write_all(if l.peek().is_none() {
-                TERMINATOR
-            } else {
-                sep.unwrap_or(b",")
-            })?;
+            self.0
+                .write_all(if l.peek().is_none() { TERMINATOR } else { b"," })?;
         }
 
         Ok(())
     }
 
-    pub fn write_fields_unchecked<T: AsRef<str>>(&mut self, line: &[T], sep: Option<&[u8]>) {
-        if self.write_fields(line, sep).is_err() {
+    pub fn write_fields_unchecked<T: AsRef<str>>(&mut self, line: &[T]) {
+        if self.write_fields(line).is_err() {
             process::exit(0)
         }
     }
@@ -143,13 +140,9 @@ impl Writer {
         }
     }
 
-    pub fn write_fields_of_lines_unchecked<T: AsRef<str>>(
-        &mut self,
-        lines: &Vec<Vec<T>>,
-        sep: Option<&[u8]>,
-    ) {
+    pub fn write_fields_of_lines_unchecked<T: AsRef<str>>(&mut self, lines: &Vec<Vec<T>>) {
         for line in lines {
-            if self.write_fields(line, sep).is_err() {
+            if self.write_fields(line).is_err() {
                 process::exit(0)
             }
         }

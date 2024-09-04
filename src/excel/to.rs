@@ -8,7 +8,7 @@ impl To {
         let outsep = if out.ends_with("tsv") {
             '\t'.to_string()
         } else {
-            self.outsep.to_owned()
+            ','.to_string()
         };
 
         if !is_valid_plain_text(&out) {
