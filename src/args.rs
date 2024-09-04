@@ -449,19 +449,23 @@ macro_rules! impl_row_split {
             pub fn split_row_to_vec<'a>(&self, row: &'a str) -> Vec<&'a str> {
                 let mut fields = vec![];
 
-                let mut start = 0;
+                let mut field_start = 0;
+                let mut field_end_shift = 0;
                 let mut in_quoted_field = false;
-                let mut is_second_quote = true;
-                row.chars().enumerate().for_each(|(i, c)| {
+                row.char_indices().for_each(|(i, c)| {
                     if c == self.sep && !in_quoted_field {
-                        fields.push(unsafe { row.get_unchecked(start..i) });
-                        start = i + 1;
+                        fields.push(unsafe { row.get_unchecked(field_start..i - field_end_shift) });
+                        field_start = i + 1;
+                        field_end_shift = 0;
                     } else if c == self.quote {
-                        is_second_quote = !is_second_quote;
-                        in_quoted_field = !is_second_quote;
+                        let i = in_quoted_field as usize;
+                        field_start += i;
+                        field_end_shift += i;
+
+                        in_quoted_field = !in_quoted_field;
                     }
                 });
-                fields.push(unsafe { row.get_unchecked(start..) });
+                fields.push(unsafe { row.get_unchecked(field_start..row.len() - field_end_shift) });
 
                 fields
             }
@@ -470,19 +474,29 @@ macro_rules! impl_row_split {
             pub fn split_row_to_owned_vec<'a>(&self, row: &'a str) -> Vec<String> {
                 let mut fields = vec![];
 
-                let mut start = 0;
+                let mut field_start = 0;
+                let mut field_end_shift = 0;
                 let mut in_quoted_field = false;
-                let mut is_second_quote = true;
-                row.chars().enumerate().for_each(|(i, c)| {
+                row.char_indices().for_each(|(i, c)| {
                     if c == self.sep && !in_quoted_field {
-                        fields.push(unsafe { row.get_unchecked(start..i).to_owned() });
-                        start = i + 1;
+                        fields.push(unsafe {
+                            row.get_unchecked(field_start..i - field_end_shift)
+                                .to_owned()
+                        });
+                        field_start = i + 1;
+                        field_end_shift = 0;
                     } else if c == self.quote {
-                        is_second_quote = !is_second_quote;
-                        in_quoted_field = !is_second_quote;
+                        let i = in_quoted_field as usize;
+                        field_start += i;
+                        field_end_shift += i;
+
+                        in_quoted_field = !in_quoted_field;
                     }
                 });
-                fields.push(unsafe { row.get_unchecked(start..).to_owned() });
+                fields.push(unsafe {
+                    row.get_unchecked(field_start..row.len() - field_end_shift)
+                        .to_owned()
+                });
 
                 fields
             }
@@ -492,13 +506,11 @@ macro_rules! impl_row_split {
                 let mut field_n = 0;
 
                 let mut in_quoted_field = false;
-                let mut is_second_quote = true;
                 row.chars().for_each(|c| {
                     if c == self.sep && !in_quoted_field {
                         field_n += 1;
                     } else if c == self.quote {
-                        is_second_quote = !is_second_quote;
-                        in_quoted_field = !is_second_quote;
+                        in_quoted_field = !in_quoted_field;
                     }
                 });
 

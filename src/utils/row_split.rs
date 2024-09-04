@@ -1,4 +1,4 @@
-use std::str::Chars;
+use std::str::CharIndices;
 
 #[derive(Debug)]
 pub struct CsvRow<'a> {
@@ -8,14 +8,13 @@ pub struct CsvRow<'a> {
 #[derive(Debug)]
 pub struct CsvRowSplit<'a> {
     row: &'a str,
-    chars: Chars<'a>,
+    chars: CharIndices<'a>,
     sep: char,
     quote: char,
     done: bool,
-    start: usize,
-    current_index: usize,
+    field_start: usize,
+    field_end_shift: usize,
     in_quoted_field: bool,
-    is_second_quote: bool,
 }
 
 impl<'a> CsvRow<'a> {
@@ -26,14 +25,13 @@ impl<'a> CsvRow<'a> {
     pub fn split(self, sep: char, quote: char) -> CsvRowSplit<'a> {
         CsvRowSplit {
             row: self.row,
-            chars: self.row.chars(),
+            chars: self.row.char_indices(),
             sep,
             quote,
             done: false,
-            start: 0,
-            current_index: 0,
+            field_start: 0,
+            field_end_shift: 0,
             in_quoted_field: false,
-            is_second_quote: true,
         }
     }
 }
@@ -47,20 +45,29 @@ impl<'a> Iterator for CsvRowSplit<'a> {
         }
 
         loop {
-            if let Some(c) = self.chars.next() {
-                self.current_index += 1;
-
+            if let Some((index, c)) = self.chars.next() {
                 if c == self.sep && !self.in_quoted_field {
-                    let s = self.start;
-                    self.start = self.current_index;
-                    return Some(unsafe { self.row.get_unchecked(s..self.current_index - 1) });
+                    let i = self.field_start;
+                    let j = index - self.field_end_shift;
+                    let f = unsafe { self.row.get_unchecked(i..j) };
+
+                    self.field_start = index + 1;
+                    self.field_end_shift = 0;
+                    return Some(f);
                 } else if c == self.quote {
-                    self.is_second_quote = !self.is_second_quote;
-                    self.in_quoted_field = !self.is_second_quote;
+                    let i = self.in_quoted_field as usize;
+                    self.field_start += i;
+                    self.field_end_shift += i;
+
+                    self.in_quoted_field = !self.in_quoted_field;
                 }
             } else {
                 self.done = true;
-                return Some(unsafe { self.row.get_unchecked(self.start..) });
+                return Some(unsafe {
+                    let i = self.field_start;
+                    let j = self.row.len() - self.field_end_shift;
+                    self.row.get_unchecked(i..j)
+                });
             }
         }
     }
@@ -73,12 +80,29 @@ mod tests {
 
     #[test]
     fn test_csv_row_split() {
-        let r1 = "1,2,3,";
-        let o1 = CsvRow::new(&r1).split(',', '"').collect::<Vec<_>>();
-        assert_eq!(o1, vec!["1", "2", "3", ""]);
+        let r = "1,2,3,";
+        let o = CsvRow::new(&r).split(',', '"').collect::<Vec<_>>();
+        assert_eq!(o, vec!["1", "2", "3", ""]);
 
-        let r2 = "first,second,\"third,fourth\", fifth";
-        let o2 = CsvRow::new(&r2).split(',', '"').collect::<Vec<_>>();
-        assert_eq!(o2, vec!["first", "second", "\"third,fourth\"", " fifth"]);
+        let r = "\"1\",2,3,";
+        let o = CsvRow::new(&r).split(',', '"').collect::<Vec<_>>();
+        assert_eq!(o, vec!["1", "2", "3", ""]);
+
+
+        let r = "first,second,\"third,fourth\",fifth";
+        let o = CsvRow::new(&r).split(',', '"').collect::<Vec<_>>();
+        assert_eq!(o, vec!["first", "second", "third,fourth", "fifth"]);
+
+        let r = "first,second,\"third,fourth\",\"fifth\"";
+        let o = CsvRow::new(&r).split(',', '"').collect::<Vec<_>>();
+        assert_eq!(o, vec!["first", "second", "third,fourth", "fifth"]);
+
+        let r = "\"third,fourth\",\"fifth\"";
+        let o = CsvRow::new(&r).split(',', '"').collect::<Vec<_>>();
+        assert_eq!(o, vec!["third,fourth", "fifth"]);
+
+        let r = "我们abc,def,12";
+        let o = CsvRow::new(&r).split(',', '"').collect::<Vec<_>>();
+        assert_eq!(o, vec!["我们abc", "def", "12"]);
     }
 }
