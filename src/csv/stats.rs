@@ -3,7 +3,7 @@ use crate::utils::cli_result::CliResult;
 use crate::utils::column::Columns;
 use crate::utils::column_stats::ColumnStats;
 use crate::utils::column_type::ColumnTypes;
-use crate::utils::file::{column_n, estimate_line_count_by_mb};
+use crate::utils::file::column_n;
 use crate::utils::filename::new_path;
 use crate::utils::progress::Progress;
 use crate::utils::reader::{ChunkReader, Task};
@@ -56,8 +56,7 @@ impl Stats {
         let pool = ThreadPoolBuilder::new().build().unwrap();
 
         // read
-        let n = estimate_line_count_by_mb(path, Some(5));
-        pool.spawn(move || rdr.send_to_channel_by_chunks(tx_chunk, n));
+        pool.spawn(move || rdr.send_to_channel_by_chunks(tx_chunk, 50_000));
 
         // parallel process
         pool.scope(|s| {

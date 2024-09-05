@@ -1,6 +1,5 @@
 use crate::args::Split;
 use crate::utils::cli_result::CliResult;
-use crate::utils::file::estimate_line_count_by_mb;
 use crate::utils::filename::{dir_file, str_to_filename};
 use crate::utils::progress::Progress;
 use crate::utils::reader::{ChunkReader, Task};
@@ -48,7 +47,7 @@ impl Split {
         // read
         let line_buffer_n = match is_sequential_split {
             true => self.size.unwrap(),
-            false => estimate_line_count_by_mb(path, Some(50)),
+            false => 50_000,
         };
         thread::spawn(move || rdr.send_to_channel_by_chunks(tx, line_buffer_n));
 

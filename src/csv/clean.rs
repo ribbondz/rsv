@@ -1,7 +1,6 @@
 use crate::args::Clean;
 use crate::utils;
 use crate::utils::cli_result::CliResult;
-use crate::utils::file::estimate_line_count_by_mb;
 use crate::utils::progress::Progress;
 use regex::bytes::Regex;
 use std::fs::File;
@@ -24,7 +23,6 @@ impl Clean {
 
         // progress
         let mut prog = Progress::new();
-        let prog_check_every_n = estimate_line_count_by_mb(path, None);
 
         // copy
         let re = Regex::new(&self.escape)?;
@@ -43,7 +41,7 @@ impl Clean {
 
             // progress print
             prog.add_bytes(bytes_read);
-            if i % prog_check_every_n == 0 {
+            if i % 50_000 == 0 {
                 prog.add_chunks(1);
                 prog.print();
             }

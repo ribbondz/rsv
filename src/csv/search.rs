@@ -1,7 +1,6 @@
 use crate::args::Search;
 use crate::utils::cli_result::CliResult;
 use crate::utils::column::Columns;
-use crate::utils::file::estimate_line_count_by_mb;
 use crate::utils::filename::new_path;
 use crate::utils::progress::Progress;
 use crate::utils::reader::ChunkReader;
@@ -41,8 +40,7 @@ impl Search {
 
         // read file
         let (tx, rx) = bounded(2);
-        let line_buffer_n: usize = estimate_line_count_by_mb(path, Some(10));
-        thread::spawn(move || rdr.send_to_channel_by_chunks(tx, line_buffer_n));
+        thread::spawn(move || rdr.send_to_channel_by_chunks(tx, 10_000));
 
         // progress for export option
         let mut prog = Progress::new();

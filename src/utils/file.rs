@@ -40,11 +40,12 @@ pub fn column_n(path: &Path, sep: char, quote: char) -> Result<Option<usize>, Bo
     Ok(n)
 }
 
+#[allow(dead_code)]
 pub fn estimate_line_count_by_mb(path: &Path, mb: Option<usize>) -> usize {
     match estimate_row_bytes(path) {
         // default chunk-size to 200mb or 10_0000 lines
         Ok(v) => ((mb.unwrap_or(200) * MB_USIZE) as f64 / v) as usize,
-        Err(_) => 10_0000,
+        Err(_) => 100_000,
     }
 }
 

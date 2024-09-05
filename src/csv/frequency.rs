@@ -1,7 +1,7 @@
 use crate::args::Frequency;
 use crate::utils::cli_result::CliResult;
 use crate::utils::column::Columns;
-use crate::utils::file::{self, estimate_line_count_by_mb};
+use crate::utils::file::{self};
 use crate::utils::filename;
 use crate::utils::progress::Progress;
 use crate::utils::reader::ChunkReader;
@@ -38,8 +38,7 @@ impl Frequency {
 
         // read file
         let (tx, rx) = bounded(1);
-        let line_buffer_n: usize = estimate_line_count_by_mb(path, Some(10));
-        thread::spawn(move || rdr.send_to_channel_by_chunks(tx, line_buffer_n));
+        thread::spawn(move || rdr.send_to_channel_by_chunks(tx, 10_000));
 
         // process
         let freq = DashMap::new();
