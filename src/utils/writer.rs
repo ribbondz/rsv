@@ -97,8 +97,8 @@ impl Writer {
         let mut l = line.iter().peekable();
         while let Some(f) = l.next() {
             self.0.write_all(f.as_ref().as_bytes())?;
-            self.0
-                .write_all(if l.peek().is_none() { TERMINATOR } else { b"," })?;
+            let sep = if l.peek().is_none() { TERMINATOR } else { b"," };
+            self.0.write_all(sep)?;
         }
 
         Ok(())
@@ -119,11 +119,12 @@ impl Writer {
         let mut l = cols.iter().peekable();
         while let Some(&i) = l.next() {
             self.0.write_all(line[i].as_ref().as_bytes())?;
-            self.0.write_all(if l.peek().is_none() {
+            let sep = if l.peek().is_none() {
                 TERMINATOR
             } else {
                 sep.unwrap_or(b",")
-            })?;
+            };
+            self.0.write_all(sep)?;
         }
 
         Ok(())
@@ -148,21 +149,36 @@ impl Writer {
         }
     }
 
+    pub fn write_excel_field(&mut self, data: &Data) -> CliResult {
+        match data {
+            Data::DateTime(v) => {
+                if let Some(a) = v.as_datetime() {
+                    if a.hour() == 0 && a.minute() == 0 && a.second() == 0 {
+                        write!(&mut self.0, "{}", a.format("%Y-%m-%d"))?
+                    } else {
+                        write!(&mut self.0, "{}", a.format("%Y-%m-%d %H:%M:%S"))?
+                    }
+                }
+            }
+
+            Data::String(v) => {
+                if v.contains(',') {
+                    write!(&mut self.0, "\"{}\"", v)?
+                } else {
+                    write!(&mut self.0, "{}", v)?
+                }
+            }
+
+            _ => write!(&mut self.0, "{}", data)?,
+        }
+
+        Ok(())
+    }
+
     pub fn write_excel_line(&mut self, line: &[Data], sep: &[u8]) -> CliResult {
         let mut l = line.iter().peekable();
         while let Some(f) = l.next() {
-            match f {
-                Data::DateTime(v) => {
-                    if let Some(a) = v.as_datetime() {
-                        if a.hour() == 0 && a.minute() == 0 && a.second() == 0 {
-                            write!(&mut self.0, "{}", a.format("%Y-%m-%d"))?
-                        } else {
-                            write!(&mut self.0, "{}", a.format("%Y-%m-%d %H:%M:%S"))?
-                        }
-                    };
-                }
-                _ => write!(&mut self.0, "{}", f)?,
-            }
+            self.write_excel_field(f)?;
 
             if l.peek().is_some() {
                 self.0.write_all(sep)?;
@@ -188,7 +204,8 @@ impl Writer {
     ) -> CliResult {
         let mut l = cols.iter().peekable();
         while let Some(&i) = l.next() {
-            write!(&mut self.0, "{}", line[i])?;
+            self.write_excel_field(&line[i])?;
+
             if l.peek().is_some() {
                 self.0.write_all(sep)?;
             } else {
@@ -214,6 +231,7 @@ impl Writer {
         for l in lines {
             self.write_excel_line(l, sep)?;
         }
+
         Ok(())
     }
 
@@ -221,6 +239,7 @@ impl Writer {
         for &l in lines {
             self.write_excel_line(l, sep)?;
         }
+
         Ok(())
     }
 }

@@ -452,11 +452,22 @@ macro_rules! impl_row_split {
                 let mut field_start = 0;
                 let mut field_end_shift = 0;
                 let mut in_quoted_field = false;
+                let mut has_separator = false;
+
                 row.char_indices().for_each(|(i, c)| {
                     if c == self.sep && !in_quoted_field {
-                        fields.push(unsafe { row.get_unchecked(field_start..i - field_end_shift) });
-                        field_start = i + 1;
-                        field_end_shift = 0;
+                        if in_quoted_field {
+                            has_separator = true;
+                        } else {
+                            let has_sep = has_separator as usize;
+                            let a = field_start - has_sep;
+                            let b = i - field_end_shift + has_sep;
+                            fields.push(unsafe { row.get_unchecked(a..b) });
+
+                            field_start = i + 1;
+                            field_end_shift = 0;
+                            has_separator = false;
+                        }
                     } else if c == self.quote {
                         let i = in_quoted_field as usize;
                         field_start += i;
@@ -465,7 +476,11 @@ macro_rules! impl_row_split {
                         in_quoted_field = !in_quoted_field;
                     }
                 });
-                fields.push(unsafe { row.get_unchecked(field_start..row.len() - field_end_shift) });
+
+                let has_sep = has_separator as usize;
+                let a = field_start - has_sep;
+                let b = row.len() - field_end_shift + has_sep;
+                fields.push(unsafe { row.get_unchecked(a..b) });
 
                 fields
             }
@@ -477,14 +492,22 @@ macro_rules! impl_row_split {
                 let mut field_start = 0;
                 let mut field_end_shift = 0;
                 let mut in_quoted_field = false;
+                let mut has_separator = false;
+
                 row.char_indices().for_each(|(i, c)| {
                     if c == self.sep && !in_quoted_field {
-                        fields.push(unsafe {
-                            row.get_unchecked(field_start..i - field_end_shift)
-                                .to_owned()
-                        });
-                        field_start = i + 1;
-                        field_end_shift = 0;
+                        if in_quoted_field {
+                            has_separator = true;
+                        } else {
+                            let has_sep = has_separator as usize;
+                            let a = field_start - has_sep;
+                            let b = i - field_end_shift + has_sep;
+                            fields.push(unsafe { row.get_unchecked(a..b).to_owned() });
+
+                            field_start = i + 1;
+                            field_end_shift = 0;
+                            has_separator = false;
+                        }
                     } else if c == self.quote {
                         let i = in_quoted_field as usize;
                         field_start += i;
@@ -493,10 +516,11 @@ macro_rules! impl_row_split {
                         in_quoted_field = !in_quoted_field;
                     }
                 });
-                fields.push(unsafe {
-                    row.get_unchecked(field_start..row.len() - field_end_shift)
-                        .to_owned()
-                });
+
+                let has_sep = has_separator as usize;
+                let a = field_start - has_sep;
+                let b = row.len() - field_end_shift + has_sep;
+                fields.push(unsafe { row.get_unchecked(a..b).to_owned() });
 
                 fields
             }

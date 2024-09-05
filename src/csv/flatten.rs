@@ -25,7 +25,6 @@ impl Flatten {
                 None => return Ok(()),
             }
         };
-        println!("{:?}", &columns);
 
         // read file
         let n = self.n as usize; // overflow is allowed when self.n is negative.

@@ -8,13 +8,14 @@ pub struct CsvRow<'a> {
 #[derive(Debug)]
 pub struct CsvRowSplit<'a> {
     row: &'a str,
-    chars: CharIndices<'a>,
+    char_indices: CharIndices<'a>,
     sep: char,
     quote: char,
     done: bool,
     field_start: usize,
     field_end_shift: usize,
     in_quoted_field: bool,
+    has_separator: bool,
 }
 
 impl<'a> CsvRow<'a> {
@@ -25,13 +26,14 @@ impl<'a> CsvRow<'a> {
     pub fn split(self, sep: char, quote: char) -> CsvRowSplit<'a> {
         CsvRowSplit {
             row: self.row,
-            chars: self.row.char_indices(),
+            char_indices: self.row.char_indices(),
             sep,
             quote,
             done: false,
             field_start: 0,
             field_end_shift: 0,
             in_quoted_field: false,
+            has_separator: false,
         }
     }
 }
@@ -45,15 +47,21 @@ impl<'a> Iterator for CsvRowSplit<'a> {
         }
 
         loop {
-            if let Some((index, c)) = self.chars.next() {
-                if c == self.sep && !self.in_quoted_field {
-                    let i = self.field_start;
-                    let j = index - self.field_end_shift;
-                    let f = unsafe { self.row.get_unchecked(i..j) };
+            if let Some((index, c)) = self.char_indices.next() {
+                if c == self.sep {
+                    if self.in_quoted_field {
+                        self.has_separator = true;
+                    } else {
+                        let has_sep = self.has_separator as usize;
+                        let i = self.field_start - has_sep;
+                        let j = index - self.field_end_shift + has_sep;
+                        let f = unsafe { self.row.get_unchecked(i..j) };
 
-                    self.field_start = index + 1;
-                    self.field_end_shift = 0;
-                    return Some(f);
+                        self.field_start = index + 1;
+                        self.field_end_shift = 0;
+                        self.has_separator = false;
+                        return Some(f);
+                    }
                 } else if c == self.quote {
                     let i = self.in_quoted_field as usize;
                     self.field_start += i;
@@ -63,11 +71,11 @@ impl<'a> Iterator for CsvRowSplit<'a> {
                 }
             } else {
                 self.done = true;
-                return Some(unsafe {
-                    let i = self.field_start;
-                    let j = self.row.len() - self.field_end_shift;
-                    self.row.get_unchecked(i..j)
-                });
+                let has_sep = self.has_separator as usize;
+                let i = self.field_start - has_sep;
+                let j = self.row.len() - self.field_end_shift + has_sep;
+                let f = unsafe { self.row.get_unchecked(i..j) };
+                return Some(f);
             }
         }
     }
@@ -88,18 +96,17 @@ mod tests {
         let o = CsvRow::new(&r).split(',', '"').collect::<Vec<_>>();
         assert_eq!(o, vec!["1", "2", "3", ""]);
 
-
         let r = "first,second,\"third,fourth\",fifth";
         let o = CsvRow::new(&r).split(',', '"').collect::<Vec<_>>();
-        assert_eq!(o, vec!["first", "second", "third,fourth", "fifth"]);
+        assert_eq!(o, vec!["first", "second", "\"third,fourth\"", "fifth"]);
 
         let r = "first,second,\"third,fourth\",\"fifth\"";
         let o = CsvRow::new(&r).split(',', '"').collect::<Vec<_>>();
-        assert_eq!(o, vec!["first", "second", "third,fourth", "fifth"]);
+        assert_eq!(o, vec!["first", "second", "\"third,fourth\"", "fifth"]);
 
         let r = "\"third,fourth\",\"fifth\"";
         let o = CsvRow::new(&r).split(',', '"').collect::<Vec<_>>();
-        assert_eq!(o, vec!["third,fourth", "fifth"]);
+        assert_eq!(o, vec!["\"third,fourth\"", "fifth"]);
 
         let r = "我们abc,def,12";
         let o = CsvRow::new(&r).split(',', '"').collect::<Vec<_>>();

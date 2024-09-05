@@ -1,9 +1,6 @@
 use crate::{
     args::Excel2csv,
-    utils::{
-        cli_result::CliResult, constants::TERMINATOR, reader::ExcelReader, util::werr_exit,
-        writer::Writer,
-    },
+    utils::{cli_result::CliResult, reader::ExcelReader, util::werr_exit, writer::Writer},
 };
 
 impl Excel2csv {
@@ -25,21 +22,7 @@ impl Excel2csv {
 
         // excel2csv
         for r in range.iter() {
-            let mut r = r.iter().peekable();
-            while let Some(v) = r.next() {
-                match v {
-                    calamine::Data::String(v) => match v.contains(self.sep) {
-                        true => write!(&mut wtr.0, "\"{}\"", v)?,
-                        false => wtr.write_bytes(v.trim().as_bytes())?,
-                    },
-                    _ => write!(&mut wtr.0, "{}", v)?,
-                };
-                if r.peek().is_some() {
-                    wtr.write_bytes(&sep)?;
-                } else {
-                    wtr.write_bytes(TERMINATOR)?;
-                }
-            }
+            wtr.write_excel_line(r, &sep)?;
         }
 
         println!("Saved to file: {}", out.display());
