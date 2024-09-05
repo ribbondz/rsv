@@ -9,6 +9,7 @@ tasks:
   default:
     cmds:
       - cargo build --release
+      
   publish:
     cmds:
       - task build
