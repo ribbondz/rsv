@@ -1,4 +1,6 @@
-use crate::utils::{cli_result::E, file::is_excel, filename::full_path, util::get_valid_sep};
+use crate::utils::{
+    cli_result::E, file::is_excel, filename::full_path, row_split::CsvRow, util::get_valid_sep,
+};
 use clap::Args;
 use std::path::PathBuf;
 
@@ -443,102 +445,24 @@ command_run!(To);
 command_run!(Unique);
 
 macro_rules! impl_row_split {
-    ($method:ident) => {
-        impl $method {
+    ($cmd:ident) => {
+        impl $cmd {
             #[allow(dead_code)]
             pub fn split_row_to_vec<'a>(&self, row: &'a str) -> Vec<&'a str> {
-                let mut fields = vec![];
-
-                let mut field_start = 0;
-                let mut field_end_shift = 0;
-                let mut in_quoted_field = false;
-                let mut has_separator = false;
-
-                row.char_indices().for_each(|(i, c)| {
-                    if c == self.sep && !in_quoted_field {
-                        if in_quoted_field {
-                            has_separator = true;
-                        } else {
-                            let has_sep = has_separator as usize;
-                            let a = field_start - has_sep;
-                            let b = i - field_end_shift + has_sep;
-                            fields.push(unsafe { row.get_unchecked(a..b) });
-
-                            field_start = i + 1;
-                            field_end_shift = 0;
-                            has_separator = false;
-                        }
-                    } else if c == self.quote {
-                        let i = in_quoted_field as usize;
-                        field_start += i;
-                        field_end_shift += i;
-
-                        in_quoted_field = !in_quoted_field;
-                    }
-                });
-
-                let has_sep = has_separator as usize;
-                let a = field_start - has_sep;
-                let b = row.len() - field_end_shift + has_sep;
-                fields.push(unsafe { row.get_unchecked(a..b) });
-
-                fields
+                CsvRow::new(row).split(self.sep, self.quote).collect()
             }
 
             #[allow(dead_code)]
             pub fn split_row_to_owned_vec<'a>(&self, row: &'a str) -> Vec<String> {
-                let mut fields = vec![];
-
-                let mut field_start = 0;
-                let mut field_end_shift = 0;
-                let mut in_quoted_field = false;
-                let mut has_separator = false;
-
-                row.char_indices().for_each(|(i, c)| {
-                    if c == self.sep && !in_quoted_field {
-                        if in_quoted_field {
-                            has_separator = true;
-                        } else {
-                            let has_sep = has_separator as usize;
-                            let a = field_start - has_sep;
-                            let b = i - field_end_shift + has_sep;
-                            fields.push(unsafe { row.get_unchecked(a..b).to_owned() });
-
-                            field_start = i + 1;
-                            field_end_shift = 0;
-                            has_separator = false;
-                        }
-                    } else if c == self.quote {
-                        let i = in_quoted_field as usize;
-                        field_start += i;
-                        field_end_shift += i;
-
-                        in_quoted_field = !in_quoted_field;
-                    }
-                });
-
-                let has_sep = has_separator as usize;
-                let a = field_start - has_sep;
-                let b = row.len() - field_end_shift + has_sep;
-                fields.push(unsafe { row.get_unchecked(a..b).to_owned() });
-
-                fields
+                CsvRow::new(row)
+                    .split(self.sep, self.quote)
+                    .map(|i| i.to_owned())
+                    .collect::<Vec<_>>()
             }
 
             #[allow(dead_code)]
             pub fn row_field_count<'a>(&self, row: &'a str) -> usize {
-                let mut field_n = 0;
-
-                let mut in_quoted_field = false;
-                row.chars().for_each(|c| {
-                    if c == self.sep && !in_quoted_field {
-                        field_n += 1;
-                    } else if c == self.quote {
-                        in_quoted_field = !in_quoted_field;
-                    }
-                });
-
-                field_n + 1
+                CsvRow::new(row).split(self.sep, self.quote).count()
             }
         }
     };

@@ -33,7 +33,7 @@ impl<'a> CsvRow<'a> {
             field_start: 0,
             field_end_shift: 0,
             in_quoted_field: false,
-            has_separator: false,
+            has_separator: false, // whether a field has a CSV sep in it
         }
     }
 }
@@ -48,7 +48,9 @@ impl<'a> Iterator for CsvRowSplit<'a> {
 
         loop {
             if let Some((index, c)) = self.char_indices.next() {
-                if c == self.sep {
+                if c == '\\' {
+                    self.char_indices.next();
+                } else if c == self.sep {
                     if self.in_quoted_field {
                         self.has_separator = true;
                     } else {
@@ -111,5 +113,10 @@ mod tests {
         let r = "我们abc,def,12";
         let o = CsvRow::new(&r).split(',', '"').collect::<Vec<_>>();
         assert_eq!(o, vec!["我们abc", "def", "12"]);
+
+        // double-quote in field
+        let r = "\"third\\\",fourth\",\"fifth\"";
+        let o = CsvRow::new(&r).split(',', '"').collect::<Vec<_>>();
+        assert_eq!(o, vec!["\"third\\\",fourth\"", "fifth"]);
     }
 }
