@@ -13,14 +13,14 @@ categories = ["command-line-utilities"]
 [dependencies]
 ahash = "0.8.11"
 bytecount = "0.6.8"
-calamine ={version = "0.25.0", features = ["dates"]}
+calamine ={version = "0.25.0", features=['dates']}
 chrono = "0.4.38"
-clap = { version = "4.5.4", features = ["derive"] }
+clap = { version = "4.5.19", features = ["derive"] }
 crossbeam-channel = "0.5.12"
-dashmap = "6.0.1"
+dashmap = "6.1.0"
 rand = "0.8.5"
 rayon = "1.10.0"
-regex = "1.10.4"
+regex = "1.11.0"
 tabled = "0.16.0"
 xlsxwriter = "0.6.0"
 
