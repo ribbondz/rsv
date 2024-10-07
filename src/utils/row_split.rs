@@ -1,4 +1,18 @@
-use std::str::CharIndices;
+// CSV row split module that supports:
+// 1. double-quoted field
+// 2. comma in a double-quoted field
+// 3. double-quotes in a field escaped by a backslash \
+// 4. double-quotes in a field escaped by a preceding double-quotes as discussed in
+// https://stackoverflow.com/questions/17808511/how-to-properly-escape-a-double-quote-in-csv
+
+// worked for examples:
+// v1,v2,v3
+// "v1","v2","v3"
+// "v1",v2,v3
+// "Charles \"Pretty Boy\" Floyd","1 Short St, Smallville"
+// "Charles ""Pretty Boy"" Floyd","1 Short St, Smallville"
+
+use std::{iter::Peekable, str::CharIndices};
 
 #[derive(Debug)]
 pub struct CsvRow<'a> {
@@ -8,14 +22,15 @@ pub struct CsvRow<'a> {
 #[derive(Debug)]
 pub struct CsvRowSplit<'a> {
     row: &'a str,
-    char_indices: CharIndices<'a>,
+    char_indices: Peekable<CharIndices<'a>>,
     sep: char,
     quote: char,
-    done: bool,
-    field_start: usize,
-    field_end_shift: usize,
-    in_quoted_field: bool,
-    has_separator: bool,
+    parse_done: bool,
+    field_start_index: usize,
+    field_is_quoted: bool,
+    field_has_separator: bool,
+    cur_in_quoted_field: bool,
+    cur_is_field_start: bool,
 }
 
 impl<'a> CsvRow<'a> {
@@ -26,59 +41,77 @@ impl<'a> CsvRow<'a> {
     pub fn split(self, sep: char, quote: char) -> CsvRowSplit<'a> {
         CsvRowSplit {
             row: self.row,
-            char_indices: self.row.char_indices(),
+            char_indices: self.row.char_indices().peekable(),
             sep,
             quote,
-            done: false,
-            field_start: 0,
-            field_end_shift: 0,
-            in_quoted_field: false,
-            has_separator: false, // whether a field has a CSV sep in it
+            parse_done: false,
+            field_start_index: 0,
+            field_is_quoted: false,
+            field_has_separator: false, // whether a field has a CSV sep within it
+            cur_in_quoted_field: false,
+            cur_is_field_start: true, // whether current position is the start of a field
         }
     }
 }
+
+impl<'a> CsvRowSplit<'a> {}
 
 impl<'a> Iterator for CsvRowSplit<'a> {
     type Item = &'a str;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.done {
+        if self.parse_done {
             return None;
         }
 
         loop {
-            if let Some((index, c)) = self.char_indices.next() {
-                if c == '\\' {
-                    self.char_indices.next();
-                } else if c == self.sep {
-                    if self.in_quoted_field {
-                        self.has_separator = true;
-                    } else {
-                        let has_sep = self.has_separator as usize;
-                        let i = self.field_start - has_sep;
-                        let j = index - self.field_end_shift + has_sep;
-                        let f = unsafe { self.row.get_unchecked(i..j) };
-
-                        self.field_start = index + 1;
-                        self.field_end_shift = 0;
-                        self.has_separator = false;
-                        return Some(f);
-                    }
-                } else if c == self.quote {
-                    let i = self.in_quoted_field as usize;
-                    self.field_start += i;
-                    self.field_end_shift += i;
-
-                    self.in_quoted_field = !self.in_quoted_field;
-                }
-            } else {
-                self.done = true;
-                let has_sep = self.has_separator as usize;
-                let i = self.field_start - has_sep;
-                let j = self.row.len() - self.field_end_shift + has_sep;
+            let Some((index, c)) = self.char_indices.next() else {
+                // obtain last field
+                self.parse_done = true;
+                let field_shift = self.field_is_quoted as usize - self.field_has_separator as usize;
+                let i = self.field_start_index + field_shift;
+                let j = self.row.len() - field_shift;
                 let f = unsafe { self.row.get_unchecked(i..j) };
                 return Some(f);
+            };
+
+            if c == '\\' {
+                // skip \ escape, e.g., v1,v2\",v3 is parsed into ["v1", "v2\"", "v3"]
+                self.char_indices.next();
+            } else if c == self.sep {
+                if self.cur_in_quoted_field {
+                    self.field_has_separator = true;
+                } else {
+                    let field_shift =
+                        self.field_is_quoted as usize - self.field_has_separator as usize;
+                    let i = self.field_start_index + field_shift;
+                    let j = index - field_shift;
+                    let f = unsafe { self.row.get_unchecked(i..j) };
+
+                    self.field_start_index = index + 1;
+                    self.field_is_quoted = false;
+                    self.field_has_separator = false;
+                    self.cur_in_quoted_field = false;
+                    self.cur_is_field_start = true;
+
+                    return Some(f);
+                }
+            } else if c == self.quote {
+                if self.cur_is_field_start {
+                    self.field_is_quoted = true;
+                    self.cur_in_quoted_field = true;
+                } else {
+                    let next_char = self.char_indices.peek();
+                    if next_char.is_none() || next_char.is_some_and(|(_, v)| v == &self.sep) {
+                        self.cur_in_quoted_field = false;
+                    } else {
+                        // skip double-quotes escape, e.g., v1,v2"",v3 is parsed into ["v1", "v2""", "v3"]
+                        self.char_indices.next();
+                    }
+                }
             }
+
+            self.cur_is_field_start = false;
         }
     }
 }
@@ -90,33 +123,57 @@ mod tests {
 
     #[test]
     fn test_csv_row_split() {
-        let r = "1,2,3,";
-        let o = CsvRow::new(&r).split(',', '"').collect::<Vec<_>>();
-        assert_eq!(o, vec!["1", "2", "3", ""]);
-
-        let r = "\"1\",2,3,";
-        let o = CsvRow::new(&r).split(',', '"').collect::<Vec<_>>();
-        assert_eq!(o, vec!["1", "2", "3", ""]);
-
-        let r = "first,second,\"third,fourth\",fifth";
-        let o = CsvRow::new(&r).split(',', '"').collect::<Vec<_>>();
-        assert_eq!(o, vec!["first", "second", "\"third,fourth\"", "fifth"]);
-
-        let r = "first,second,\"third,fourth\",\"fifth\"";
-        let o = CsvRow::new(&r).split(',', '"').collect::<Vec<_>>();
-        assert_eq!(o, vec!["first", "second", "\"third,fourth\"", "fifth"]);
-
-        let r = "\"third,fourth\",\"fifth\"";
-        let o = CsvRow::new(&r).split(',', '"').collect::<Vec<_>>();
-        assert_eq!(o, vec!["\"third,fourth\"", "fifth"]);
-
         let r = "我们abc,def,12";
         let o = CsvRow::new(&r).split(',', '"').collect::<Vec<_>>();
         assert_eq!(o, vec!["我们abc", "def", "12"]);
 
-        // double-quote in field
-        let r = "\"third\\\",fourth\",\"fifth\"";
+        let r = "1,2,3,";
         let o = CsvRow::new(&r).split(',', '"').collect::<Vec<_>>();
-        assert_eq!(o, vec!["\"third\\\",fourth\"", "fifth"]);
+        assert_eq!(o, vec!["1", "2", "3", ""]);
+
+        let r = r#"1,2,3,"""#;
+        let o = CsvRow::new(&r).split(',', '"').collect::<Vec<_>>();
+        assert_eq!(o, vec!["1", "2", "3", ""]);
+
+        let r = r#"1,2,3,"",4"#;
+        let o = CsvRow::new(&r).split(',', '"').collect::<Vec<_>>();
+        assert_eq!(o, vec!["1", "2", "3", "", "4"]);
+
+        let r = r#"1,2,3,"","4""#;
+        let o = CsvRow::new(&r).split(',', '"').collect::<Vec<_>>();
+        assert_eq!(o, vec!["1", "2", "3", "", "4"]);
+
+        // quoted field
+        let r = r#""1",2,3,"#;
+        let o = CsvRow::new(&r).split(',', '"').collect::<Vec<_>>();
+        assert_eq!(o, vec!["1", "2", "3", ""]);
+
+        // comma in quoted field
+        let r = r#"first,second,"third,fourth",fifth"#;
+        let o = CsvRow::new(&r).split(',', '"').collect::<Vec<_>>();
+        assert_eq!(o, vec!["first", "second", r#""third,fourth""#, "fifth"]);
+
+        let r = r#"first,second,"third,fourth","fifth""#;
+        let o = CsvRow::new(&r).split(',', '"').collect::<Vec<_>>();
+        assert_eq!(o, vec!["first", "second", r#""third,fourth""#, "fifth"]);
+
+        let r = r#""third,fourth","fifth""#;
+        let o = CsvRow::new(&r).split(',', '"').collect::<Vec<_>>();
+        assert_eq!(o, vec![r#""third,fourth""#, "fifth"]);
+
+        // double-quote in field,, escaped by a preceding \
+        let r = r#"third\",fourth,"fifth""#;
+        let o = CsvRow::new(&r).split(',', '"').collect::<Vec<_>>();
+        assert_eq!(o, vec![r#"third\""#, "fourth", "fifth"]);
+
+        let r = r#""Charles ""Pretty Boy"" Floyd","1 Short St, Smallville""#;
+        let o = CsvRow::new(&r).split(',', '"').collect::<Vec<_>>();
+        assert_eq!(
+            o,
+            vec![
+                r#"Charles ""Pretty Boy"" Floyd"#,
+                r#""1 Short St, Smallville""#
+            ]
+        );
     }
 }
