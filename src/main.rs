@@ -18,7 +18,7 @@ use utils::cmd_desc::{
 #[derive(Parser)]
 #[command(name = "rsv")]
 #[command(author = "ribbondz@163.com")]
-#[command(version = "0.4.13")]
+#[command(version = "0.4.14")]
 #[command(
     about = "A Rust command line tool to parse small and large (>10G) CSV, TXT, and EXCEL files."
 )]
@@ -45,7 +45,7 @@ enum Commands {
     )]
     Headers(Headers),
     #[command(
-        about="Prints flattened records to view records one by one",
+        about="Print flattened records to view them one by one",
         override_help=FLATTEN_DESC
     )]
     Flatten(Flatten),
@@ -55,7 +55,7 @@ enum Commands {
     )]
     Count(Count),
     #[command(
-        about = "Fast estimate the number of lines.",
+        about = "Fast estimate the number of lines in a file",
         override_help = ESTIMATE_DESC
     )]
     Estimate(Estimate),
