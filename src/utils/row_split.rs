@@ -54,7 +54,29 @@ impl<'a> CsvRow<'a> {
     }
 }
 
-impl<'a> CsvRowSplit<'a> {}
+impl<'a> CsvRowSplit<'a> {
+    fn field_start_set(&mut self, start_index: usize) {
+        self.field_start_index = start_index;
+        self.field_is_quoted = false;
+        self.field_has_separator = false;
+        self.cur_in_quoted_field = false;
+        self.cur_is_field_start = true;
+    }
+
+    fn get_field(&self, end_index: usize) -> &'a str {
+        let field_shift = self.field_is_quoted as usize - self.field_has_separator as usize;
+        let i = self.field_start_index + field_shift;
+        let j = end_index - field_shift;
+        unsafe { self.row.get_unchecked(i..j) }
+    }
+
+    fn next_char_is_none_or_sep(&mut self) -> bool {
+        match self.char_indices.peek() {
+            None => true,
+            Some((_, v)) => v == &self.sep,
+        }
+    }
+}
 
 impl<'a> Iterator for CsvRowSplit<'a> {
     type Item = &'a str;
@@ -68,10 +90,7 @@ impl<'a> Iterator for CsvRowSplit<'a> {
             let Some((index, c)) = self.char_indices.next() else {
                 // obtain last field
                 self.parse_done = true;
-                let field_shift = self.field_is_quoted as usize - self.field_has_separator as usize;
-                let i = self.field_start_index + field_shift;
-                let j = self.row.len() - field_shift;
-                let f = unsafe { self.row.get_unchecked(i..j) };
+                let f = self.get_field(self.row.len());
                 return Some(f);
             };
 
@@ -82,18 +101,8 @@ impl<'a> Iterator for CsvRowSplit<'a> {
                 if self.cur_in_quoted_field {
                     self.field_has_separator = true;
                 } else {
-                    let field_shift =
-                        self.field_is_quoted as usize - self.field_has_separator as usize;
-                    let i = self.field_start_index + field_shift;
-                    let j = index - field_shift;
-                    let f = unsafe { self.row.get_unchecked(i..j) };
-
-                    self.field_start_index = index + 1;
-                    self.field_is_quoted = false;
-                    self.field_has_separator = false;
-                    self.cur_in_quoted_field = false;
-                    self.cur_is_field_start = true;
-
+                    let f = self.get_field(index);
+                    self.field_start_set(index + 1);
                     return Some(f);
                 }
             } else if c == self.quote {
@@ -101,8 +110,7 @@ impl<'a> Iterator for CsvRowSplit<'a> {
                     self.field_is_quoted = true;
                     self.cur_in_quoted_field = true;
                 } else {
-                    let next_char = self.char_indices.peek();
-                    if next_char.is_none() || next_char.is_some_and(|(_, v)| v == &self.sep) {
+                    if self.next_char_is_none_or_sep() {
                         self.cur_in_quoted_field = false;
                     } else {
                         // skip double-quotes escape, e.g., v1,v2"",v3 is parsed into ["v1", "v2""", "v3"]
