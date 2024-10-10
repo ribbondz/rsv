@@ -1,6 +1,6 @@
 [package]
 name = "csv-txt-excel-parallel-toolkit"
-version = "0.4.13"
+version = "0.4.14"
 edition = "2021"
 authors = ["zhuang dai <ribbondz@163.com>"]
 description = "A parallel and fast command line toolkit for small and large (>10G) CSV, TXT, and EXCEL files, with a unified api."
@@ -13,9 +13,9 @@ categories = ["command-line-utilities"]
 [dependencies]
 ahash = "0.8.11"
 bytecount = "0.6.8"
-calamine ={version = "0.25.0", features=['dates']}
+calamine ={version = "0.26.0", features=['dates']}
 chrono = "0.4.38"
-clap = { version = "4.5.19", features = ["derive"] }
+clap = { version = "4.5.20", features = ["derive"] }
 crossbeam-channel = "0.5.12"
 dashmap = "6.1.0"
 rand = "0.8.5"
