@@ -20,7 +20,7 @@ use utils::cmd_desc::{
 #[command(author = "ribbondz@163.com")]
 #[command(version = "0.4.14")]
 #[command(
-    about = "A Rust command line tool to parse small and large (>10G) CSV, TXT, and EXCEL files."
+    about = "A Rust command-line tool for handling both large and small CSV, TXT, and EXCEL files."
 )]
 struct Cli {
     #[command(subcommand)]

@@ -1,6 +1,6 @@
 # csv, excel toolkit written in Rust
 
-**rsv** is a command line tool to deal with small and big CSV, TXT, EXCEL files (especially >10G). **rsv** has following features:
+**rsv** is a command-line tool for handling both large and small CSV, TXT, EXCEL files efficiently. Key features include:
 
 - written in Rust
 - fast and parallel data processing (based on Rayon)
@@ -10,7 +10,7 @@
 
 ## Usage
 
-download **rsv.exe** from release tab, and append the file directory to system path.
+download **rsv.exe** from the Release tab, and add it to system path.
 
 ## Available commands
 
@@ -36,8 +36,8 @@ download **rsv.exe** from release tab, and append the file directory to system p
 
 Tips 1:
 
-- :running: means the command is supported with a real-time progress bar.
-- :star: means the command is supported with parallel data processing.
+- :running: indicates support for a real-time progress bar.
+- :star: indicates support for parallel data processing.
 
 Tips 2:
 
@@ -45,7 +45,7 @@ All commands, except "clean" and "excel2csv", are allowed to be chained.
 
 Tips 3:
 
-You can always check usage of each command by **rsv command --help** or **rsv command -h**,
+You can always check the usage of each command by executing **rsv command --help** or **rsv command -h**,
 for example, rsv frequency --help.
 
 ## Basic Usage

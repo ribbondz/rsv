@@ -109,13 +109,11 @@ impl<'a> Iterator for CsvRowSplit<'a> {
                 if self.cur_is_field_start {
                     self.field_is_quoted = true;
                     self.cur_in_quoted_field = true;
+                } else if self.next_char_is_none_or_sep() {
+                    self.cur_in_quoted_field = false;
                 } else {
-                    if self.next_char_is_none_or_sep() {
-                        self.cur_in_quoted_field = false;
-                    } else {
-                        // skip double-quotes escape, e.g., v1,v2"",v3 is parsed into ["v1", "v2""", "v3"]
-                        self.char_indices.next();
-                    }
+                    // skip double-quotes escape, e.g., v1,v2"",v3 is parsed into ["v1", "v2""", "v3"]
+                    self.char_indices.next();
                 }
             }
 

@@ -13,20 +13,20 @@ categories = ["command-line-utilities"]
 [dependencies]
 ahash = "0.8.11"
 bytecount = "0.6.8"
-calamine ={version = "0.26.0", features=['dates']}
+calamine ={version = "0.26.1", features=['dates']}
 chrono = "0.4.38"
 clap = { version = "4.5.20", features = ["derive"] }
-crossbeam-channel = "0.5.12"
+crossbeam-channel = "0.5.13"
 dashmap = "6.1.0"
 rand = "0.8.5"
 rayon = "1.10.0"
 regex = "1.11.0"
 tabled = "0.16.0"
-xlsxwriter = "0.6.0"
+xlsxwriter = "0.6.1"
 
 
 [dev-dependencies]
-execute = "0.2.11"
+execute = "0.2.13"
 
 # to save typing, the binary is renamed to rsv, a combination of Rust+CSV.
 [[bin]]
