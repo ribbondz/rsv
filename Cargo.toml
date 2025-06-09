@@ -11,18 +11,21 @@ categories = ["command-line-utilities"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ahash = "0.8.11"
-bytecount = "0.6.8"
-calamine ={version = "0.26.1", features=['dates']}
-chrono = "0.4.38"
-clap = { version = "4.5.20", features = ["derive"] }
-crossbeam-channel = "0.5.13"
+ahash = "0.8.12"
+bytecount = "0.6.9"
+calamine = { version = "0.27.0", features = ['dates'] }
+chrono = "0.4.41"
+clap = { version = "4.5.39", features = ["derive"] }
+crossbeam-channel = "0.5.15"
 dashmap = "6.1.0"
-rand = "0.8.5"
+rand = "0.9.1"
 rayon = "1.10.0"
-regex = "1.11.0"
-tabled = "0.16.0"
+regex = "1.11.1"
+tabled = "0.20.0"
 xlsxwriter = "0.6.1"
+
+[patch.crates-io]
+calamine = { git = "https://github.com/prophittcorey/calamine", branch = "fix/zip-3.0" }
 
 
 [dev-dependencies]

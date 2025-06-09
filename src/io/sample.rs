@@ -5,8 +5,8 @@ use crate::utils::priority_queue::PriorityQueue;
 use crate::utils::reader::IoReader;
 use crate::utils::table::Table;
 use crate::utils::writer::Writer;
+use rand::rng;
 use rand::rngs::StdRng;
-use rand::thread_rng;
 use rand::{Rng, SeedableRng};
 use std::borrow::Cow;
 use std::time::Instant;
@@ -31,7 +31,7 @@ impl Sample {
         // seed
         let mut rng = match self.seed {
             Some(s) => StdRng::seed_from_u64(s as u64),
-            None => StdRng::from_rng(thread_rng())?,
+            None => StdRng::from_rng(&mut rng()),
         };
 
         // read
@@ -42,7 +42,7 @@ impl Sample {
             .skip(1 - self.no_header as usize)
             .enumerate()
         {
-            let priority = rng.gen::<f64>();
+            let priority = rng.random::<f64>();
             if queue.can_insert(priority) {
                 queue.push(line_n, priority, r);
             }

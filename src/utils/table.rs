@@ -68,7 +68,7 @@ impl Table {
 
         // build
         let mut table = self.builder.build();
-        table.with(Style::blank());
+        table.with(Style::empty());
 
         // print
         let mut wtr = BufWriter::new(stdout());

@@ -6,8 +6,8 @@ use crate::utils::priority_queue::PriorityQueue;
 use crate::utils::reader::ExcelReader;
 use crate::utils::table::Table;
 use crate::utils::writer::Writer;
+use rand::rng;
 use rand::rngs::StdRng;
-use rand::thread_rng;
 use rand::{Rng, SeedableRng};
 use std::borrow::Cow;
 use std::path::Path;
@@ -33,14 +33,14 @@ impl Sample {
         // seed
         let mut rng = match self.seed {
             Some(s) => StdRng::seed_from_u64(s as u64),
-            None => StdRng::from_rng(thread_rng())?,
+            None => StdRng::from_rng(&mut rng()),
         };
 
         // read
         let time = Instant::now();
         let mut queue = PriorityQueue::with_capacity(self.n);
         for (line_n, r) in range.iter().skip(range.next_called).enumerate() {
-            let priority = rng.gen::<f64>();
+            let priority = rng.random::<f64>();
             if queue.can_insert(priority) {
                 let line = datatype_vec_to_string(r);
                 queue.push(line_n, priority, line);

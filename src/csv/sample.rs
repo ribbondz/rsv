@@ -4,8 +4,8 @@ use crate::utils::filename::new_path;
 use crate::utils::priority_queue::PriorityQueue;
 use crate::utils::table::Table;
 use crate::utils::writer::Writer;
+use rand::rng;
 use rand::rngs::StdRng;
-use rand::thread_rng;
 use rand::{Rng, SeedableRng};
 use std::borrow::Cow;
 use std::fs::File;
@@ -35,7 +35,7 @@ impl Sample {
         // seed
         let mut rng = match self.seed {
             Some(s) => StdRng::seed_from_u64(s as u64),
-            None => StdRng::from_rng(thread_rng())?,
+            None => StdRng::from_rng(&mut rng()),
         };
 
         // read
@@ -47,7 +47,7 @@ impl Sample {
                 break;
             }
 
-            let priority = rng.gen::<f64>();
+            let priority = rng.random::<f64>();
             if queue.can_insert(priority) {
                 let line = buf[..bytes_read].to_owned();
                 queue.push(line_n, priority, line);
