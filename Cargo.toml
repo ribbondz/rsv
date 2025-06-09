@@ -10,7 +10,7 @@ categories = ["command-line-utilities"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
-name = "rsv"
+name = "rsv_lib"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
