@@ -9,6 +9,7 @@ pub mod headers;
 pub mod sample;
 pub mod search;
 pub mod select;
+pub mod size;
 pub mod slice;
 pub mod sort;
 pub mod split;

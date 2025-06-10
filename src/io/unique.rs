@@ -3,7 +3,6 @@ use crate::utils::cli_result::CliResult;
 use crate::utils::column::Columns;
 use crate::utils::filename::new_file;
 use crate::utils::reader::IoReader;
-use crate::utils::row_split::CsvRow;
 use crate::utils::writer::Writer;
 
 impl Unique {
@@ -23,7 +22,7 @@ impl Unique {
         let cols = if all_cols {
             None
         } else {
-            let n = CsvRow::new(&lines[0]).split(self.sep, self.quote).count();
+            let n = self.row_field_count(&lines[0]);
             Some(Columns::new(&self.cols).total_col(n).parse())
         };
 

@@ -1,7 +1,7 @@
 use super::{cli_result::CliResult, filename::new_file, reader::ExcelReader, writer::Writer};
 use crate::{
     args::To,
-    utils::{column::Columns, column_type::ColumnTypes, row_split::CsvRow},
+    utils::{column::Columns, column_type::ColumnTypes, row_split::CsvRowSplitter},
 };
 use std::{
     fs::File,
@@ -88,7 +88,7 @@ pub fn csv_to_excel(path: &Path, sep: char, quote: char, out: &str, no_header: b
     // copy
     for (n, r) in rdr.lines().enumerate() {
         let r = r?;
-        let l = CsvRow::new(&r).split(sep, quote).collect::<Vec<_>>();
+        let l = CsvRowSplitter::new(&r, sep, quote).collect::<Vec<_>>();
         write_excel_line(&mut sheet, n, &l, ctypes.as_ref())?;
     }
 

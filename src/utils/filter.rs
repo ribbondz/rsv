@@ -1,6 +1,6 @@
 use super::{
     math_expr_parser::{CompiledExpr, AST},
-    row_split::CsvRow,
+    row_split::CsvRowSplitter,
 };
 use crate::utils::util::werr_exit;
 use regex::Regex;
@@ -110,7 +110,7 @@ impl<'a> Filter<'a> {
                 BufReader::new(f)
                     .read_line(&mut first_line)
                     .expect("read error.");
-                self.total = Some(CsvRow::new(&first_line).split(self.sep, self.quote).count());
+                self.total = Some(CsvRowSplitter::new(&first_line, self.sep, self.quote).count());
             }
             let i = (self.total.unwrap() as i32) + parse_i32(col);
             if i < 0 {
@@ -253,7 +253,7 @@ impl<'a> Filter<'a> {
             return Some((Some(row), None));
         }
 
-        let v = CsvRow::new(row).split(sep, quote).collect::<Vec<_>>();
+        let v = CsvRowSplitter::new(row, sep, quote).collect::<Vec<_>>();
         if self.record_is_valid(&v) {
             Some((Some(row), Some(v)))
         } else {

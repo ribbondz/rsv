@@ -1,5 +1,5 @@
 use super::excel::write_datatype_to_string;
-use super::row_split::CsvRow;
+use super::row_split::CsvRowSplitter;
 use crate::utils::util::werr_exit;
 use calamine::Data;
 use std::fs::File;
@@ -122,7 +122,7 @@ impl<'a> Columns<'a> {
                 BufReader::new(f)
                     .read_line(&mut first_line)
                     .expect("read error.");
-                self.total = Some(CsvRow::new(&first_line).split(self.sep, self.quote).count());
+                self.total = Some(CsvRowSplitter::new(&first_line, self.sep, self.quote).count());
             }
             let i = (self.total.unwrap() as i32) + parse_i32(col);
             if i < 0 {

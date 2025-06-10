@@ -2,7 +2,6 @@ use crate::args::Select;
 use crate::utils::column::Columns;
 use crate::utils::filename::new_file;
 use crate::utils::filter::Filter;
-use crate::utils::row_split::CsvRow;
 use crate::utils::{cli_result::CliResult, writer::Writer};
 use std::io::{stdin, BufRead};
 
@@ -40,11 +39,11 @@ impl Select {
             let r = r?;
 
             if !col.parsed {
-                let n = CsvRow::new(&r).split(self.sep, self.quote).count();
+                let n = self.row_field_count(&r);
                 col = col.total_col(n).parse();
             }
             if !filter.parsed {
-                let n = CsvRow::new(&r).split(self.sep, self.quote).count();
+                let n = self.row_field_count(&r);
                 filter = filter.total_col(n).parse();
             }
 

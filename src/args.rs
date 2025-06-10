@@ -1,5 +1,6 @@
 use crate::utils::{
-    cli_result::E, file::is_excel, filename::full_path, row_split::CsvRow, util::get_valid_sep,
+    cli_result::E, file::is_excel, filename::full_path, row_split::CsvRowSplitter,
+    util::get_valid_sep,
 };
 use clap::Args;
 use std::path::PathBuf;
@@ -14,9 +15,12 @@ pub struct Count {
     /// Get the nth worksheet of Excel file
     #[arg(short = 'S', long, default_value_t = 0)]
     pub sheet: usize,
-    /// Whether return data for lib usage
-    #[arg(long, default_value_t = false)]
-    pub return_result: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct Size {
+    /// File to open
+    pub filename: Option<String>,
 }
 
 #[derive(Debug, Args)]
@@ -44,6 +48,15 @@ pub struct Head {
     /// Export to a file named current-file-head.csv?
     #[arg(short = 'E', long, default_value_t = false)]
     pub export: bool,
+    /// Whether return data for lib usage
+    #[arg(long, default_value_t = false)]
+    pub return_result: bool,
+    /// Field separator
+    #[arg(short, long, default_value_t = ',', value_parser=get_valid_sep)]
+    pub sep: char,
+    /// Quote char
+    #[arg(short, long, default_value_t = '"')]
+    pub quote: char,
 }
 
 #[derive(Debug, Args)]
@@ -446,31 +459,38 @@ command_run!(Search);
 command_run!(Sample);
 command_run!(To);
 command_run!(Unique);
+command_run!(Size);
 
 macro_rules! impl_row_split {
     ($cmd:ident) => {
         impl $cmd {
             #[allow(dead_code)]
+            pub fn split<'a>(&self, row: &'a str) -> CsvRowSplitter<'a> {
+                CsvRowSplitter::new(row, self.sep, self.quote)
+            }
+
+            #[allow(dead_code)]
             pub fn split_row_to_vec<'a>(&self, row: &'a str) -> Vec<&'a str> {
-                CsvRow::new(row).split(self.sep, self.quote).collect()
+                CsvRowSplitter::new(row, self.sep, self.quote).collect()
             }
 
             #[allow(dead_code)]
             pub fn split_row_to_owned_vec<'a>(&self, row: &'a str) -> Vec<String> {
-                CsvRow::new(row)
-                    .split(self.sep, self.quote)
+                CsvRowSplitter::new(row, self.sep, self.quote)
                     .map(|i| i.to_owned())
                     .collect::<Vec<_>>()
             }
 
             #[allow(dead_code)]
             pub fn row_field_count<'a>(&self, row: &'a str) -> usize {
-                CsvRow::new(row).split(self.sep, self.quote).count()
+                CsvRowSplitter::new(row, self.sep, self.quote).count()
             }
         }
     };
 }
 
+impl_row_split!(Head);
+impl_row_split!(Headers);
 impl_row_split!(Frequency);
 impl_row_split!(Select);
 impl_row_split!(Stats);

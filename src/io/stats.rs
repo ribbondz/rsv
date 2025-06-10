@@ -5,7 +5,6 @@ use crate::utils::column_stats::ColumnStats;
 use crate::utils::column_type::ColumnTypes;
 use crate::utils::filename::new_file;
 use crate::utils::reader::IoReader;
-use crate::utils::row_split::CsvRow;
 use rayon::prelude::*;
 use std::fs::File;
 use std::io::{BufWriter, Write};
@@ -21,7 +20,7 @@ impl Stats {
         }
 
         // split rows
-        let n = CsvRow::new(&rows[0]).split(self.sep, self.quote).count();
+        let n = self.row_field_count(&rows[0]);
         let cols = Columns::new(&self.cols).total_col(n).parse();
         let rows = rows
             .par_iter()

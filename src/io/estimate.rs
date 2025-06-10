@@ -9,7 +9,6 @@ impl Estimate {
             filename: self.filename.clone(),
             no_header: false,
             sheet: self.sheet,
-            return_result:false,
         }
         .io_run()
     }

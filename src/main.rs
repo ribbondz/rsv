@@ -1,12 +1,13 @@
 mod args;
 mod csv;
+mod csv_lib;
 mod excel;
 mod io;
 mod utils;
 
 use args::{
     Clean, Count, Estimate, Excel2csv, Flatten, Frequency, Head, Headers, Sample, Search, Select,
-    Slice, Sort, Split, Stats, Table, Tail, To, Unique,
+    Size, Slice, Sort, Split, Stats, Table, Tail, To, Unique,
 };
 use clap::{Parser, Subcommand};
 use utils::cmd_desc::{
@@ -14,6 +15,8 @@ use utils::cmd_desc::{
     HEADER_DESC, HEAD_DESC, SAMPLE_DESC, SEARCH_DESC, SELECT_DESC, SLICE_DESC, SORT_DESC,
     SPLIT_DESC, STATS_DESC, TABLE_DESC, TAIL_DESC, TO_DESC, UNIQUE_DESC,
 };
+
+use crate::utils::cmd_desc::SIZE_DESC;
 
 #[derive(Parser)]
 #[command(name = "rsv")]
@@ -54,6 +57,11 @@ enum Commands {
         override_help=COUNT_DESC
     )]
     Count(Count),
+    #[command(
+        about="Show filesize",
+        override_help=SIZE_DESC
+    )]
+    Size(Size),
     #[command(
         about = "Fast estimate the number of lines in a file",
         override_help = ESTIMATE_DESC
@@ -133,6 +141,7 @@ fn main() {
     // matches just as you would the top level cmd
     match &cli.command {
         Commands::Count(count) => count.run(),
+        Commands::Size(size) => size.run(),
         Commands::Estimate(estimate) => estimate.run(),
         Commands::Head(head) => head.run(),
         Commands::Tail(tail) => tail.run(),

@@ -1,4 +1,6 @@
-use super::{cli_result::CliResult, row_split::CsvRow, writer::Writer};
+use crate::utils::row_split::CsvRowSplitter;
+
+use super::{cli_result::CliResult, writer::Writer};
 use rayon::prelude::*;
 use std::{borrow::Cow, error::Error};
 
@@ -93,7 +95,9 @@ impl SortColumns {
             .map(|i| {
                 (
                     i,
-                    CsvRow::new(i).split(sep, quote).nth(c).unwrap_or_default(),
+                    CsvRowSplitter::new(i, sep, quote)
+                        .nth(c)
+                        .unwrap_or_default(),
                 )
             })
             .collect::<Vec<_>>();
@@ -110,7 +114,9 @@ impl SortColumns {
         let mut r = lines
             .par_iter()
             .map(|i| {
-                let f = CsvRow::new(i).split(sep, quote).nth(c).unwrap_or_default();
+                let f = CsvRowSplitter::new(i, sep, quote)
+                    .nth(c)
+                    .unwrap_or_default();
                 (i, f.parse::<f64>().unwrap_or_default())
             })
             .collect::<Vec<_>>();
@@ -129,7 +135,7 @@ impl SortColumns {
         let mut r = lines
             .par_iter()
             .map(|i| {
-                let f = CsvRow::new(i).split(sep, quote).collect::<Vec<_>>();
+                let f = CsvRowSplitter::new(i, sep, quote).collect::<Vec<_>>();
                 (i, f[c1], f[c2])
             })
             .collect::<Vec<_>>();
@@ -156,7 +162,7 @@ impl SortColumns {
         let mut r = lines
             .par_iter()
             .map(|i| {
-                let f = CsvRow::new(i).split(sep, quote).collect::<Vec<_>>();
+                let f = CsvRowSplitter::new(i, sep, quote).collect::<Vec<_>>();
                 (i, f[c1], f[c2].parse::<f64>().unwrap_or_default())
             })
             .collect::<Vec<_>>();
@@ -183,7 +189,7 @@ impl SortColumns {
         let mut r = lines
             .par_iter()
             .map(|i| {
-                let f = CsvRow::new(i).split(sep, quote).collect::<Vec<_>>();
+                let f = CsvRowSplitter::new(i, sep, quote).collect::<Vec<_>>();
                 (i, f[c1].parse::<f64>().unwrap_or_default(), f[c2])
             })
             .collect::<Vec<_>>();
@@ -210,7 +216,7 @@ impl SortColumns {
         let mut r = lines
             .par_iter()
             .map(|i| {
-                let f = CsvRow::new(i).split(sep, quote).collect::<Vec<_>>();
+                let f = CsvRowSplitter::new(i, sep, quote).collect::<Vec<_>>();
                 (
                     i,
                     f[c1].parse::<f64>().unwrap_or_default(),

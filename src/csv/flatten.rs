@@ -1,7 +1,6 @@
 use crate::args::Flatten;
 use crate::utils::cli_result::CliResult;
 use crate::utils::file;
-use crate::utils::row_split::CsvRow;
 use crate::utils::table::Table;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
@@ -31,8 +30,8 @@ impl Flatten {
         rdr.take(n).flatten().enumerate().for_each(|(i, l)| {
             println!(" {} row{}", &self.delimiter, i + 1);
 
-            let r = CsvRow::new(&l)
-                .split(self.sep, self.quote)
+            let r = self
+                .split(&l)
                 .zip(&columns)
                 .map(|(v, k)| [k.as_str(), v])
                 .collect::<Vec<_>>();

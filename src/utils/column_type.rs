@@ -1,5 +1,6 @@
 use super::{
-    cli_result::CliResult, column::Columns, reader::ExcelReader, row_split::CsvRow, util::is_null,
+    cli_result::CliResult, column::Columns, reader::ExcelReader, row_split::CsvRowSplitter,
+    util::is_null,
 };
 use crate::utils::column;
 use calamine::{Data, DataType};
@@ -67,7 +68,7 @@ impl ColumnTypes {
         // split
         let lines = lines
             .iter()
-            .map(|r| CsvRow::new(r).split(sep, quote).collect::<Vec<_>>())
+            .map(|r| CsvRowSplitter::new(r, sep, quote).collect::<Vec<_>>())
             .collect::<Vec<_>>();
 
         let guess = cols

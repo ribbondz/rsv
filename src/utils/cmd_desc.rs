@@ -1,3 +1,15 @@
+pub const SIZE_DESC: &str = r#"
+Show filesize of a file.
+
+Usage: rsv size [FILENAME]
+
+Arguments:
+  [FILENAME]  File to open
+
+Options:
+  -h, --help  Print help
+"#;
+
 pub const COUNT_DESC: &str = r#"
 Count the number of lines in a file. When supplemented with a directory, 
 the command counts the number of files in the directory.

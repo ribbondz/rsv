@@ -1,6 +1,6 @@
 use crate::{
     args::Flatten,
-    utils::{cli_result::CliResult, reader::IoReader, row_split::CsvRow, table::Table},
+    utils::{cli_result::CliResult, reader::IoReader, table::Table},
 };
 
 impl Flatten {
@@ -34,8 +34,8 @@ impl Flatten {
             .enumerate()
             .for_each(|(i, l)| {
                 println!(" {}row{}", &self.delimiter, i + 1);
-                let r = CsvRow::new(l)
-                    .split(self.sep, self.quote)
+                let r = self
+                    .split(l)
                     .zip(&columns)
                     .map(|(v, k)| [k.as_str(), v])
                     .collect::<Vec<_>>();
