@@ -1,8 +1,9 @@
 pub type CliResultData = Result<Option<ResultData>, Box<dyn std::error::Error>>;
 
+#[derive(Debug)]
 pub struct ResultData {
-    header: Vec<String>,
-    data: Vec<Vec<String>>,
+    pub header: Vec<String>,
+    pub data: Vec<Vec<String>>,
 }
 
 impl ResultData {

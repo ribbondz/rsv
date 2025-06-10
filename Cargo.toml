@@ -1,6 +1,6 @@
 [package]
 name = "csv-txt-excel-parallel-toolkit"
-version = "0.4.14"
+version = "0.4.15"
 edition = "2021"
 authors = ["zhuang dai <ribbondz@163.com>"]
 description = "A parallel and fast command line toolkit for small and large (>10G) CSV, TXT, and EXCEL files, with a unified api."
@@ -16,9 +16,9 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 ahash = "0.8.12"
 bytecount = "0.6.9"
-calamine = { version = "0.27.0", features = ['dates'] }
+calamine = { version = "0.26.0", features = ['dates'] }
 chrono = "0.4.41"
-clap = { version = "4.5.39", features = ["derive"] }
+clap = { version = "4.5.40", features = ["derive"] }
 crossbeam-channel = "0.5.15"
 dashmap = "6.1.0"
 rand = "0.9.1"
@@ -27,8 +27,8 @@ regex = "1.11.1"
 tabled = "0.20.0"
 xlsxwriter = "0.6.1"
 
-[patch.crates-io]
-calamine = { git = "https://github.com/prophittcorey/calamine", branch = "fix/zip-3.0" }
+# [patch.crates-io]
+# calamine = { git = "https://github.com/prophittcorey/calamine", branch = "fix/zip-3.0" }
 
 
 [dev-dependencies]

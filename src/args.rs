@@ -48,9 +48,6 @@ pub struct Head {
     /// Export to a file named current-file-head.csv?
     #[arg(short = 'E', long, default_value_t = false)]
     pub export: bool,
-    /// Whether return data for lib usage
-    #[arg(long, default_value_t = false)]
-    pub return_result: bool,
     /// Field separator
     #[arg(short, long, default_value_t = ',', value_parser=get_valid_sep)]
     pub sep: char,
