@@ -14,7 +14,9 @@ impl Tail {
 
         // header
         if !self.no_header {
-            let Some(r) = range.next() else { return Ok(()) };
+            let Some(r) = range.next() else {
+                return Ok(());
+            };
             wtr.write_excel_line_unchecked(r, COMMA);
         }
 

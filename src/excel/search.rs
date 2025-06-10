@@ -8,7 +8,6 @@ use crate::utils::regex::Re;
 use crate::utils::util::werr_exit;
 use crate::utils::writer::Writer;
 use calamine::{open_workbook_auto, Reader, Sheets};
-use std::error::Error;
 use std::fs::File;
 use std::io::BufReader;
 
@@ -72,12 +71,12 @@ impl<'a> Args<'a> {
         self.sheet = v;
     }
 
-    fn search_one(&mut self) -> Result<(), Box<dyn Error>> {
+    fn search_one(&mut self) -> CliResult {
         self.search(self.sheet as usize);
         Ok(())
     }
 
-    fn search_all(&mut self) -> Result<(), Box<dyn Error>> {
+    fn search_all(&mut self) -> CliResult {
         let sheets = self.workbook.sheet_names().to_owned();
 
         for (i, sheet) in sheets.iter().enumerate() {

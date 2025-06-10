@@ -44,7 +44,7 @@ impl Unique {
             (true, false) => keep_last_and_partial_cols(self, lines, &mut wtr, cols.unwrap())?,
             (false, true) => keep_first_and_all_cols(lines, &mut wtr)?,
             (false, false) => keep_first_and_partial_cols(self, lines, &mut wtr, cols.unwrap())?,
-        }
+        };
 
         if self.export {
             println!("\nSaved to file: {}", out.display())

@@ -5,7 +5,6 @@ use crate::utils::util::datetime_str;
 use crate::utils::writer::Writer;
 use dashmap::DashMap;
 use rayon::prelude::*;
-use std::error::Error;
 use std::fs::create_dir;
 use std::io::{stdin, BufRead};
 use std::path::Path;
@@ -67,11 +66,12 @@ fn task_handle(
     dir: &Path,
     first_row: &str,
     header_inserted: &DashMap<String, bool>,
-) -> Result<(), Box<dyn Error>> {
+) -> CliResult {
     match args.size.is_some() {
         true => sequential_task_handle(chunk, lines, dir, first_row)?,
         false => col_split_task_handle(args, lines, dir, first_row, header_inserted)?,
-    }
+    };
+
     Ok(())
 }
 
@@ -80,7 +80,7 @@ fn sequential_task_handle(
     lines: Vec<String>,
     dir: &Path,
     first_row: &str,
-) -> Result<(), Box<dyn Error>> {
+) -> CliResult {
     let mut out = dir.to_owned();
     out.push(format!("split{}.csv", chunk));
 
@@ -99,7 +99,7 @@ fn col_split_task_handle(
     dir: &Path,
     first_row: &str,
     header_inserted: &DashMap<String, bool>,
-) -> Result<(), Box<dyn Error>> {
+) -> CliResult {
     // parallel process
     let batch_work = DashMap::new();
 

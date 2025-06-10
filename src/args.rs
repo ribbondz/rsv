@@ -14,6 +14,9 @@ pub struct Count {
     /// Get the nth worksheet of Excel file
     #[arg(short = 'S', long, default_value_t = 0)]
     pub sheet: usize,
+    /// Whether return data for lib usage
+    #[arg(long, default_value_t = false)]
+    pub return_result: bool,
 }
 
 #[derive(Debug, Args)]

@@ -43,7 +43,7 @@ impl Unique {
             }
             (false, true) => keep_first_and_all_cols(&mut rdr, &mut wtr)?,
             (false, false) => keep_first_and_partial_cols(&mut rdr, &mut wtr, cols.unwrap(), self)?,
-        }
+        };
 
         if self.export {
             println!("\nSaved to file: {}", out.display())

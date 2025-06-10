@@ -82,7 +82,7 @@ impl Writer {
 
     pub fn write_strings<T: AsRef<str>>(&mut self, lines: &[T]) -> CliResult {
         for l in lines {
-            self.write_str(l)?
+            self.write_str(l)?;
         }
         Ok(())
     }
@@ -162,10 +162,10 @@ impl Writer {
             }
 
             Data::String(v) => {
-                // escape double-quote in Excel field by a \ char, we do not escape 
-                // double-quote by appending a preceding double quote as in 
+                // escape double-quote in Excel field by a \ char, we do not escape
+                // double-quote by appending a preceding double quote as in
                 // https://stackoverflow.com/questions/17808511/how-to-properly-escape-a-double-quote-in-csv
-                // this is to avoid conflict with the start and end double-quotes 
+                // this is to avoid conflict with the start and end double-quotes
                 // for a double-quoted comma-shown field.
                 let double_quote_escape_field = if v.contains("\\\"") {
                     v

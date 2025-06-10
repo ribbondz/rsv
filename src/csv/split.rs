@@ -8,7 +8,6 @@ use crate::utils::writer::Writer;
 use crossbeam_channel::bounded;
 use dashmap::DashMap;
 use rayon::prelude::*;
-use std::error::Error;
 use std::fs::create_dir;
 use std::path::Path;
 use std::thread;
@@ -70,7 +69,7 @@ impl Split {
             false => {
                 let header_inserted: DashMap<String, bool> = DashMap::new();
                 for task in rx {
-                    task_handle(&self, task, &mut prog, &dir, &first_row, &header_inserted)?
+                    task_handle(&self, task, &mut prog, &dir, &first_row, &header_inserted)?;
                 }
             }
         }
@@ -86,7 +85,7 @@ fn sequential_task_handle(
     prog: &mut Progress,
     out: &Path,
     first_row: &str,
-) -> Result<(), Box<dyn Error>> {
+) -> CliResult {
     // progress
     prog.add_chunks(1);
     prog.add_bytes(task.bytes);
@@ -109,7 +108,7 @@ fn task_handle(
     dir: &Path,
     first_row: &str,
     header_inserted: &DashMap<String, bool>,
-) -> Result<(), Box<dyn Error>> {
+) -> CliResult {
     // progress
     prog.add_chunks(1);
     prog.add_bytes(task.bytes);
@@ -142,7 +141,7 @@ fn task_handle(
             let mut wtr = Writer::append_to(&out).unwrap();
             if !args.no_header && !header_inserted.contains_key(&filename) {
                 header_inserted.insert(filename, true);
-                wtr.write_str(first_row).unwrap()
+                wtr.write_str(first_row).unwrap();
             }
             wtr.write_strings(rows).unwrap();
         });

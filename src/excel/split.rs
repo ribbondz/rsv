@@ -10,7 +10,6 @@ use crate::utils::writer::Writer;
 use crossbeam_channel::bounded;
 use dashmap::DashMap;
 use rayon::prelude::*;
-use std::error::Error;
 use std::fs::create_dir;
 use std::path::Path;
 use std::thread;
@@ -33,7 +32,9 @@ impl Split {
         let first_row = if self.no_header {
             String::new()
         } else {
-            let Some(r) = range.next() else { return Ok(()) };
+            let Some(r) = range.next() else {
+                return Ok(());
+            };
             if self.col >= r.len() {
                 werr_exit!("Error: column index out of range!");
             };
@@ -59,7 +60,7 @@ impl Split {
             false => {
                 let header_inserted: DashMap<String, bool> = DashMap::new();
                 for task in rx {
-                    task_handle(&self, task, &mut prog, &dir, &first_row, &header_inserted)?
+                    task_handle(&self, task, &mut prog, &dir, &first_row, &header_inserted)?;
                 }
             }
         }
@@ -76,7 +77,7 @@ fn sequential_task_handle(
     prog: &mut Progress,
     out: &Path,
     first_row: &str,
-) -> Result<(), Box<dyn Error>> {
+) -> CliResult {
     // progress
     prog.add_chunks(1);
     prog.add_lines(task.n);
@@ -99,7 +100,7 @@ fn task_handle(
     dir: &Path,
     first_row: &str,
     header_inserted: &DashMap<String, bool>,
-) -> Result<(), Box<dyn Error>> {
+) -> CliResult {
     // progress
     prog.add_chunks(1);
     prog.add_lines(task.n);

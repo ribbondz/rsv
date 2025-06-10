@@ -55,9 +55,9 @@ impl Sample {
 
         match (self.export, self.show_number) {
             (true, _) => write_to_file(header, queue)?,
-            (false, true) => print_to_stdout(header, queue),
-            (false, false) => print_to_stdout_no_number(header, queue),
-        }
+            (false, true) => print_to_stdout(header, queue)?,
+            (false, false) => print_to_stdout_no_number(header, queue)?,
+        };
 
         Ok(())
     }
@@ -79,7 +79,7 @@ fn write_to_file(header: Option<String>, queue: PriorityQueue<String>) -> CliRes
     Ok(())
 }
 
-fn print_to_stdout(header: Option<String>, queue: PriorityQueue<String>) {
+fn print_to_stdout(header: Option<String>, queue: PriorityQueue<String>) -> CliResult {
     let mut table = Table::new();
 
     if let Some(h) = header {
@@ -95,9 +95,11 @@ fn print_to_stdout(header: Option<String>, queue: PriorityQueue<String>) {
     });
 
     table.print_blank_unchecked();
+
+    Ok(())
 }
 
-fn print_to_stdout_no_number(header: Option<String>, queue: PriorityQueue<String>) {
+fn print_to_stdout_no_number(header: Option<String>, queue: PriorityQueue<String>) -> CliResult {
     let mut wtr = Writer::stdout().unwrap();
 
     // header
@@ -109,4 +111,6 @@ fn print_to_stdout_no_number(header: Option<String>, queue: PriorityQueue<String
     queue.into_sorted_items().into_iter().for_each(|i| {
         wtr.write_str_unchecked(i.item);
     });
+
+    Ok(())
 }
