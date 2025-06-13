@@ -14,6 +14,17 @@ impl ResultData {
         }
     }
 
+    pub fn from(header: Vec<String>, data: Vec<Vec<String>>) -> ResultData {
+        ResultData { header, data }
+    }
+
+    pub fn from_header(header: Vec<String>) -> ResultData {
+        ResultData {
+            header,
+            data: vec![],
+        }
+    }
+
     pub fn insert_header(&mut self, header: Vec<String>) {
         self.header = header;
     }

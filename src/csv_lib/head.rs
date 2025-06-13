@@ -1,34 +1,37 @@
-use crate::args::Head;
 use crate::utils::return_result::{CliResultData, ResultData};
+use crate::utils::row_split::CsvRowSplitter;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
+use std::path::PathBuf;
 
-impl Head {
-    #[allow(dead_code)]
-    pub fn csv_run_lib(&self) -> CliResultData {
-        let mut out = ResultData::new();
-        let path = self.path();
+pub fn csv_head(
+    file: &PathBuf,
+    no_header: bool,
+    sep: char,
+    quote: char,
+    n: usize,
+) -> CliResultData {
+    let mut out = ResultData::new();
 
-        // show head n
-        let mut lines = BufReader::new(File::open(path)?)
-            .lines()
-            .take(self.n + 1 - self.no_header as usize);
+    // show head n
+    let mut lines = BufReader::new(File::open(file)?)
+        .lines()
+        .take(n + 1 - no_header as usize);
 
-        // Process header
-        if let Some(header) = lines.next() {
-            if let Ok(h) = header {
-                let h = self.split_row_to_owned_vec(&h);
-                out.insert_header(h);
-            }
+    // Process header
+    if let Some(header) = lines.next() {
+        if let Ok(h) = header {
+            let h = CsvRowSplitter::new(&h, sep, quote).collect_owned();
+            out.insert_header(h);
         }
-
-        lines.for_each(|r| {
-            if let Ok(r) = r {
-                let r = self.split_row_to_owned_vec(&r);
-                out.insert_record(r);
-            }
-        });
-
-        Ok(Some(out))
     }
+
+    lines.for_each(|r| {
+        if let Ok(r) = r {
+            let r = CsvRowSplitter::new(&r, sep, quote).collect_owned();
+            out.insert_record(r);
+        }
+    });
+
+    Ok(Some(out))
 }

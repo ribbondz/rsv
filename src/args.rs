@@ -1,9 +1,5 @@
-use crate::utils::{
-    cli_result::E, file::is_excel, filename::full_path, row_split::CsvRowSplitter,
-    util::get_valid_sep,
-};
+use crate::utils::{row_split::CsvRowSplitter, util::get_valid_sep};
 use clap::Args;
-use std::path::PathBuf;
 
 #[derive(Debug, Args)]
 pub struct Count {
@@ -414,49 +410,6 @@ pub struct Unique {
     #[arg(short = 'E', long, default_value_t = false)]
     pub export: bool,
 }
-
-macro_rules! command_run {
-    ($method:ident) => {
-        impl $method {
-            pub fn path(&self) -> PathBuf {
-                let p = self.filename.as_ref().unwrap();
-                full_path(p)
-            }
-
-            pub fn run(&self) {
-                match &self.filename {
-                    Some(f) => match is_excel(&full_path(f)) {
-                        true => self.excel_run(),
-                        false => self.csv_run(),
-                    },
-                    None => self.io_run(),
-                }
-                .handle_err()
-            }
-        }
-    };
-}
-
-command_run!(Count);
-command_run!(Estimate);
-command_run!(Head);
-command_run!(Tail);
-command_run!(Headers);
-command_run!(Clean);
-command_run!(Flatten);
-command_run!(Frequency);
-command_run!(Split);
-command_run!(Slice);
-command_run!(Select);
-command_run!(Stats);
-command_run!(Excel2csv);
-command_run!(Table);
-command_run!(Sort);
-command_run!(Search);
-command_run!(Sample);
-command_run!(To);
-command_run!(Unique);
-command_run!(Size);
 
 macro_rules! impl_row_split {
     ($cmd:ident) => {

@@ -1,7 +1,7 @@
 use crate::args::Sort;
 use crate::utils::cli_result::CliResult;
 use crate::utils::constants::COMMA;
-use crate::utils::excel::datatype_vec_to_string_vec;
+use crate::utils::excel::datatype_vec_to_str_vec;
 use crate::utils::filename::new_path;
 use crate::utils::reader::ExcelReader;
 use crate::utils::sort::SortColumns;
@@ -29,7 +29,7 @@ impl Sort {
         let mut lines = range
             .iter()
             .skip(range.next_called)
-            .map(datatype_vec_to_string_vec)
+            .map(datatype_vec_to_str_vec)
             .collect::<Vec<_>>();
 
         // sort

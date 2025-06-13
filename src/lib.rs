@@ -1,50 +1,50 @@
-use crate::{
-    args::{Count, Head, Headers, Size},
-    utils::return_result::CliResultData,
-};
+mod args;
+mod csv_lib;
+mod excel_lib;
+mod general_lib;
+mod utils;
 
-pub mod args;
-pub mod csv;
-pub mod csv_lib;
-pub mod excel;
-pub mod io;
-pub mod utils;
+use crate::utils::{file::is_excel, filename::full_path, return_result::CliResultData};
 
-pub fn csv_count(file: &str, no_header: bool) -> CliResultData {
-    let option = Count {
-        filename: Some(file.to_owned()),
-        no_header,
-        sheet: 0,
-    };
-    Count::csv_run_lib(&option)
+// general
+pub use general_lib::size::file_size;
+
+// count
+use csv_lib::count::csv_count;
+use excel_lib::count::excel_count;
+pub fn file_count(file: &str, no_header: bool, sheet: usize) -> CliResultData {
+    let path = full_path(file);
+    match is_excel(&path) {
+        true => excel_count(&path, no_header, sheet),
+        false => csv_count(&path, no_header),
+    }
 }
 
-pub fn csv_head(file: &str, sep: char, quote: char, no_header: bool, n: usize) -> CliResultData {
-    let option = Head {
-        filename: Some(file.to_owned()),
-        no_header,
-        n,
-        sheet: 0,
-        export: false,
-        sep,
-        quote,
-    };
-    Head::csv_run_lib(&option)
+// head
+use csv_lib::head::csv_head;
+use excel_lib::head::excel_head;
+pub fn file_head(
+    file: &str,
+    no_header: bool,
+    sep: char,
+    quote: char,
+    sheet: usize,
+    n: usize,
+) -> CliResultData {
+    let path = full_path(file);
+    match is_excel(&path) {
+        true => excel_head(&path, no_header, sheet, n),
+        false => csv_head(&path, no_header, sep, quote, n),
+    }
 }
 
-pub fn csv_headers(file: &str, sep: char, quote: char) -> CliResultData {
-    let option = Headers {
-        filename: Some(file.to_owned()),
-        sheet: 0,
-        sep,
-        quote,
-    };
-    Headers::csv_run_lib(&option)
-}
-
-pub fn csv_size(file: &str) -> CliResultData {
-    let option = Size {
-        filename: Some(file.to_owned()),
-    };
-    Size::csv_run_lib(&option)
+// headers
+use csv_lib::headers::csv_headers;
+use excel_lib::headers::excel_headers;
+pub fn file_headers(file: &str, sep: char, quote: char, sheet: usize) -> CliResultData {
+    let path = full_path(file);
+    match is_excel(&path) {
+        true => excel_headers(&path, sheet),
+        false => csv_headers(&path, sep, quote),
+    }
 }

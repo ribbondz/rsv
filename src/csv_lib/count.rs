@@ -1,29 +1,22 @@
-use crate::args::Count;
 use crate::utils::return_result::{CliResultData, ResultData};
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 extern crate bytecount;
 
-impl Count {
-    #[allow(dead_code)]
-    pub fn csv_run_lib(&self) -> CliResultData {
-        let mut out = ResultData::new();
+pub fn csv_count(file: &PathBuf, no_header: bool) -> CliResultData {
+    // current file
+    let n = match file.is_dir() {
+        true => count_dir_files(&file)?,
+        false => count_file_lines(&file, no_header)?,
+    };
 
-        // current file
-        let n = match self.path().is_dir() {
-            true => count_dir_files(&self.path())?,
-            false => count_file_lines(&self.path(), self.no_header)?,
-        };
-
-        out.insert_header(vec!["count".to_string()]);
-        out.insert_record(vec![n.to_string()]);
-
-        Ok(Some(out))
-    }
+    Ok(Some(ResultData {
+        header: vec!["count".to_string()],
+        data: vec![vec![n.to_string()]],
+    }))
 }
 
-#[allow(dead_code)]
 fn count_file_lines(path: &Path, no_header: bool) -> Result<usize, Box<dyn std::error::Error>> {
     // open file and count
     let mut n = 0;
@@ -49,7 +42,6 @@ fn count_file_lines(path: &Path, no_header: bool) -> Result<usize, Box<dyn std::
     Ok(n)
 }
 
-#[allow(dead_code)]
 fn count_dir_files(path: &Path) -> Result<usize, Box<dyn std::error::Error>> {
     let mut file_n = 0;
     let mut dir_n = 0;

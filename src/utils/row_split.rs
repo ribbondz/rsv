@@ -65,6 +65,10 @@ impl<'a> CsvRowSplitter<'a> {
             Some((_, v)) => v == &self.sep,
         }
     }
+
+    pub fn collect_owned(self) -> Vec<String> {
+        self.map(String::from).collect()
+    }
 }
 
 impl<'a> Iterator for CsvRowSplitter<'a> {
