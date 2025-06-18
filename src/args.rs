@@ -237,7 +237,7 @@ pub struct Stats {
     #[arg(short, long, default_value_t = ',', value_parser=get_valid_sep)]
     pub sep: char,
     /// Quote Char
-    #[arg(short, long, default_value_t = ',')]
+    #[arg(short, long, default_value_t = '"')]
     pub quote: char,
     /// Whether the file has a header
     #[arg(long, default_value_t = false)]
