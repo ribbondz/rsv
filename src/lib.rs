@@ -5,7 +5,7 @@ mod general_lib;
 mod utils;
 
 use crate::utils::{file::is_excel, filename::full_path, return_result::CliResultData};
-
+pub use crate::utils::return_result::ResultData;
 // general
 pub use general_lib::size::file_size;
 
@@ -46,5 +46,23 @@ pub fn file_headers(file: &str, sep: char, quote: char, sheet: usize) -> CliResu
     match is_excel(&path) {
         true => excel_headers(&path, sheet),
         false => csv_headers(&path, sep, quote),
+    }
+}
+
+use csv_lib::stats::csv_stats;
+use excel_lib::stats::excel_stats;
+
+pub fn file_stats(
+    file: &str,
+    sep: char,
+    quote: char,
+    no_header: bool,
+    cols: String,
+    sheet: usize,
+) -> CliResultData {
+    let path = full_path(file);
+    match is_excel(&path) {
+        true => excel_stats(&path, no_header, cols, sheet),
+        false => csv_stats(&path, sep, quote, no_header, cols),
     }
 }

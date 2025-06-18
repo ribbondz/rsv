@@ -7,6 +7,7 @@ use ahash::HashSet;
 use calamine::Data;
 use rayon::prelude::*;
 use std::fmt::Display;
+use get_fields::GetFields;
 use tabled::{builder::Builder, settings::Style, Table};
 
 #[derive(Debug)]
@@ -17,7 +18,7 @@ pub struct ColumnStats {
     pub rows: usize,
 }
 
-#[derive(Debug)]
+#[derive(Debug, GetFields)]
 pub struct CStat {
     col_index: usize,
     col_type: ColumnType,
@@ -199,6 +200,24 @@ impl Display for ColumnStats {
 }
 
 impl CStat {
+
+    pub fn get_fields_values(&self) -> Vec<String> {
+        vec![
+            self.col_index.to_string(),
+            self.col_type.to_string(),
+            self.name.clone(),
+            self.min_fmt(),
+            self.max_fmt(),
+            self.min_string.clone(),
+            self.max_string.clone(),
+            self.mean_fmt(),
+            self.unique_fmt(),
+            self.null.to_string(),
+            self.total.to_string(),
+            String::new(),
+        ]
+    }
+
     pub fn parse(&mut self, f: &str) {
         if util::is_null(f) {
             self.null += 1;
