@@ -6,11 +6,12 @@ use crate::utils::column_type::ColumnTypes;
 use crate::utils::file::column_n;
 use crate::utils::filename::new_path;
 use crate::utils::progress::Progress;
-use crate::utils::reader::{ChunkReader, Task};
-use crossbeam_channel::{bounded, unbounded, Sender};
+use crate::utils::reader::{ChunkReader};
+use crossbeam_channel::{bounded, unbounded};
 use rayon::ThreadPoolBuilder;
 use std::fs::File;
 use std::io::{BufWriter, Write};
+use crate::utils::chunk::{parse_chunk, ChunkResult};
 
 impl Stats {
     pub fn csv_run(&self) -> CliResult {
@@ -110,21 +111,4 @@ impl Stats {
 
         Ok(())
     }
-}
-
-struct ChunkResult {
-    bytes: usize,
-    stat: ColumnStats,
-}
-
-fn parse_chunk(task: Task, tx: Sender<ChunkResult>, mut stat: ColumnStats, sep: char, quote: char) {
-    for l in task.lines {
-        stat.parse_line(&l, sep, quote)
-    }
-
-    tx.send(ChunkResult {
-        bytes: task.bytes,
-        stat,
-    })
-    .unwrap()
 }

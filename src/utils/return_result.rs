@@ -32,4 +32,8 @@ impl ResultData {
     pub fn insert_record(&mut self, record: Vec<String>) {
         self.data.push(record);
     }
+
+    pub fn insert_records(&mut self, records: impl Iterator<Item=Vec<String>>) {
+        self.data.extend(records);
+    }
 }
