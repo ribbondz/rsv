@@ -8,7 +8,10 @@ pub fn file_size(file: &str) -> CliResultData {
     let file = File::open(file)?;
     let filesize_bytes = file.metadata()?.len() as f64;
 
-    let out = ResultData::from(vec!["size".to_string()], vec![vec![filesize_bytes.to_string()]]);
+    let out = ResultData::from(
+        vec!["size".to_string()],
+        vec![vec![filesize_bytes.to_string()]],
+    );
 
     Ok(Some(out))
 }

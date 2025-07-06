@@ -2,7 +2,6 @@ use crate::utils::return_result::{CliResultData, ResultData};
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
-extern crate bytecount;
 
 pub fn csv_count(file: &PathBuf, no_header: bool) -> CliResultData {
     // current file

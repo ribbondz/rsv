@@ -1,11 +1,11 @@
 use crate::args::Stats;
+use rayon::prelude::*;
 use rsv_lib::utils::cli_result::CliResult;
 use rsv_lib::utils::column::Columns;
 use rsv_lib::utils::column_stats::ColumnStats;
 use rsv_lib::utils::column_type::ColumnTypes;
 use rsv_lib::utils::filename::new_file;
 use rsv_lib::utils::reader::IoReader;
-use rayon::prelude::*;
 use std::fs::File;
 use std::io::{BufWriter, Write};
 

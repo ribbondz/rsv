@@ -4,7 +4,6 @@ use rsv_lib::utils::progress::Progress;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
-extern crate bytecount;
 
 impl Count {
     pub fn csv_run(&self) -> CliResult {

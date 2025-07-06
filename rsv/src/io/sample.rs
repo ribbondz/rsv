@@ -1,13 +1,13 @@
 use crate::args::Sample;
+use rand::rng;
+use rand::rngs::StdRng;
+use rand::{Rng, SeedableRng};
 use rsv_lib::utils::cli_result::CliResult;
 use rsv_lib::utils::filename::new_file;
 use rsv_lib::utils::priority_queue::PriorityQueue;
 use rsv_lib::utils::reader::IoReader;
 use rsv_lib::utils::table::Table;
 use rsv_lib::utils::writer::Writer;
-use rand::rng;
-use rand::rngs::StdRng;
-use rand::{Rng, SeedableRng};
 use std::borrow::Cow;
 use std::time::Instant;
 

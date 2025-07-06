@@ -1,10 +1,10 @@
 use crate::args::Split;
+use dashmap::DashMap;
+use rayon::prelude::*;
 use rsv_lib::utils::cli_result::CliResult;
 use rsv_lib::utils::filename::{dir_file, new_file, str_to_filename};
 use rsv_lib::utils::util::datetime_str;
 use rsv_lib::utils::writer::Writer;
-use dashmap::DashMap;
-use rayon::prelude::*;
 use std::fs::create_dir;
 use std::io::{stdin, BufRead};
 use std::path::Path;

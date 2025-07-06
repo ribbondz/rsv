@@ -33,7 +33,7 @@ impl ResultData {
         self.data.push(record);
     }
 
-    pub fn insert_records(&mut self, records: impl Iterator<Item=Vec<String>>) {
+    pub fn insert_records(&mut self, records: impl Iterator<Item = Vec<String>>) {
         self.data.extend(records);
     }
 }

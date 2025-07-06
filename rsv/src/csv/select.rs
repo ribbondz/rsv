@@ -1,13 +1,13 @@
 use crate::args::Select;
-use rsv_lib::utils::filter::Filter;
-use rsv_lib::utils::writer::Writer;
 use crossbeam_channel::bounded;
 use rayon::prelude::*;
 use rsv_lib::utils::cli_result::CliResult;
 use rsv_lib::utils::column::Columns;
 use rsv_lib::utils::filename::new_path;
+use rsv_lib::utils::filter::Filter;
 use rsv_lib::utils::progress::Progress;
 use rsv_lib::utils::reader::{ChunkReader, Task};
+use rsv_lib::utils::writer::Writer;
 use std::thread;
 
 impl Select {

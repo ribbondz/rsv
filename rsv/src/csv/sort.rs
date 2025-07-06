@@ -1,8 +1,8 @@
 use crate::args::Sort;
-use rsv_lib::utils::sort::SortColumns;
-use rsv_lib::utils::writer::Writer;
 use rsv_lib::utils::cli_result::CliResult;
 use rsv_lib::utils::filename::new_path;
+use rsv_lib::utils::sort::SortColumns;
+use rsv_lib::utils::writer::Writer;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 

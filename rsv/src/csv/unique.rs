@@ -1,9 +1,9 @@
 use crate::args::Unique;
+use ahash::HashMapExt;
 use rsv_lib::utils::cli_result::CliResult;
 use rsv_lib::utils::column::Columns;
 use rsv_lib::utils::filename::new_path;
 use rsv_lib::utils::writer::Writer;
-use ahash::HashMapExt;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Lines};
 use std::path::Path;

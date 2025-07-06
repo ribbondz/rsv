@@ -1,4 +1,7 @@
 use crate::args::Sample;
+use rand::rng;
+use rand::rngs::StdRng;
+use rand::{Rng, SeedableRng};
 use rsv_lib::utils::cli_result::CliResult;
 use rsv_lib::utils::excel::datatype_vec_to_string;
 use rsv_lib::utils::filename::new_path;
@@ -6,9 +9,6 @@ use rsv_lib::utils::priority_queue::PriorityQueue;
 use rsv_lib::utils::reader::ExcelReader;
 use rsv_lib::utils::table::Table;
 use rsv_lib::utils::writer::Writer;
-use rand::rng;
-use rand::rngs::StdRng;
-use rand::{Rng, SeedableRng};
 use std::borrow::Cow;
 use std::path::Path;
 use std::time::Instant;

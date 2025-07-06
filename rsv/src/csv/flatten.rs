@@ -1,7 +1,7 @@
 use crate::args::Flatten;
-use rsv_lib::utils::table::Table;
 use rsv_lib::utils::cli_result::CliResult;
 use rsv_lib::utils::file;
+use rsv_lib::utils::table::Table;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 

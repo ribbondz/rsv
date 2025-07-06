@@ -1,6 +1,3 @@
-use std::path::PathBuf;
-use crossbeam_channel::{bounded, unbounded};
-use rayon::ThreadPoolBuilder;
 use crate::utils::chunk::{parse_chunk, ChunkResult};
 use crate::utils::column::Columns;
 use crate::utils::column_stats::{CStat, ColumnStats};
@@ -10,6 +7,9 @@ use crate::utils::progress::Progress;
 use crate::utils::reader::ChunkReader;
 use crate::utils::return_result::{CliResultData, ResultData};
 use crate::utils::row_split::CsvRowSplitter;
+use crossbeam_channel::{bounded, unbounded};
+use rayon::ThreadPoolBuilder;
+use std::path::PathBuf;
 
 pub fn csv_stats(
     file: &PathBuf,
@@ -18,7 +18,6 @@ pub fn csv_stats(
     no_header: bool,
     cols: String,
 ) -> CliResultData {
-
     let mut result_data = ResultData::new();
     result_data.insert_header(CStat::get_fields.iter().map(|f| f.to_string()).collect());
 
@@ -26,9 +25,7 @@ pub fn csv_stats(
     let cols = Columns::new(cols.as_str())
         .total_col_of(file, sep, quote)
         .parse();
-    let Some(col_type) =
-        ColumnTypes::guess_from_csv(file, sep, quote, no_header, &cols)?
-    else {
+    let Some(col_type) = ColumnTypes::guess_from_csv(file, sep, quote, no_header, &cols)? else {
         return Ok(Some(result_data));
     };
 
@@ -42,7 +39,9 @@ pub fn csv_stats(
         };
         cols.artificial_n_cols(n)
     } else {
-        let Some(r) = rdr.next() else { return Ok(Some(result_data)) };
+        let Some(r) = rdr.next() else {
+            return Ok(Some(result_data));
+        };
         CsvRowSplitter::new(&r?, sep, quote)
             .map(|i| i.to_owned())
             .collect::<Vec<_>>()
@@ -102,7 +101,7 @@ pub fn csv_stats(
 
     // refine result
     stat.cal_unique_and_mean();
-    result_data.insert_records(stat.stat.iter().map(|s|s.get_fields_values()));
+    result_data.insert_records(stat.stat.iter().map(|s| s.get_fields_values()));
     // stat.print();
 
     // println!("Total rows: {}", stat.rows);
