@@ -15,10 +15,9 @@ impl Head {
         BufReader::new(File::open(path)?)
             .lines()
             .take(self.n + 1 - self.no_header as usize)
-            .for_each(|r| {
-                if let Ok(r) = r {
-                    wtr.write_str_unchecked(&r);
-                }
+            .for_each(|r| match r {
+                Ok(r) => wtr.write_str_unchecked(&r),
+                Err(err) => print!("{:?}\n", err),
             });
 
         if self.export {

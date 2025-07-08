@@ -12,7 +12,7 @@ tasks:
       
   publish:
     cmds:
-      - task build
+      - task default
       - task compress
 
   build:
@@ -25,7 +25,7 @@ tasks:
     dir: D:\code\rsv
     cmds:
       # - zip.exe -j dis\\x86_64-pc-windows-gnu.zip README.md target\\x86_64-pc-windows-gnu\\release\\rsv.exe
-      - zip.exe -j dis\\x86_64-pc-windows-msvc.zip README.md target\\x86_64-pc-windows-msvc\\release\\rsv.exe
+      - zip.exe -j dis\\x86_64-pc-windows-msvc.zip README.md target\\release\\rsv.exe
       # - zip.exe -j dis\\x86_64-unknown-linux-musl.zip README.md target\\x86_64-unknown-linux-musl\\release\\rsv
 
   compress1:
