@@ -1,7 +1,6 @@
 use crate::args::Stats;
 use crossbeam_channel::{bounded, unbounded};
-use rayon::ThreadPoolBuilder;
-use rsv_lib::utils::chunk::{parse_chunk, ChunkResult};
+use rsv_lib::utils::chunk::{ChunkResult, parse_chunk};
 use rsv_lib::utils::cli_result::CliResult;
 use rsv_lib::utils::column::Columns;
 use rsv_lib::utils::column_stats::ColumnStats;
@@ -46,43 +45,33 @@ impl Stats {
         let empty_stat = stat.clone();
 
         // parallel channels
-        let (tx_chunk, rx_chunk) = bounded(2);
-        let (tx_chunk_n_control, rx_chunk_n_control) = bounded(200);
-        let (tx_result, rx_result) = unbounded();
+        let (chunk_sender, chunk_receiver) = bounded(rayon::current_num_threads() * 2);
+        let (result_sender, result_receiver) = unbounded();
 
         // progress bar
         let mut prog = Progress::new();
 
-        // threadpool
-        let pool = ThreadPoolBuilder::new().build().unwrap();
-
-        // read
-        pool.spawn(move || rdr.send_to_channel_by_chunks(tx_chunk, 50_000));
-
         // parallel process
-        pool.scope(|s| {
-            // add chunk to threadpool for process
-            s.spawn(|_| {
-                for task in rx_chunk {
-                    tx_chunk_n_control.send(()).unwrap();
+        rayon::scope(|s| {
+            // read chunks
+            // when finish reading, chunk_sender is dropped
+            s.spawn(|_| rdr.send_to_channel_by_chunks(chunk_sender, 20_000));
 
-                    let tx = tx_result.clone();
+            // add chunk to threadpool for process
+            s.spawn(move |s| {
+                for task in chunk_receiver {
+                    let tx = result_sender.clone();
                     let st = empty_stat.clone();
                     let sep_inner = self.sep;
                     let quote_inner = self.quote;
-                    // println!("dispatch........");
-                    pool.spawn(move || parse_chunk(task, tx, st, sep_inner, quote_inner));
-                }
 
-                drop(tx_result);
-                drop(tx_chunk_n_control);
+                    // process chunk in parallel
+                    s.spawn(move |_| parse_chunk(task, tx, st, sep_inner, quote_inner));
+                }
             });
 
             // receive result
-            for ChunkResult { bytes, stat: o } in rx_result {
-                rx_chunk_n_control.recv().unwrap();
-                // println!("result-----------");
-                // this is bottleneck, merge two hashset is very slow.
+            for ChunkResult { bytes, stat: o } in result_receiver {
                 stat.merge(o);
 
                 prog.add_bytes(bytes);

@@ -53,6 +53,8 @@ impl<'a> Iterator for CsvRowSplitter<'a> {
 
     fn next(&mut self) -> Option<Self::Item> {
         // First char of field
+        // 1. for the first field, first char is not separator
+        // 2. for other fields, first char is separator
         let Some((mut start_index, mut first_char)) = self.iter.next() else {
             return None;
         };
@@ -63,7 +65,7 @@ impl<'a> Iterator for CsvRowSplitter<'a> {
         }
 
         // Field may start with a separator that should be escaped
-        // Parsing chain: "1,2,,3" => "1" -> ",2" -> -> "," -> ",3"
+        // Parsing chain: "1,2,,3" => "1" -> ",2" -> "," -> ",3"
         if first_char == self.sep {
             match self.iter.peek() {
                 None => return Some(""),

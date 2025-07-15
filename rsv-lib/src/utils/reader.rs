@@ -1,5 +1,5 @@
 use crate::utils::util::werr_exit;
-use calamine::{open_workbook_auto, Data, Range, Reader, Rows};
+use calamine::{Data, Range, Reader, Rows, open_workbook_auto};
 use crossbeam_channel::Sender;
 use std::error::Error;
 use std::io::stdin;

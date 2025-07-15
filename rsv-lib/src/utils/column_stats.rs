@@ -6,9 +6,8 @@ use super::{
 use ahash::HashSet;
 use calamine::Data;
 use get_fields::GetFields;
-use rayon::prelude::*;
 use std::fmt::Display;
-use tabled::{builder::Builder, settings::Style, Table};
+use tabled::{Table, builder::Builder, settings::Style};
 
 #[derive(Debug)]
 pub struct ColumnStats {
@@ -131,10 +130,9 @@ impl ColumnStats {
     pub fn merge(&mut self, other: ColumnStats) {
         self.rows += other.rows;
 
-        // parallel update
         other
             .stat
-            .into_par_iter()
+            .into_iter()
             .zip(&mut self.stat)
             .for_each(|(o, c)| c.merge(o));
     }

@@ -8,7 +8,6 @@ pub struct Progress {
     pub chunks: usize,
     pub bytes: usize,
     pub lines: usize,
-    pub print_count: usize,
     start_time: Instant,
 }
 
@@ -18,7 +17,6 @@ impl Progress {
             chunks: 0,
             bytes: 0,
             lines: 0,
-            print_count: 0,
             start_time: Instant::now(),
         }
     }
@@ -64,8 +62,6 @@ impl Progress {
             self.elapsed_time_as_string()
         );
         io::stdout().flush().unwrap();
-
-        self.print_count += 1;
     }
 
     pub fn clear(&mut self) {
@@ -74,14 +70,10 @@ impl Progress {
         print!("{}", " ".repeat(60));
         print!("\r");
         io::stdout().flush().unwrap();
-
-        self.print_count += 1;
     }
 
     pub fn print_elapsed_time(&mut self) {
         println!("elapsed time: {}     ", self.elapsed_time_as_string());
         io::stdout().flush().unwrap();
-
-        self.print_count += 1;
     }
 }
