@@ -1,4 +1,4 @@
-use crate::utils::chunk::{parse_chunk, ChunkResult};
+use crate::utils::chunk::{ChunkParser, ChunkResult};
 use crate::utils::column::Columns;
 use crate::utils::column_stats::{CStat, ColumnStats};
 use crate::utils::column_type::ColumnTypes;
@@ -53,11 +53,13 @@ pub fn csv_stats(
 
     // parallel channels
     let (tx_chunk, rx_chunk) = bounded(2);
-    let (tx_chunk_n_control, rx_chunk_n_control) = bounded(200);
     let (tx_result, rx_result) = unbounded();
 
     // progress bar
     let mut prog = Progress::new();
+
+    // chunk parser
+    let parser = ChunkParser::new(sep, quote);
 
     // threadpool
     let pool = ThreadPoolBuilder::new().build().unwrap();
@@ -68,26 +70,18 @@ pub fn csv_stats(
     // parallel process
     pool.scope(|s| {
         // add chunk to threadpool for process
-        s.spawn(|_| {
+        s.spawn(|s| {
             for task in rx_chunk {
-                tx_chunk_n_control.send(()).unwrap();
-
                 let tx = tx_result.clone();
                 let st = empty_stat.clone();
-                let sep_inner = sep;
-                let quote_inner = quote;
-                // println!("dispatch........");
-                pool.spawn(move || parse_chunk(task, tx, st, sep_inner, quote_inner));
+                s.spawn(|_| parser.parse(task, tx, st));
             }
 
             drop(tx_result);
-            drop(tx_chunk_n_control);
         });
 
         // receive result
         for ChunkResult { bytes, stat: o } in rx_result {
-            rx_chunk_n_control.recv().unwrap();
-            // println!("result-----------");
             // this is bottleneck, merge two hashset is very slow.
             stat.merge(o);
 

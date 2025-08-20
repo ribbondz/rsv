@@ -7,20 +7,25 @@ pub struct ChunkResult {
     pub stat: ColumnStats,
 }
 
-pub fn parse_chunk(
-    task: Task,
-    tx: Sender<ChunkResult>,
-    mut stat: ColumnStats,
+pub struct ChunkParser {
     sep: char,
     quote: char,
-) {
-    for l in task.lines {
-        stat.parse_line(&l, sep, quote)
+}
+
+impl ChunkParser {
+    pub fn new(sep: char, quote: char) -> Self {
+        ChunkParser { sep, quote }
     }
 
-    tx.send(ChunkResult {
-        bytes: task.bytes,
-        stat,
-    })
-    .unwrap()
+    pub fn parse(&self, task: Task, tx: Sender<ChunkResult>, mut stat: ColumnStats) {
+        for l in task.lines {
+            stat.parse_line(&l, self.sep, self.quote)
+        }
+
+        tx.send(ChunkResult {
+            bytes: task.bytes,
+            stat,
+        })
+        .unwrap()
+    }
 }

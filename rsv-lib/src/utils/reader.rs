@@ -60,8 +60,6 @@ impl ChunkReader {
             })
             .unwrap();
         }
-
-        drop(tx)
     }
 }
 

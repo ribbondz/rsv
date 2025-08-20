@@ -44,7 +44,7 @@ fn split_pat_at<'a>(source: &'a str, pat: &'a str, n: usize) -> (&'a str, &'a st
 }
 
 impl<'a> Columns<'a> {
-    pub fn new(raw: &str) -> Columns {
+    pub fn new(raw: &'_ str) -> Columns<'_> {
         Columns {
             path: None,
             sep: ',',

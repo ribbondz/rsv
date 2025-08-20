@@ -1,5 +1,5 @@
 use super::{
-    math_expr_parser::{CompiledExpr, AST},
+    math_expr_parser::{AST, CompiledExpr},
     row_split::CsvRowSplitter,
 };
 use crate::utils::util::werr_exit;
@@ -74,7 +74,7 @@ fn parse_i32(col: &str) -> i32 {
 }
 
 impl<'a> Filter<'a> {
-    pub fn new(raw: &str) -> Filter {
+    pub fn new(raw: &'a str) -> Self {
         Filter {
             raw,
             total: None,

@@ -5,7 +5,7 @@ pub fn datatype_vec_to_string_vec(data: &[Data]) -> Vec<String> {
     data.iter().map(|i| i.to_string()).collect()
 }
 
-pub fn datatype_vec_to_str_vec(data: &[Data]) -> Vec<Cow<str>> {
+pub fn datatype_vec_to_str_vec(data: &'_ [Data]) -> Vec<Cow<'_, str>> {
     data.iter()
         .map(|i| match i {
             Data::String(s) => Cow::Borrowed(s.as_str()),

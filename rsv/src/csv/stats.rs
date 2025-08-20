@@ -1,6 +1,6 @@
 use crate::args::Stats;
 use crossbeam_channel::{bounded, unbounded};
-use rsv_lib::utils::chunk::{ChunkResult, parse_chunk};
+use rsv_lib::utils::chunk::{ChunkParser, ChunkResult};
 use rsv_lib::utils::cli_result::CliResult;
 use rsv_lib::utils::column::Columns;
 use rsv_lib::utils::column_stats::ColumnStats;
@@ -51,23 +51,25 @@ impl Stats {
         // progress bar
         let mut prog = Progress::new();
 
+        // chunk parser
+        let parser = ChunkParser::new(self.sep, self.quote);
+
         // parallel process
         rayon::scope(|s| {
             // read chunks
-            // when finish reading, chunk_sender is dropped
             s.spawn(|_| rdr.send_to_channel_by_chunks(chunk_sender, 20_000));
 
             // add chunk to threadpool for process
-            s.spawn(move |s| {
+            s.spawn(|s| {
                 for task in chunk_receiver {
                     let tx = result_sender.clone();
                     let st = empty_stat.clone();
-                    let sep_inner = self.sep;
-                    let quote_inner = self.quote;
 
                     // process chunk in parallel
-                    s.spawn(move |_| parse_chunk(task, tx, st, sep_inner, quote_inner));
+                    s.spawn(|_| parser.parse(task, tx, st));
                 }
+
+                drop(result_sender);
             });
 
             // receive result
