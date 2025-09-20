@@ -378,27 +378,27 @@ https://docs.rs/regex/latest/regex/#syntax. The command reads file in chunks and
 processes a chunk in parallel based on Rayon.
 
 Usage: 
-  rsv.exe search [OPTIONS] <PATTERN> <FILENAME>
-  rsv search PATTERN data.csv                     # regex search a PATTERN
-  rsv search -f 0,1 PATTERN data.xlsx             # search the first two columns
-  rsv search "^\d{4}-\d{2}-\d{2}$" data.csv       # search dates
-  rsv search --export PATTERN data.csv            # export result
-  rsv search PATTERN data.xlsx                    # search EXCEL file
-  rsv search -S all PATTERN data.xlsx             # search all sheets of EXCEL
+  rsv search [OPTIONS] [FILENAME]
+  rsv search -p PATTERN data.csv                     # regex search a PATTERN
+  rsv search -p PATTERN -c 0,1 data.xlsx             # search the first two columns
+  rsv search -p "^\d{4}-\d{2}-\d{2}$" data.csv       # search dates
+  rsv search -p PATTERN --export data.csv            # export result
+  rsv search -p PATTERN data.xlsx                    # search EXCEL file
+  rsv search -p PATTERN -S all data.xlsx             # search all sheets of EXCEL
 
 Arguments:
-  <PATTERN>              Regex pattern to search
-  <FILENAME>             File to open
+  [FILENAME]  File to open
 
 Options:
-  -s, --sep <SEP>        Separator [default: ,]
-  -q, --quote <QUOTE>    Quote char [default: "]
-      --no-header        Whether the file has a header
-  -f, --filter <FILTER>  Columns to search [default: all]
-  -c, --cols <COLS>      Columns to keep in output [default: all]
-  -S, --sheet <SHEET>    Search the nth worksheet of EXCEL file [default: 0], can search all sheets with -S all
-  -E, --export           Export to current-file-searched.csv
-  -h, --help             Print help information
+      --no-header          Whether the file has a header
+  -s, --sep <SEP>          Separator Char [default: ,]
+  -q, --quote <QUOTE>      Quote Char [default: "]
+  -p, --pattern <PATTERN>  Regex pattern to search [default: ]
+  -c, --col <COL>          Search specific columns, e.g. -c=0,1 to search first two columns; Default to all columns [default: ]
+  -o, --out <OUT>          Columns to select in output, support syntax 0,1,3 or 0-4, including 4; Default to select all columns [default: ]
+  -S, --sheet <SHEET>      Get the nth worksheet of EXCEL file [default: 0]
+  -E, --export             Export to a file named current-file-searched.csv?
+  -h, --help               Print help
 
 Column selection syntax:
   -c 0,1,2,5        -->  cols [0,1,2,5]

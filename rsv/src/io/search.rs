@@ -10,8 +10,8 @@ impl Search {
         // wtr and rdr
         let out = new_file("searched.csv");
         let mut wtr = Writer::file_or_stdout(self.export, &out)?;
-        let mut cols = Columns::new(&self.cols);
-        let mut filter = Columns::new(&self.filter);
+        let mut cols = Columns::new(&self.out);
+        let mut filter = Columns::new(&self.col);
 
         // read
         let mut rdr = io::stdin().lock().lines();

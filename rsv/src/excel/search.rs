@@ -35,10 +35,10 @@ impl Search {
         // regex search
         let mut args = Args {
             sheet: 0,
-            cols_raw: &self.cols,
-            cols: Columns::new(&self.cols),
-            filter_raw: &self.filter,
-            filter: Columns::new(&self.filter),
+            cols_raw: &self.out,
+            cols: Columns::new(&self.out),
+            filter_raw: &self.col,
+            filter: Columns::new(&self.col),
             no_header: self.no_header,
             wtr,
             re: Re::new(&self.pattern)?,

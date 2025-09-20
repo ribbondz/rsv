@@ -217,14 +217,14 @@ rsv slice --help                           # help info on all flags
 - **rsv search**
 
 ```shell
-rsv search PATTERN data.csv                # search PATTERN
-rsv search "^\d{4}-\d{2}-\d{2}$" data.csv  # search dates
-rsv search --export PATTERN data.csv       # export result
-rsv search PATTERN data.xlsx               # search EXCEL file
-rsv search -f 0,1 PATTERN data.xlsx        # search the first two columns
-rsv search -f 0,1 -c 3-6 PATTERN data.xlsx # select columns 3-6 in output
-rsv search -S all PATTERN data.xlsx        # search all sheets of EXCEL
-rsv slice --help                           # help info on all flags
+rsv search -p PATTERN data.csv                # search PATTERN
+rsv search -p "^\d{4}-\d{2}-\d{2}$" data.csv  # search dates
+rsv search -p PATTERN --export data.csv       # export result
+rsv search -p PATTERN data.xlsx               # search EXCEL file
+rsv search -p PATTERN -c 0,1 data.xlsx        # search the first two columns
+rsv search -p PATTERN -c 0,1 -o 3-6 data.xlsx # select columns 3-6 in output
+rsv search -p PATTERN -S all data.xlsx        # search all sheets of EXCEL
+rsv slice --help                              # help info on all flags
 
 column selection syntax (apply to both -f and -c filters):
 -c 0,1,2,5   -->    cols [0,1,2,5]

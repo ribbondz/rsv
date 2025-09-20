@@ -285,8 +285,6 @@ pub struct Table {
 
 #[derive(Debug, Args)]
 pub struct Search {
-    /// Regex pattern to search
-    pub pattern: String,
     /// File to open
     pub filename: Option<String>,
     /// Whether the file has a header
@@ -298,12 +296,15 @@ pub struct Search {
     /// Quote Char
     #[arg(short, long, default_value_t = '"')]
     pub quote: char,
-    /// Search specific columns, e.g. -f=0,1 to search first two columns; Default to all columns
+    /// Regex pattern to search
     #[arg(short, long, default_value_t = String::from(""), allow_hyphen_values=true)]
-    pub filter: String,
+    pub pattern: String,
+    /// Search specific columns, e.g. -c=0,1 to search first two columns; Default to all columns
+    #[arg(short, long, default_value_t = String::from(""), allow_hyphen_values=true)]
+    pub col: String,
     /// Columns to select in output, support syntax 0,1,3 or 0-4, including 4; Default to select all columns
     #[arg(short, long, default_value_t = String::from(""), allow_hyphen_values=true)]
-    pub cols: String,
+    pub out: String,
     /// Get the nth worksheet of EXCEL file
     #[arg(short = 'S', long, default_value_t = String::from("0"), allow_hyphen_values = true)]
     pub sheet: String,

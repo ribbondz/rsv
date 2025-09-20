@@ -13,10 +13,10 @@ use std::thread;
 impl Search {
     pub fn csv_run(&self) -> CliResult {
         let path = &self.path();
-        let cols = Columns::new(&self.cols)
+        let cols = Columns::new(&self.out)
             .total_col_of(path, self.sep, self.quote)
             .parse();
-        let filter = Columns::new(&self.filter)
+        let filter = Columns::new(&self.col)
             .total_col_of(path, self.sep, self.quote)
             .parse();
 
