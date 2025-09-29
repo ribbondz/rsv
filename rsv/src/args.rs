@@ -251,6 +251,9 @@ pub struct Stats {
     /// Get the nth worksheet of EXCEL file
     #[arg(short = 'S', long, default_value_t = 0)]
     pub sheet: usize,
+    /// Comma-separated column indexes to format as text (e.g., "0,2")
+    #[arg(short, long, value_delimiter = ',', allow_hyphen_values = true)]
+    pub text_columns: Vec<usize>,
 }
 
 #[derive(Debug, Args)]
@@ -383,6 +386,9 @@ pub struct To {
     /// Get the nth worksheet of EXCEL file
     #[arg(short = 'S', long, default_value_t = 0)]
     pub sheet: usize,
+    /// Comma-separated column indexes to format as text (e.g., "0,2")
+    #[arg(short, long, value_delimiter = ',', allow_hyphen_values = true)]
+    pub text_columns: Vec<usize>,
 }
 
 #[derive(Debug, Args)]

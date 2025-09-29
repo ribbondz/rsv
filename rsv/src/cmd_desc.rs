@@ -323,15 +323,16 @@ Usage:
   rsv stats -c 0,1 --export data.xlsx      # EXCEL file
 
 Arguments:
-  <FILENAME>             File to open, including CSV, TXT, and EXCEL
+  <FILENAME>                         File to open, including CSV, TXT, and EXCEL
 
 Options:
-  -s, --sep <SEP>        Separator [default: ,]
-      --no-header        Whether the file has a header
-  -c, --cols <COLS>      Columns to generate statistics, Default to select all
-  -E, --export           Export results to a file named current-file-selected.csv
-  -S, --sheet <SHEET>    Get the nth worksheet of EXCEL file [default: 0]
-  -h, --help             Print help information
+  -s, --sep <SEP>                    Separator [default: ,]
+      --no-header                    Whether the file has a header
+  -c, --cols <COLS>                  Columns to generate statistics, Default to select all
+  -E, --export                       Export results to a file named current-file-selected.csv
+  -S, --sheet <SHEET>                Get the nth worksheet of EXCEL file [default: 0]
+  -t, --text-columns <TEXT_COLUMNS>  Comma-separated column indexes to format as text [default:]
+  -h, --help                         Print help information
 
 Column selection syntax:
   -c 0,1,2,5       -->   cols [0,1,2,5]
@@ -455,16 +456,17 @@ Usage:
   rsv head data | rsv to out.xlsx
 
 Arguments:
-  <OUT>                  Output file, a file name or a file format
-  [FILENAME]             File to open
+  <OUT>                              Output file, a file name or a file format
+  [FILENAME]                         File to open
 
 Options:
-      --no-header        Whether the file has a header
-  -s, --sep <SEP>        Input file Separator [default: ,]
-  -q, --quote <QUOTE>    Quote char [default: "]
-  -o, --outsep <OUTSEP>  Output file Separator [default: ,]
-  -S, --sheet <SHEET>    Get the nth worksheet of EXCEL file [default: 0]
-  -h, --help             Print help
+      --no-header                    Whether the file has a header
+  -s, --sep <SEP>                    Input file Separator [default: ,]
+  -q, --quote <QUOTE>                Quote char [default: "]
+  -o, --outsep <OUTSEP>              Output file Separator [default: ,]
+  -S, --sheet <SHEET>                Get the nth worksheet of EXCEL file [default: 0]
+  -t, --text-columns <TEXT_COLUMNS>  Comma-separated column indexes to format as text [default:]
+  -h, --help                         Print help
 "#;
 
 pub const SAMPLE_DESC: &str = r#"

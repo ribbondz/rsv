@@ -17,6 +17,7 @@ pub fn csv_stats(
     quote: char,
     no_header: bool,
     cols: String,
+    text_columns: &Vec<usize>,
 ) -> CliResultData {
     let mut result_data = ResultData::new();
     result_data.insert_header(CStat::get_fields.iter().map(|f| f.to_string()).collect());
@@ -25,7 +26,9 @@ pub fn csv_stats(
     let cols = Columns::new(cols.as_str())
         .total_col_of(file, sep, quote)
         .parse();
-    let Some(col_type) = ColumnTypes::guess_from_csv(file, sep, quote, no_header, &cols)? else {
+    let Some(col_type) =
+        ColumnTypes::guess_from_csv(file, sep, quote, no_header, &cols, text_columns)?
+    else {
         return Ok(Some(result_data));
     };
 

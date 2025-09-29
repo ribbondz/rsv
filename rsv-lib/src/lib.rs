@@ -58,10 +58,11 @@ pub fn file_stats(
     no_header: bool,
     cols: String,
     sheet: usize,
+    text_columns: &Vec<usize>,
 ) -> CliResultData {
     let path = full_path(file);
     match is_excel(&path) {
         true => excel_stats(&path, no_header, cols, sheet),
-        false => csv_stats(&path, sep, quote, no_header, cols),
+        false => csv_stats(&path, sep, quote, no_header, cols, text_columns),
     }
 }

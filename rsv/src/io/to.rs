@@ -8,7 +8,13 @@ impl To {
 
         match out.as_str() {
             v if is_valid_plain_text(v) => csv_or_io_to_csv(None, &out)?,
-            v if is_valid_excel(v) => io_to_excel(self.sep, self.quote, self.no_header, &out)?,
+            v if is_valid_excel(v) => io_to_excel(
+                self.sep,
+                self.quote,
+                self.no_header,
+                &out,
+                &self.text_columns,
+            )?,
             _ => return Err(format!("output file format <{out}> is un-recognized.").into()),
         };
 

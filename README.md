@@ -109,7 +109,7 @@ rsv clean --help                                 # help info on all flags
 
 ```shell
 rsv unique data.csv               # default to drop duplicates on all columns,
-                                    # default keep first record of duplicates
+                                  # default keep first record of duplicates
 rsv unique -c 0 data.csv          # drop on first column
 rsv unique -c 0,1 data.csv        # drop on first and second columns
 rsv unique --keep-last data.csv   # keep the last record when dropping
@@ -284,6 +284,14 @@ rsv excel2csv --help                    # help info on all flags
 rsv head data.csv | rsv table                   # convert result to an aligned table
 rsv slice -s 10 -e 15 data.csv | rsv table      # convert result to an aligned table
 rsv table --help                                # help info on all flags
+```
+
+- **rsv to**
+
+```shell
+rsv head data.csv | rsv to data.xlsx                      # save to the data.xlsx file
+rsv head data.csv | rsv to data.xlsx --text-columns 0,1   # regard first two columns as texts
+rsv to --help                                             # help info on all flags
 ```
 
 ## Command pipeline

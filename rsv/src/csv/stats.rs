@@ -20,8 +20,14 @@ impl Stats {
         let cols = Columns::new(&self.cols)
             .total_col_of(path, self.sep, self.quote)
             .parse();
-        let Some(col_type) =
-            ColumnTypes::guess_from_csv(path, self.sep, self.quote, self.no_header, &cols)?
+        let Some(col_type) = ColumnTypes::guess_from_csv(
+            path,
+            self.sep,
+            self.quote,
+            self.no_header,
+            &cols,
+            &self.text_columns,
+        )?
         else {
             return Ok(());
         };

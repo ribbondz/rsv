@@ -52,6 +52,7 @@ impl ColumnTypes {
         quote: char,
         no_header: bool,
         cols: &column::Columns,
+        text_columns: &Vec<usize>,
     ) -> Result<Option<Self>, Box<dyn Error>> {
         // reader
         let rdr = BufReader::new(File::open(path)?).lines();
@@ -72,9 +73,15 @@ impl ColumnTypes {
             .collect::<Vec<_>>();
 
         let guess = cols
-            .col_vec_or_length_of(lines[0].len())
+            .col_index_vec(lines[0].len())
             .into_par_iter()
-            .map(|n| (n, parse_col_type_at(n, &lines), max_length_at(n, &lines)))
+            .map(|n| {
+                if text_columns.contains(&n) {
+                    (n, ColumnType::String, max_length_at(n, &lines))
+                } else {
+                    (n, parse_col_type_at(n, &lines), max_length_at(n, &lines))
+                }
+            })
             .collect::<Vec<_>>()
             .iter()
             .fold(ColumnTypes(vec![]), |mut a, b| {
@@ -98,7 +105,7 @@ impl ColumnTypes {
         }
 
         let mut guess = ColumnTypes(vec![]);
-        for c in cols.col_vec_or_length_of(lines[0].len()) {
+        for c in cols.col_index_vec(lines[0].len()) {
             // max_length is meaningless for excel, so set default to 0
             guess.push(c, parse_excel_col_type_at(c, &lines), 0)
         }
@@ -107,12 +114,16 @@ impl ColumnTypes {
     }
 
     // sequential guess given that io is usually small
-    pub fn guess_from_io(v: &[Vec<&str>], cols: &Columns) -> Self {
+    pub fn guess_from_io(v: &[Vec<&str>], cols: &Columns, text_columns: &Vec<usize>) -> Self {
         let v = if v.len() < 5000 { v } else { &v[..5000] };
 
         let mut guess = ColumnTypes(vec![]);
-        for c in cols.col_vec_or_length_of(v[0].len()) {
-            guess.push(c, parse_col_type_at(c, v), max_length_at(c, v))
+        for c in cols.col_index_vec(v[0].len()) {
+            if text_columns.contains(&c) {
+                guess.push(c, ColumnType::String, max_length_at(c, v))
+            } else {
+                guess.push(c, parse_col_type_at(c, v), max_length_at(c, v))
+            }
         }
 
         guess

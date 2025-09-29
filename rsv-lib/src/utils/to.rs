@@ -2,7 +2,7 @@ use super::{cli_result::CliResult, filename::new_file, reader::ExcelReader, writ
 use crate::utils::{column::Columns, column_type::ColumnTypes, row_split::CsvRowSplitter};
 use std::{
     fs::File,
-    io::{stdin, BufRead, BufReader, BufWriter, Write},
+    io::{BufRead, BufReader, BufWriter, Write, stdin},
     path::{Path, PathBuf},
 };
 use xlsxwriter::{Workbook, Worksheet};
@@ -64,7 +64,14 @@ pub fn excel_to_csv(path: &Path, sheet: usize, sep: &str, out: &str) -> CliResul
     Ok(())
 }
 
-pub fn csv_to_excel(path: &Path, sep: char, quote: char, out: &str, no_header: bool) -> CliResult {
+pub fn csv_to_excel(
+    path: &Path,
+    sep: char,
+    quote: char,
+    out: &str,
+    no_header: bool,
+    text_columns: &Vec<usize>,
+) -> CliResult {
     // out path
     let out = out_filename(out);
 
@@ -75,10 +82,11 @@ pub fn csv_to_excel(path: &Path, sep: char, quote: char, out: &str, no_header: b
 
     // column type
     let cols = Columns::new("").total_col_of(path, sep, quote).parse();
-    let ctypes = match ColumnTypes::guess_from_csv(path, sep, quote, no_header, &cols)? {
-        Some(v) => v,
-        None => return Ok(()),
-    };
+    let ctypes =
+        match ColumnTypes::guess_from_csv(path, sep, quote, no_header, &cols, text_columns)? {
+            Some(v) => v,
+            None => return Ok(()),
+        };
     ctypes.update_excel_column_width(&mut sheet)?;
     let ctypes = Some(ctypes);
 
@@ -94,7 +102,13 @@ pub fn csv_to_excel(path: &Path, sep: char, quote: char, out: &str, no_header: b
     Ok(())
 }
 
-pub fn io_to_excel(sep: char, quote: char, no_header: bool, out: &str) -> CliResult {
+pub fn io_to_excel(
+    sep: char,
+    quote: char,
+    no_header: bool,
+    out: &str,
+    text_columns: &Vec<usize>,
+) -> CliResult {
     // out path
     let out = out_filename(out);
 
@@ -119,7 +133,8 @@ pub fn io_to_excel(sep: char, quote: char, no_header: bool, out: &str) -> CliRes
     let ctypes = if equal_width(&lines) {
         // column type
         let cols = Columns::new("").total_col(lines[0].len()).parse();
-        let ctypes = ColumnTypes::guess_from_io(&lines[(1 - no_header as usize)..], &cols);
+        let ctypes =
+            ColumnTypes::guess_from_io(&lines[(1 - no_header as usize)..], &cols, text_columns);
         ctypes.update_excel_column_width(&mut sheet)?;
         Some(ctypes)
     } else {

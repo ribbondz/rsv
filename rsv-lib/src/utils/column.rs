@@ -202,7 +202,7 @@ impl<'a> Columns<'a> {
             .collect::<Vec<_>>()
     }
 
-    pub fn col_vec_or_length_of(&self, n: usize) -> Vec<usize> {
+    pub fn col_index_vec(&self, n: usize) -> Vec<usize> {
         match self.select_all {
             true => (0..n).collect::<Vec<_>>(),
             false => self.cols.clone(),

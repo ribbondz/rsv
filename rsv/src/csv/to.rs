@@ -9,9 +9,14 @@ impl To {
 
         match out.as_str() {
             v if is_valid_plain_text(v) => csv_or_io_to_csv(Some(path), &out)?,
-            v if is_valid_excel(v) => {
-                csv_to_excel(path, self.sep, self.quote, &out, self.no_header)?
-            }
+            v if is_valid_excel(v) => csv_to_excel(
+                path,
+                self.sep,
+                self.quote,
+                &out,
+                self.no_header,
+                &self.text_columns,
+            )?,
             _ => return Err(format!("output file format <{out}> is un-recognized.").into()),
         };
 
