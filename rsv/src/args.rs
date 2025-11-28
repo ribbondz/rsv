@@ -386,9 +386,15 @@ pub struct To {
     /// Get the nth worksheet of EXCEL file
     #[arg(short = 'S', long, default_value_t = 0)]
     pub sheet: usize,
-    /// Comma-separated column indexes to format as text (e.g., "0,2")
+    /// Columns (e.g., "0,2") to format as text
     #[arg(short, long, value_delimiter = ',', allow_hyphen_values = true)]
     pub text_columns: Vec<usize>,
+    /// Columns (e.g., "0,2") to format as date
+    #[arg(short, long, value_delimiter = ',', allow_hyphen_values = true)]
+    pub date_columns: Vec<usize>,
+    /// Column date format
+    #[arg(long, default_value = "")]
+    pub date_formats: Vec<String>,
 }
 
 #[derive(Debug, Args)]

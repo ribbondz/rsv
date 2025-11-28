@@ -4,6 +4,7 @@ pub mod column;
 pub mod column_stats;
 pub mod column_type;
 pub mod constants;
+pub mod date_format_infer;
 pub mod excel;
 pub mod file;
 pub mod filename;

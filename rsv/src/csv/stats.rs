@@ -27,6 +27,7 @@ impl Stats {
             self.no_header,
             &cols,
             &self.text_columns,
+            &vec![],
         )?
         else {
             return Ok(());

@@ -17,27 +17,27 @@ download **rsv.exe** from the Release tab, and add it to system path.
 - **head** - Show head n lines of CSV, TXT or EXCEL file.
 - **tail** - Show tail n lines of CSV, TXT or EXCEL file.
 - **header** - Show file headers.
-- **count** - Count the number of lines of file :running:.
+- **count** - Count the number of lines of file 🏃.
 - **estimate** - Fast estimate the number of lines.
-- **clean** - Clean file with escape char (e.g. ") or other strings :running:.
+- **clean** - Clean file with escape char (e.g. ") or other strings 🏃.
 - **unique** - Drop duplicates of data.
-- **frequency** - Show frequency table for column(s) :running: :star:.
-- **split** - Split file into separate files sequentially or based on column value :running: :star:.
-- **select** - Select rows and columns by filter :running:.
+- **frequency** - Show frequency table for column(s) 🏃 ⭐️.
+- **split** - Split file into separate files sequentially or based on column value 🏃 ⭐️.
+- **select** - Select rows and columns by filter 🏃.
 - **flatten** - Prints flattened records to view records one by one.
 - **slice** - Prints a slice of rows from file.
-- **search** - Search with regexes :running: :star:.
-- **sort** - In-memory data sorting, support for at most two columns :star:.
+- **search** - Search with regexes 🏃 ⭐️.
+- **sort** - In-memory data sorting, support for at most two columns ⭐️.
 - **sample** - Data sampling based on priority queue.
-- **stats** - Statistics for column(s), including min, max, mean, unique, null :running: :star:.
+- **stats** - Statistics for column(s), including min, max, mean, unique, null 🏃 ⭐️.
 - **excel2csv** - Convert excel to csv.
 - **to** - Save command output data to disk, can be one of TXT, CSV, TSV, XLSX or XLS.
 - **table** - Format data as an aligned table.
 
 Tips 1:
 
-- :running: indicates support for a real-time progress bar.
-- :star: indicates support for parallel data processing.
+- 🏃 indicates support for a real-time progress bar.
+- ⭐️ indicates support for parallel data processing.
 
 Tips 2:
 
@@ -291,6 +291,7 @@ rsv table --help                                # help info on all flags
 ```shell
 rsv head data.csv | rsv to data.xlsx                      # save to the data.xlsx file
 rsv head data.csv | rsv to data.xlsx --text-columns 0,1   # regard first two columns as texts
+rsv head data.csv | rsv to data.xlsx --date-columns 0,1   # regard first two columns as date or datetime
 rsv to --help                                             # help info on all flags
 ```
 

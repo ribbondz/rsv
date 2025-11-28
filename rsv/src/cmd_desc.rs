@@ -465,7 +465,9 @@ Options:
   -q, --quote <QUOTE>                Quote char [default: "]
   -o, --outsep <OUTSEP>              Output file Separator [default: ,]
   -S, --sheet <SHEET>                Get the nth worksheet of EXCEL file [default: 0]
-  -t, --text-columns <TEXT_COLUMNS>  Comma-separated column indexes to format as text [default:]
+  -t, --text-columns <TEXT_COLUMNS>  Columns to format as text (e.g., "0,2") [default:]
+  -d, --date-columns <DATE_COLUMNS>  Columns (e.g., "0,2") to format as date      
+      --date-format  <DATE_FORMAT>   Column date formats (e.g., "%Y-%m-%d,%m/%d/%Y %H:%M:%S") [default: auto parse]
   -h, --help                         Print help
 "#;
 

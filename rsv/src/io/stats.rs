@@ -36,7 +36,7 @@ impl Stats {
         let rows = &rows[(1 - self.no_header as usize)..];
 
         // column type
-        let typ = ColumnTypes::guess_from_io(rows, &cols, &self.text_columns);
+        let typ = ColumnTypes::guess_from_io(rows, &cols, &self.text_columns, &vec![]);
 
         // stats holder
         let mut stat = ColumnStats::new(&typ, &names);

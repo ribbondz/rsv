@@ -4,7 +4,7 @@ use super::{
 };
 use crate::utils::column;
 use calamine::{Data, DataType};
-use rayon::prelude::{IntoParallelIterator, ParallelIterator};
+use rust_xlsxwriter::*;
 use std::{
     error::Error,
     fmt::Display,
@@ -12,7 +12,6 @@ use std::{
     io::{BufRead, BufReader},
     path::Path,
 };
-use xlsxwriter::Worksheet;
 
 #[derive(Debug)]
 pub struct ColumnTypes(Vec<CType>);
@@ -29,6 +28,7 @@ pub enum ColumnType {
     Int,
     Float,
     String,
+    Date,
     Null,
 }
 
@@ -53,6 +53,7 @@ impl ColumnTypes {
         no_header: bool,
         cols: &column::Columns,
         text_columns: &Vec<usize>,
+        date_columns: &Vec<usize>,
     ) -> Result<Option<Self>, Box<dyn Error>> {
         // reader
         let rdr = BufReader::new(File::open(path)?).lines();
@@ -74,10 +75,12 @@ impl ColumnTypes {
 
         let guess = cols
             .col_index_vec(lines[0].len())
-            .into_par_iter()
+            .into_iter()
             .map(|n| {
                 if text_columns.contains(&n) {
                     (n, ColumnType::String, max_length_at(n, &lines))
+                } else if date_columns.contains(&n) {
+                    (n, ColumnType::Date, max_length_at(n, &lines))
                 } else {
                     (n, parse_col_type_at(n, &lines), max_length_at(n, &lines))
                 }
@@ -114,16 +117,24 @@ impl ColumnTypes {
     }
 
     // sequential guess given that io is usually small
-    pub fn guess_from_io(v: &[Vec<&str>], cols: &Columns, text_columns: &Vec<usize>) -> Self {
+    pub fn guess_from_io(
+        v: &[Vec<&str>],
+        cols: &Columns,
+        text_columns: &Vec<usize>,
+        date_columns: &Vec<usize>,
+    ) -> Self {
         let v = if v.len() < 5000 { v } else { &v[..5000] };
 
         let mut guess = ColumnTypes(vec![]);
         for c in cols.col_index_vec(v[0].len()) {
-            if text_columns.contains(&c) {
-                guess.push(c, ColumnType::String, max_length_at(c, v))
+            let ctype = if text_columns.contains(&c) {
+                ColumnType::String
+            } else if date_columns.contains(&c) {
+                ColumnType::Date
             } else {
-                guess.push(c, parse_col_type_at(c, v), max_length_at(c, v))
-            }
+                ColumnType::String
+            };
+            guess.push(c, ctype, max_length_at(c, v))
         }
 
         guess
@@ -131,12 +142,7 @@ impl ColumnTypes {
 
     pub fn update_excel_column_width(&self, sheet: &mut Worksheet) -> CliResult {
         for c in self.iter() {
-            sheet.set_column(
-                c.col_index as u16,
-                c.col_index as u16,
-                c.excel_col_width(),
-                None,
-            )?;
+            sheet.set_column_width(c.col_index as u16, c.excel_col_width())?;
         }
 
         Ok(())
@@ -181,6 +187,7 @@ impl Display for ColumnType {
             ColumnType::Float => f.write_str("float")?,
             ColumnType::Int => f.write_str("int")?,
             ColumnType::String => f.write_str("string")?,
+            ColumnType::Date => f.write_str("date")?,
             ColumnType::Null => f.write_str("null")?,
         }
 
@@ -195,6 +202,10 @@ impl ColumnType {
 
     pub fn is_number(&self) -> bool {
         self == &ColumnType::Int || self == &ColumnType::Float
+    }
+
+    pub fn is_date(&self) -> bool {
+        self == &ColumnType::Date
     }
 
     pub fn update(&mut self, f: &str) {

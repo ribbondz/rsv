@@ -11,6 +11,6 @@ ahash = { workspace = true }
 calamine = { workspace = true }
 get_fields = { workspace = true }
 tabled = { workspace = true }
-xlsxwriter = { workspace = true }
 regex = { workspace = true }
+rust_xlsxwriter = { workspace = true }
 chrono = { workspace = true }

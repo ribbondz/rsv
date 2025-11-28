@@ -240,8 +240,8 @@ impl CStat {
                     self.update_string_stat(f)
                 }
             }
-            ColumnType::String => self.update_string_stat(f),
             ColumnType::Null => {}
+            _ => self.update_string_stat(f),
         }
         // ignore unique for FLOAT type
         if !self.is_float() {

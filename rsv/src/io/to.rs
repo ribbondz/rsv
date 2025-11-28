@@ -14,6 +14,8 @@ impl To {
                 self.no_header,
                 &out,
                 &self.text_columns,
+                &self.date_columns,
+                &self.date_formats,
             )?,
             _ => return Err(format!("output file format <{out}> is un-recognized.").into()),
         };
