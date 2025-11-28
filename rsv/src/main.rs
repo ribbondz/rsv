@@ -22,7 +22,7 @@ use std::path::PathBuf;
 #[derive(Parser)]
 #[command(name = "rsv")]
 #[command(author = "ribbondz@163.com")]
-#[command(version = "0.4.18")]
+#[command(version = "0.4.19")]
 #[command(
     about = "A Rust command-line tool for handling both large and small CSV, TXT, and EXCEL files."
 )]
