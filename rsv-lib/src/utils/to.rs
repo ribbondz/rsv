@@ -226,7 +226,7 @@ fn write_excel_line(
     line: &[&str],
     ctypes: Option<&ColumnTypes>,
     date_columns: &Vec<usize>,
-    date_format: &Vec<String>,
+    date_formats: &Vec<String>,
     parser: &DateSmartParser,
 ) -> CliResult {
     let row = row as u32;
@@ -240,10 +240,16 @@ fn write_excel_line(
                     Err(_) => sheet.write(row, col, v)?,
                 },
                 ColumnType::Date => {
-                    let assigned_fmt = if let Some(i) = date_columns.iter().position(|&r| r == c) {
-                        date_format.get(i)
-                    } else {
-                        None
+                    let assigned_fmt = match &date_formats[..] {
+                        [] => None,
+                        [fmt] => Some(fmt),
+                        _ => {
+                            if let Some(i) = date_columns.iter().position(|&r| r == c) {
+                                date_formats.get(i)
+                            } else {
+                                None
+                            }
+                        }
                     };
                     match parser.smart_parse(v, assigned_fmt) {
                         Some(dt) => sheet.write_datetime_with_format(row, col, &dt, &fmt)?,
