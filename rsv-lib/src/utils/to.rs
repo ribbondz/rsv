@@ -230,7 +230,8 @@ fn write_excel_line(
     parser: &DateSmartParser,
 ) -> CliResult {
     let row = row as u32;
-    let fmt = Format::new().set_num_format("yyyy-mm-dd hh:mm:ss");
+    let fmt_date = Format::new().set_num_format("yyyy-mm-dd");
+    let fmt_datetime = Format::new().set_num_format("yyyy-mm-dd hh:mm:ss");
     if ctypes.is_some() {
         for ((c, &v), t) in line.iter().enumerate().zip(ctypes.unwrap().iter()) {
             let col = c as u16;
@@ -252,7 +253,13 @@ fn write_excel_line(
                         }
                     };
                     match parser.smart_parse(v, assigned_fmt) {
-                        Some(dt) => sheet.write_datetime_with_format(row, col, &dt, &fmt)?,
+                        Some(dt) => {
+                            if v.contains(":") {
+                                sheet.write_datetime_with_format(row, col, &dt, &fmt_datetime)?
+                            } else {
+                                sheet.write_datetime_with_format(row, col, &dt, &fmt_date)?
+                            }
+                        }
                         None => sheet.write(row, col, v)?,
                     }
                 }
