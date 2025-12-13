@@ -23,6 +23,14 @@ impl DateSmartParser {
                 "%B %d %y".into(),
             ],
             datetime_fmts: vec![
+                "%m/%d/%Y %H:%M:%S".into(), // "04/2/2014 03:00:51"
+                "%m/%d/%Y %H:%M".into(),    // "4/8/2014 22:05"
+                // Short Years (2-digit)
+                "%m/%d/%y %H:%M".into(),    // "4/8/14 22:05"
+                "%m/%d/%y %H:%M:%S".into(), // "4/8/14 22:05:50"
+                // Chinese / Separated (Sanitized to dashes/colons)
+                "%Y-%m-%d %H:%M:%S".into(), // Handles the sanitized Chinese
+                "%y%m%d %H:%M:%S".into(),
                 // Standard / ISO / RFC
                 "%Y-%m-%d %H:%M:%S%.f %z".into(),  // With offset
                 "%Y-%m-%d %H:%M:%S%.f".into(),     // No offset
@@ -31,19 +39,12 @@ impl DateSmartParser {
                 // US / Slash formats
                 "%m/%d/%Y %I:%M:%S %p".into(), // "8/8/1965 01:00:01 PM"
                 "%m/%d/%Y %I:%M %p".into(),    // "8/8/1965 1:00 PM"
-                "%m/%d/%Y %H:%M:%S".into(),    // "04/2/2014 03:00:51"
-                "%m/%d/%Y %H:%M".into(),       // "4/8/2014 22:05"
                 // Month Names (Sanitization removed commas and 'at')
                 "%B %d %Y %I:%M:%S %p".into(), // "May 8 2009 5:57:51 PM"
                 "%B %d %Y %I:%M %p".into(),    // "September 17 2012 10:09AM"
                 "%b %d %Y %H:%M:%S %z".into(), // "May 02 2021 15:51:31 UTC"
                 "%B %d %Y %H:%M:%S %z".into(), // Long month version
                 "%b %d %Y %I:%M %p %Z".into(), // "May 26 2021 12:49 AM PDT"
-                // Short Years (2-digit)
-                "%m/%d/%y %H:%M".into(), // "4/8/14 22:05"
-                // Chinese / Separated (Sanitized to dashes/colons)
-                "%Y-%m-%d %H:%M:%S".into(), // Handles the sanitized Chinese
-                "%y%m%d %H:%M:%S".into(),
             ],
             re_digits: Regex::new(r"^\d+$").unwrap(),
             re_short_offset: Regex::new(r"([+-]\d{2})$").unwrap(),

@@ -395,6 +395,9 @@ pub struct To {
     /// Column date format
     #[arg(long, default_value = "")]
     pub date_formats: Vec<String>,
+    /// Return datetimes as Excel serial values instead of formatted strings
+    #[arg(long, default_value_t = false)]
+    pub serial_dates: bool,
 }
 
 #[derive(Debug, Args)]

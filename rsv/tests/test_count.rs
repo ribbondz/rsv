@@ -11,7 +11,7 @@ fn count(file: &str, no_header: bool, io: bool) -> Option<usize> {
         (false, true) => format!("{rsv} slice -l 10 {file} | {rsv} count"),
     };
 
-    // println!("111111 {:?}", cmd);
+    println!("111111 {:?}", cmd);
     let mut cmd = shell(cmd);
     let output = cmd.output().unwrap();
 

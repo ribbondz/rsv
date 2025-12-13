@@ -304,6 +304,7 @@ dependencies = [
  "rayon",
  "regex",
  "rsv-lib",
+ "rust_xlsxwriter",
 ]
 
 [[package]]

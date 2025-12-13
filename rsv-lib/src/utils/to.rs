@@ -1,10 +1,6 @@
 use super::date_format_infer::DateSmartParser;
-use super::{cli_result::CliResult, filename::new_file, reader::ExcelReader, writer::Writer};
-use crate::utils::{
-    column::Columns,
-    column_type::{ColumnType, ColumnTypes},
-    row_split::CsvRowSplitter,
-};
+use super::{cli_result::CliResult, filename::new_file};
+use crate::utils::column_type::{ColumnType, ColumnTypes};
 use rust_xlsxwriter::*;
 use std::{
     fs::File,
@@ -50,167 +46,7 @@ pub fn csv_or_io_to_csv(path: Option<&Path>, out: &str) -> CliResult {
     Ok(())
 }
 
-pub fn excel_to_csv(path: &Path, sheet: usize, sep: &str, out: &str) -> CliResult {
-    // out path
-    let out = out_filename(out);
-
-    // rdr and wtr
-    let range = ExcelReader::new(path, sheet)?;
-    let mut wtr = Writer::new(Path::new(&out))?;
-
-    // excel2csv
-    let sep_bytes = sep.as_bytes();
-    for r in range.iter() {
-        wtr.write_excel_line(r, sep_bytes)?;
-    }
-
-    println!("Saved to file: {}", out.display());
-
-    Ok(())
-}
-
-pub fn csv_to_excel(
-    path: &Path,
-    sep: char,
-    quote: char,
-    out: &str,
-    no_header: bool,
-    text_columns: &Vec<usize>,
-    date_columns: &Vec<usize>,
-    date_formats: &Vec<String>,
-) -> CliResult {
-    // rdr and wtr
-    let rdr = BufReader::new(File::open(path)?);
-    let mut workbook = Workbook::new();
-    let mut sheet = workbook.add_worksheet();
-
-    // column type
-    let cols = Columns::new("").total_col_of(path, sep, quote).parse();
-    let ctypes = match ColumnTypes::guess_from_csv(
-        path,
-        sep,
-        quote,
-        no_header,
-        &cols,
-        text_columns,
-        date_columns,
-    )? {
-        Some(v) => v,
-        None => return Ok(()),
-    };
-    ctypes.update_excel_column_width(&mut sheet)?;
-    let ctypes = Some(ctypes);
-
-    // copy
-    let mut iter = rdr.lines().enumerate();
-    if !no_header {
-        if let Some((_, r)) = iter.next() {
-            let r = r?;
-            sheet.write_row(0, 0, CsvRowSplitter::new(&r, sep, quote))?;
-        };
-    }
-
-    let parser = DateSmartParser::new();
-    for (n, r) in iter {
-        let r = r?;
-        let l = CsvRowSplitter::new(&r, sep, quote).collect::<Vec<_>>();
-        write_excel_line(
-            &mut sheet,
-            n,
-            &l,
-            ctypes.as_ref(),
-            date_columns,
-            date_formats,
-            &parser,
-        )?;
-    }
-
-    // out path
-    let out = out_filename(out);
-    workbook.save(&out)?;
-
-    println!("Saved to file: {}", out.display());
-
-    Ok(())
-}
-
-pub fn io_to_excel(
-    sep: char,
-    quote: char,
-    no_header: bool,
-    out: &str,
-    text_columns: &Vec<usize>,
-    date_columns: &Vec<usize>,
-    date_formats: &Vec<String>,
-) -> CliResult {
-    // rdr
-    let lines = stdin()
-        .lock()
-        .lines()
-        .filter_map(|i| i.ok())
-        .collect::<Vec<_>>();
-    let lines = lines
-        .iter()
-        .map(|i| CsvRowSplitter::new(i, sep, quote).collect())
-        .collect::<Vec<_>>();
-
-    if lines.is_empty() {
-        return Ok(());
-    }
-
-    //  wtr
-    let mut workbook = Workbook::new();
-    let mut sheet = workbook.add_worksheet();
-    let ctypes = if equal_width(&lines) {
-        // column type
-        let cols = Columns::new("").total_col(lines[0].len()).parse();
-        let ctypes = ColumnTypes::guess_from_io(
-            &lines[(1 - no_header as usize)..],
-            &cols,
-            text_columns,
-            date_columns,
-        );
-        ctypes.update_excel_column_width(&mut sheet)?;
-        Some(ctypes)
-    } else {
-        None
-    };
-
-    let smart_parser = DateSmartParser::new();
-    for (n, r) in lines.iter().enumerate() {
-        write_excel_line(
-            &mut sheet,
-            n,
-            r,
-            ctypes.as_ref(),
-            date_columns,
-            date_formats,
-            &smart_parser,
-        )?;
-    }
-
-    // out path
-    let out = out_filename(out);
-    workbook.save(&out)?;
-
-    println!("Saved to file: {}", out.display());
-
-    Ok(())
-}
-
-fn equal_width(lines: &Vec<Vec<&str>>) -> bool {
-    let width = lines[0].len();
-
-    for row in lines.iter() {
-        if width != row.len() {
-            return false;
-        }
-    }
-
-    true
-}
-
-fn out_filename(out: &str) -> PathBuf {
+pub fn out_filename(out: &str) -> PathBuf {
     let f = if is_file_suffix(out) {
         format!("export.{out}")
     } else {
@@ -220,19 +56,24 @@ fn out_filename(out: &str) -> PathBuf {
     new_file(&f)
 }
 
-fn write_excel_line(
+pub fn write_excel_line(
     sheet: &mut Worksheet,
     row: usize,
     line: &[&str],
     ctypes: Option<&ColumnTypes>,
     date_columns: &Vec<usize>,
     date_formats: &Vec<String>,
+    serial_dates: bool,
     parser: &DateSmartParser,
 ) -> CliResult {
     let row = row as u32;
     let fmt_date = Format::new().set_num_format("yyyy-mm-dd");
     let fmt_datetime = Format::new().set_num_format("yyyy-mm-dd hh:mm:ss");
-    if ctypes.is_some() {
+    if ctypes.is_none() {
+        for (col, &v) in line.iter().enumerate() {
+            sheet.write(row, col as u16, v)?;
+        }
+    } else {
         for ((c, &v), t) in line.iter().enumerate().zip(ctypes.unwrap().iter()) {
             let col = c as u16;
             match t.col_type {
@@ -252,23 +93,27 @@ fn write_excel_line(
                             }
                         }
                     };
-                    match parser.smart_parse(v, assigned_fmt) {
-                        Some(dt) => {
-                            if v.contains(":") {
-                                sheet.write_datetime_with_format(row, col, &dt, &fmt_datetime)?
-                            } else {
-                                sheet.write_datetime_with_format(row, col, &dt, &fmt_date)?
-                            }
+                    if let Some(dt) = parser.smart_parse(v, assigned_fmt) {
+                        if serial_dates {
+                            sheet.write_datetime(row, col, &dt)?
+                        } else {
+                            sheet.write_datetime_with_format(
+                                row,
+                                col,
+                                &dt,
+                                if v.contains(":") {
+                                    &fmt_datetime
+                                } else {
+                                    &fmt_date
+                                },
+                            )?
                         }
-                        None => sheet.write(row, col, v)?,
+                    } else {
+                        sheet.write(row, col, v)?
                     }
                 }
                 _ => sheet.write(row, col, v)?,
             };
-        }
-    } else {
-        for (col, &v) in line.iter().enumerate() {
-            sheet.write(row, col as u16, v)?;
         }
     }
 

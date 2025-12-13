@@ -19,6 +19,8 @@ crossbeam-channel = { workspace = true }
 dashmap = { workspace = true }
 rayon = { workspace = true }
 rsv-lib = { path = "../rsv-lib" }
+rust_xlsxwriter = { workspace = true }
+
 
 [dev-dependencies]
 execute = "0.2.13"

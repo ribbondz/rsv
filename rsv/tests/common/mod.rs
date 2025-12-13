@@ -10,13 +10,15 @@ pub fn rsv() -> String {
 
     p.push("target");
     p.push("release");
-    if OS == "macos" {
+
+    if OS == "macos" || OS == "linux" {
         p.push("rsv");
     } else {
         p.push("rsv.exe");
     }
 
     // println!("file path: {}", p.display());
+    // println!("OS: {}", OS);
     p.to_str().unwrap().to_owned()
 }
 
@@ -33,6 +35,6 @@ pub fn data_path(f: &str) -> String {
     p.push("data");
     p.push(f);
 
-    // println!("file path: {}", p.display());
+    println!("file path: {}", p.display());
     p.to_str().unwrap().to_owned()
 }
