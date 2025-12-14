@@ -61,6 +61,8 @@ impl To {
         }
 
         let parser = DateSmartParser::new();
+        let date_fmt = Format::new().set_num_format("yyyy-mm-dd");
+        let datetime_fmt = Format::new().set_num_format("yyyy-mm-dd hh:mm:ss");
         for (n, r) in iter {
             let r = r?;
             let l = CsvRowSplitter::new(&r, self.sep, self.quote).collect::<Vec<_>>();
@@ -73,6 +75,8 @@ impl To {
                 &self.date_formats,
                 self.serial_dates,
                 &parser,
+                &date_fmt,
+                &datetime_fmt,
             )?;
         }
 

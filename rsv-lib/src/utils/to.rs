@@ -65,10 +65,10 @@ pub fn write_excel_line(
     date_formats: &Vec<String>,
     serial_dates: bool,
     parser: &DateSmartParser,
+    date_fmt: &Format,
+    datetime_fmt: &Format,
 ) -> CliResult {
     let row = row as u32;
-    let fmt_date = Format::new().set_num_format("yyyy-mm-dd");
-    let fmt_datetime = Format::new().set_num_format("yyyy-mm-dd hh:mm:ss");
     if ctypes.is_none() {
         for (col, &v) in line.iter().enumerate() {
             sheet.write(row, col as u16, v)?;
@@ -102,9 +102,9 @@ pub fn write_excel_line(
                                 col,
                                 &dt,
                                 if v.contains(":") {
-                                    &fmt_datetime
+                                    datetime_fmt
                                 } else {
-                                    &fmt_date
+                                    date_fmt
                                 },
                             )?
                         }

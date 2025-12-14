@@ -59,6 +59,8 @@ impl To {
         };
 
         let smart_parser = DateSmartParser::new();
+        let date_fmt = Format::new().set_num_format("yyyy-mm-dd");
+        let datetime_fmt = Format::new().set_num_format("yyyy-mm-dd hh:mm:ss");
         for (n, r) in lines.iter().enumerate() {
             write_excel_line(
                 &mut sheet,
@@ -69,6 +71,8 @@ impl To {
                 &self.date_formats,
                 self.serial_dates,
                 &smart_parser,
+                &date_fmt,
+                &datetime_fmt,
             )?;
         }
 
