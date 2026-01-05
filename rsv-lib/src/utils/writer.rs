@@ -34,7 +34,7 @@ impl Writer {
     pub fn append_to(out: &Path) -> Result<Self, Error> {
         // open file
         let f = OpenOptions::new()
-            .write(true)
+            
             .append(true)
             .create(true)
             .open(out)?;

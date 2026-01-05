@@ -6,6 +6,12 @@ pub struct ResultData {
     pub data: Vec<Vec<String>>,
 }
 
+impl Default for ResultData {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ResultData {
     pub fn new() -> ResultData {
         ResultData {

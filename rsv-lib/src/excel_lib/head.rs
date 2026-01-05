@@ -4,7 +4,7 @@ use crate::utils::return_result::{CliResultData, ResultData};
 use std::path::PathBuf;
 
 pub fn excel_head(file: &PathBuf, no_header: bool, sheet: usize, n: usize) -> CliResultData {
-    let range = ExcelReader::new(&file, sheet)?;
+    let range = ExcelReader::new(file, sheet)?;
 
     let mut out = ResultData::new();
 

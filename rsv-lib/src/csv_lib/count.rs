@@ -6,8 +6,8 @@ use std::path::{Path, PathBuf};
 pub fn csv_count(file: &PathBuf, no_header: bool) -> CliResultData {
     // current file
     let n = match file.is_dir() {
-        true => count_dir_files(&file)?,
-        false => count_file_lines(&file, no_header)?,
+        true => count_dir_files(file)?,
+        false => count_file_lines(file, no_header)?,
     };
 
     Ok(Some(ResultData {

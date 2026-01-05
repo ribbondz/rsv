@@ -135,6 +135,12 @@ pub struct IoReader {
     top_n: Option<usize>,
 }
 
+impl Default for IoReader {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl IoReader {
     pub fn new() -> Self {
         IoReader {

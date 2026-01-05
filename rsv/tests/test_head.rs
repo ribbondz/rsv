@@ -19,7 +19,7 @@ fn end_row_of_head(file: &str, no_header: bool, io: bool) -> String {
         .unwrap()
         .split('\n')
         .filter(|i| !i.is_empty())
-        .last()
+        .next_back()
         .unwrap()
         .to_owned()
 }

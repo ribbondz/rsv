@@ -6,7 +6,7 @@ use crate::utils::return_result::{CliResultData, ResultData};
 
 pub fn excel_headers(file: &PathBuf, sheet: usize) -> CliResultData {
     // open file and header
-    let mut range = ExcelReader::new(&file, sheet)?;
+    let mut range = ExcelReader::new(file, sheet)?;
 
     let mut out = ResultData::from_header(vec!["column_name".to_string()]);
     if let Some(r) = range.next() {

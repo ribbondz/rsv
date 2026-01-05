@@ -82,7 +82,7 @@ impl Args<'_> {
         for (i, sheet) in sheets.iter().enumerate() {
             writeln!(self.wtr.0, "[{}]", sheet)?;
             self.search(i);
-            writeln!(self.wtr.0, "")?;
+            writeln!(self.wtr.0)?;
         }
 
         Ok(())

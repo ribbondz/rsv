@@ -5,7 +5,7 @@ extern crate bytecount;
 
 pub fn excel_count(file: &PathBuf, no_header: bool, sheet: usize) -> CliResultData {
     // open file and count
-    let range = ExcelReader::new(&file, sheet)?;
+    let range = ExcelReader::new(file, sheet)?;
     let mut n = range.len();
 
     // default to have a header

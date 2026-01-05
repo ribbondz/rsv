@@ -8,6 +8,12 @@ pub struct DateSmartParser {
     re_short_offset: Regex,
 }
 
+impl Default for DateSmartParser {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl DateSmartParser {
     pub fn new() -> Self {
         DateSmartParser {

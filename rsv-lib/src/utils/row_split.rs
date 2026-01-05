@@ -25,10 +25,10 @@ pub struct CsvRowSplitter<'a> {
 impl<'a> CsvRowSplitter<'a> {
     pub fn new(row: &'a str, sep: char, quote: char) -> CsvRowSplitter<'a> {
         CsvRowSplitter {
-            row: row,
+            row,
             iter: row.char_indices().peekable(),
-            sep: sep,
-            quote: quote,
+            sep,
+            quote,
         }
     }
 
@@ -116,58 +116,58 @@ mod tests {
     #[test]
     fn test_csv_row_split() {
         let r = "我们abc,def,12";
-        let o = CsvRowSplitter::new(&r, ',', '"').collect::<Vec<_>>();
+        let o = CsvRowSplitter::new(r, ',', '"').collect::<Vec<_>>();
         assert_eq!(o, vec!["我们abc", "def", "12"]);
 
         let r = "1,2,3,";
-        let o = CsvRowSplitter::new(&r, ',', '"').collect::<Vec<_>>();
+        let o = CsvRowSplitter::new(r, ',', '"').collect::<Vec<_>>();
         assert_eq!(o, vec!["1", "2", "3", ""]);
 
         let r = "1,2,,3";
-        let o = CsvRowSplitter::new(&r, ',', '"').collect::<Vec<_>>();
+        let o = CsvRowSplitter::new(r, ',', '"').collect::<Vec<_>>();
         assert_eq!(o, vec!["1", "2", "", "3"]);
 
         let r = r#"1,2,3,"""#;
-        let o = CsvRowSplitter::new(&r, ',', '"').collect::<Vec<_>>();
+        let o = CsvRowSplitter::new(r, ',', '"').collect::<Vec<_>>();
         assert_eq!(o, vec!["1", "2", "3", ""]);
 
         let r = r#""",1,2,3,"",4"#;
-        let o = CsvRowSplitter::new(&r, ',', '"').collect::<Vec<_>>();
+        let o = CsvRowSplitter::new(r, ',', '"').collect::<Vec<_>>();
         assert_eq!(o, vec!["", "1", "2", "3", "", "4"]);
 
         let r = r#",1,2,3,"",4"#;
-        let o = CsvRowSplitter::new(&r, ',', '"').collect::<Vec<_>>();
+        let o = CsvRowSplitter::new(r, ',', '"').collect::<Vec<_>>();
         assert_eq!(o, vec!["", "1", "2", "3", "", "4"]);
 
         let r = r#"1,2,3,"","4""#;
-        let o = CsvRowSplitter::new(&r, ',', '"').collect::<Vec<_>>();
+        let o = CsvRowSplitter::new(r, ',', '"').collect::<Vec<_>>();
         assert_eq!(o, vec!["1", "2", "3", "", "4"]);
 
         // quoted field
         let r = r#""1",2,3,"#;
-        let o = CsvRowSplitter::new(&r, ',', '"').collect::<Vec<_>>();
+        let o = CsvRowSplitter::new(r, ',', '"').collect::<Vec<_>>();
         assert_eq!(o, vec!["1", "2", "3", ""]);
 
         // comma in quoted field
         let r = r#"first,second,"third,fourth",fifth"#;
-        let o = CsvRowSplitter::new(&r, ',', '"').collect::<Vec<_>>();
+        let o = CsvRowSplitter::new(r, ',', '"').collect::<Vec<_>>();
         assert_eq!(o, vec!["first", "second", "third,fourth", "fifth"]);
 
         let r = r#"first,second,"third,fourth","fifth""#;
-        let o = CsvRowSplitter::new(&r, ',', '"').collect::<Vec<_>>();
+        let o = CsvRowSplitter::new(r, ',', '"').collect::<Vec<_>>();
         assert_eq!(o, vec!["first", "second", "third,fourth", "fifth"]);
 
         let r = r#""third,fourth","fifth""#;
-        let o = CsvRowSplitter::new(&r, ',', '"').collect::<Vec<_>>();
+        let o = CsvRowSplitter::new(r, ',', '"').collect::<Vec<_>>();
         assert_eq!(o, vec!["third,fourth", "fifth"]);
 
         // double-quote in field,, escaped by a preceding \
         let r = r#"third\",fourth,"fifth""#;
-        let o = CsvRowSplitter::new(&r, ',', '"').collect::<Vec<_>>();
+        let o = CsvRowSplitter::new(r, ',', '"').collect::<Vec<_>>();
         assert_eq!(o, vec![r#"third\""#, "fourth", "fifth"]);
 
         let r = r#""Charles ""Pretty Boy"" Floyd","1 Short St, Smallville""#;
-        let o = CsvRowSplitter::new(&r, ',', '"').collect::<Vec<_>>();
+        let o = CsvRowSplitter::new(r, ',', '"').collect::<Vec<_>>();
         assert_eq!(
             o,
             vec![r#"Charles ""Pretty Boy"" Floyd"#, "1 Short St, Smallville"]

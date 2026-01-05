@@ -95,12 +95,12 @@ pub fn write_excel_line(
                     };
                     if let Some(dt) = parser.smart_parse(v, assigned_fmt) {
                         if serial_dates {
-                            sheet.write_datetime(row, col, &dt)?
+                            sheet.write_datetime(row, col, dt)?
                         } else {
                             sheet.write_datetime_with_format(
                                 row,
                                 col,
-                                &dt,
+                                dt,
                                 if v.contains(":") {
                                     datetime_fmt
                                 } else {
