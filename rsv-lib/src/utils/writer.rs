@@ -33,11 +33,7 @@ impl Writer {
 
     pub fn append_to(out: &Path) -> Result<Self, Error> {
         // open file
-        let f = OpenOptions::new()
-            
-            .append(true)
-            .create(true)
-            .open(out)?;
+        let f = OpenOptions::new().append(true).create(true).open(out)?;
 
         let wtr = Box::new(BufWriter::new(f));
 
