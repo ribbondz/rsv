@@ -23,6 +23,7 @@ impl ChunkReader {
         Ok(ChunkReader(rdr))
     }
 
+    #[allow(clippy::should_implement_trait)]
     pub fn next(&mut self) -> Option<Result<String, std::io::Error>> {
         self.0.next()
     }
@@ -100,6 +101,7 @@ impl<'a> ExcelReader {
         self.range.get_size().1
     }
 
+    #[allow(clippy::should_implement_trait)]
     pub fn next(&mut self) -> Option<&[Data]> {
         self.next_called += 1;
         self.range.rows().next()

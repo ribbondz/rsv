@@ -56,6 +56,7 @@ pub fn out_filename(out: &str) -> PathBuf {
     new_file(&f)
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn write_excel_line(
     sheet: &mut Worksheet,
     row: usize,
