@@ -17,3 +17,8 @@ rayon = "1.11.0"
 regex = "1.12.2"
 rust_xlsxwriter = { version = "0.92.2", features = ["chrono"] }
 tabled = "0.20.0"
+
+[profile.release]
+strip = true          # Strip debug symbols for smaller binaries
+lto = true            # Enable link-time optimization for better performance
+codegen-units = 1     # Optimize for binary size and performance over compile time

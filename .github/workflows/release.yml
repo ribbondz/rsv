@@ -1,0 +1,201 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (e.g., v0.4.20)'
+        required: true
+        type: string
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      version: ${{ steps.get_version.outputs.version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get version from tag
+        id: get_version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "version=${{ inputs.tag }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.get_version.outputs.version }}
+          name: Release ${{ steps.get_version.outputs.version }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+
+  build-windows:
+    name: Build Windows (MSVC)
+    needs: create-release
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Setup Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: windows-x86_64-pc-windows-msvc
+
+      - name: Build
+        run: cargo build --release --target x86_64-pc-windows-msvc
+
+      - name: Create archive
+        shell: pwsh
+        run: |
+          $archiveName = "x86_64-pc-windows-msvc.zip"
+          Compress-Archive -Path README.md, target/x86_64-pc-windows-msvc/release/rsv.exe -DestinationPath $archiveName
+
+      - name: Verify archive
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "x86_64-pc-windows-msvc.zip")) {
+            Write-Error "Archive not created"
+            exit 1
+          }
+          $size = (Get-Item "x86_64-pc-windows-msvc.zip").Length / 1MB
+          Write-Host "Archive size: $size MB"
+          if ($size -lt 1) {
+            Write-Error "Archive too small (< 1 MB)"
+            exit 1
+          }
+
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.create-release.outputs.version }}
+          files: x86_64-pc-windows-msvc.zip
+
+  build-linux:
+    name: Build Linux (${{ matrix.target }})
+    needs: create-release
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - x86_64-unknown-linux-gnu
+          - x86_64-unknown-linux-musl
+          - aarch64-unknown-linux-gnu
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: linux-${{ matrix.target }}
+
+      - name: Install cross
+        run: cargo install cross --git https://github.com/cross-rs/cross
+
+      - name: Build
+        run: cross build --release --target ${{ matrix.target }}
+
+      - name: Create archive
+        run: |
+          cd target/${{ matrix.target }}/release
+          tar -czf ../../../${{ matrix.target }}.tar.gz rsv
+          cd ../../..
+          zip -j ${{ matrix.target }}.zip README.md target/${{ matrix.target }}/release/rsv
+
+      - name: Verify archive
+        run: |
+          if [ ! -f "${{ matrix.target }}.zip" ]; then
+            echo "Archive not created"
+            exit 1
+          fi
+          size=$(stat -c%s "${{ matrix.target }}.zip")
+          size_mb=$((size / 1024 / 1024))
+          echo "Archive size: ${size_mb} MB"
+          if [ $size_mb -lt 1 ]; then
+            echo "Archive too small (< 1 MB)"
+            exit 1
+          fi
+
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.create-release.outputs.version }}
+          files: ${{ matrix.target }}.zip
+
+  build-macos:
+    name: Build macOS (${{ matrix.target }})
+    needs: create-release
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-apple-darwin
+            os: macos-13
+          - target: aarch64-apple-darwin
+            os: macos-14
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Setup Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: macos-${{ matrix.target }}
+
+      - name: Build
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Create archive
+        run: |
+          zip -j ${{ matrix.target }}.zip README.md target/${{ matrix.target }}/release/rsv
+
+      - name: Verify archive
+        run: |
+          if [ ! -f "${{ matrix.target }}.zip" ]; then
+            echo "Archive not created"
+            exit 1
+          fi
+          size=$(stat -f%z "${{ matrix.target }}.zip")
+          size_mb=$((size / 1024 / 1024))
+          echo "Archive size: ${size_mb} MB"
+          if [ $size_mb -lt 1 ]; then
+            echo "Archive too small (< 1 MB)"
+            exit 1
+          fi
+
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.create-release.outputs.version }}
+          files: ${{ matrix.target }}.zip
