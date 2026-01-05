@@ -82,7 +82,7 @@ pub fn write_excel_line(
                     Err(_) => sheet.write(row, col, v)?,
                 },
                 ColumnType::Date => {
-                    let assigned_fmt = match &date_formats[..] {
+                    let assigned_fmt = match date_formats {
                         [] => None,
                         [fmt] => Some(fmt),
                         _ => {

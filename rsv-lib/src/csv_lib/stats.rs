@@ -27,7 +27,7 @@ pub fn csv_stats(
         .total_col_of(file, sep, quote)
         .parse();
     let Some(col_type) =
-        ColumnTypes::guess_from_csv(file, sep, quote, no_header, &cols, text_columns, &vec![])?
+        ColumnTypes::guess_from_csv(file, sep, quote, no_header, &cols, text_columns, &[])?
     else {
         return Ok(Some(result_data));
     };

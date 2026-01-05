@@ -58,7 +58,7 @@ pub fn file_stats(
     no_header: bool,
     cols: String,
     sheet: usize,
-    text_columns: &Vec<usize>,
+    text_columns: &[usize],
 ) -> CliResultData {
     let path = full_path(file);
     match is_excel(&path) {
