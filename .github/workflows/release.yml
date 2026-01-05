@@ -52,9 +52,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Rust stable
-        uses: dtolnay/rust-toolchain@stable
+      - name: Install Rust 1.86.0
+        uses: dtolnay/rust-toolchain@master
         with:
+          toolchain: 1.86.0
           targets: x86_64-pc-windows-msvc
 
       - name: Setup Rust cache
@@ -106,8 +107,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Rust stable
-        uses: dtolnay/rust-toolchain@stable
+      - name: Install Rust 1.86.0
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.86.0
 
       - name: Setup Rust cache
         uses: Swatinem/rust-cache@v2
@@ -163,9 +166,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Rust stable
-        uses: dtolnay/rust-toolchain@stable
+      - name: Install Rust 1.86.0
+        uses: dtolnay/rust-toolchain@master
         with:
+          toolchain: 1.86.0
           targets: ${{ matrix.target }}
 
       - name: Setup Rust cache
