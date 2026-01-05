@@ -12,7 +12,7 @@ impl Table {
 
         let rows = rdr
             .lines()
-            .filter_map(|r| r.ok())
+            .map_while(Result::ok)
             .map(|r| self.split_row_to_owned_vec(&r))
             .collect::<Vec<_>>();
 

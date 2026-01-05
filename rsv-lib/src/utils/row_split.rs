@@ -55,9 +55,7 @@ impl<'a> Iterator for CsvRowSplitter<'a> {
         // First char of field
         // 1. for the first field, first char is not separator
         // 2. for other fields, first char is separator
-        let Some((mut start_index, mut first_char)) = self.iter.next() else {
-            return None;
-        };
+        let (mut start_index, mut first_char) = self.iter.next()?;
 
         // For first-field-empty string like ",1,2,3"
         if start_index == 0 && first_char == self.sep {

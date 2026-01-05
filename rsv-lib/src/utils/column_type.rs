@@ -52,8 +52,8 @@ impl ColumnTypes {
         quote: char,
         no_header: bool,
         cols: &column::Columns,
-        text_columns: &Vec<usize>,
-        date_columns: &Vec<usize>,
+        text_columns: &[usize],
+        date_columns: &[usize],
     ) -> Result<Option<Self>, Box<dyn Error>> {
         // reader
         let rdr = BufReader::new(File::open(path)?).lines();
@@ -120,8 +120,8 @@ impl ColumnTypes {
     pub fn guess_from_io(
         v: &[Vec<&str>],
         cols: &Columns,
-        text_columns: &Vec<usize>,
-        date_columns: &Vec<usize>,
+        text_columns: &[usize],
+        date_columns: &[usize],
     ) -> Self {
         let v = if v.len() < 5000 { v } else { &v[..5000] };
 

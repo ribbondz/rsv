@@ -1,9 +1,9 @@
 use crate::utils::excel::datatype_vec_to_string_vec;
 use crate::utils::reader::ExcelReader;
 use crate::utils::return_result::{CliResultData, ResultData};
-use std::path::PathBuf;
+use std::path::Path;
 
-pub fn excel_head(file: &PathBuf, no_header: bool, sheet: usize, n: usize) -> CliResultData {
+pub fn excel_head(file: &Path, no_header: bool, sheet: usize, n: usize) -> CliResultData {
     let range = ExcelReader::new(file, sheet)?;
 
     let mut out = ResultData::new();

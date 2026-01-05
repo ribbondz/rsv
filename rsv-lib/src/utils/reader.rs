@@ -92,6 +92,10 @@ impl<'a> ExcelReader {
         self.range.get_size().0
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
     pub fn column_n(&self) -> usize {
         self.range.get_size().1
     }
@@ -166,9 +170,9 @@ impl IoReader {
         match self.top_n {
             Some(n) => lines
                 .take(n + 1 - self.no_header as usize)
-                .filter_map(|i| i.ok())
+                .map_while(Result::ok)
                 .collect(),
-            None => lines.filter_map(|i| i.ok()).collect(),
+            None => lines.map_while(Result::ok).collect(),
         }
     }
 }

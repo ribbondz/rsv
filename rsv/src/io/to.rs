@@ -29,7 +29,7 @@ impl To {
         let lines = stdin()
             .lock()
             .lines()
-            .filter_map(|i| i.ok())
+            .map_while(Result::ok)
             .collect::<Vec<_>>();
         let lines = lines
             .iter()

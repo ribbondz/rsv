@@ -25,7 +25,7 @@ impl Sort {
         }
 
         // lines
-        let lines = rdr.filter_map(|i| i.ok()).collect::<Vec<_>>();
+        let lines = rdr.map_while(Result::ok).collect::<Vec<_>>();
 
         // sort
         cols.sort_and_write(&lines, self.sep, self.quote, &mut wtr)?;
