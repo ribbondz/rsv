@@ -2,7 +2,7 @@ use crate::args::Clean;
 use regex::bytes::Regex;
 use rsv_lib::utils::cli_result::CliResult;
 use rsv_lib::utils::writer::Writer;
-use std::io::{stdin, BufRead, BufReader};
+use std::io::{BufRead, BufReader, stdin};
 
 impl Clean {
     pub fn io_run(&self) -> CliResult {

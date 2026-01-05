@@ -2,7 +2,7 @@ use crate::args::Sort;
 use rsv_lib::utils::sort::SortColumns;
 use rsv_lib::utils::writer::Writer;
 use rsv_lib::utils::{cli_result::CliResult, filename::new_file};
-use std::io::{stdin, BufRead};
+use std::io::{BufRead, stdin};
 
 impl Sort {
     pub fn io_run(&self) -> CliResult {

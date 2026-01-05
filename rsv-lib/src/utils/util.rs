@@ -1,4 +1,4 @@
-use std::io::{stdout, BufWriter, Error, Write};
+use std::io::{BufWriter, Error, Write, stdout};
 
 pub fn datetime_str() -> String {
     let t = chrono::offset::Local::now();

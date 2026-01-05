@@ -1,5 +1,5 @@
 use crate::args::Search;
-use calamine::{open_workbook_auto, Reader, Sheets};
+use calamine::{Reader, Sheets, open_workbook_auto};
 use rsv_lib::utils::cli_result::CliResult;
 use rsv_lib::utils::column::Columns;
 use rsv_lib::utils::constants::COMMA;

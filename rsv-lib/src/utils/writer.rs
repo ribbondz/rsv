@@ -3,7 +3,7 @@ use calamine::Data;
 use chrono::Timelike;
 use std::{
     fs::{File, OpenOptions},
-    io::{stdout, BufWriter, Error, Write},
+    io::{BufWriter, Error, Write, stdout},
     path::Path,
     process,
 };

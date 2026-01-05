@@ -1,6 +1,6 @@
 use super::{cli_result::CliResult, constants::TERMINATOR};
 use std::{
-    io::{stdout, BufWriter, Write},
+    io::{BufWriter, Write, stdout},
     process,
 };
 use tabled::{builder::Builder, settings::Style};
