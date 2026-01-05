@@ -70,12 +70,8 @@ pub fn write_excel_line(
     datetime_fmt: &Format,
 ) -> CliResult {
     let row = row as u32;
-    if ctypes.is_none() {
-        for (col, &v) in line.iter().enumerate() {
-            sheet.write(row, col as u16, v)?;
-        }
-    } else {
-        for ((c, &v), t) in line.iter().enumerate().zip(ctypes.unwrap().iter()) {
+    if let Some(ctypes) = ctypes {
+        for ((c, &v), t) in line.iter().enumerate().zip(ctypes.iter()) {
             let col = c as u16;
             match t.col_type {
                 ColumnType::Float | ColumnType::Int => match v.parse::<f64>() {
@@ -115,6 +111,10 @@ pub fn write_excel_line(
                 }
                 _ => sheet.write(row, col, v)?,
             };
+        }
+    } else {
+        for (col, &v) in line.iter().enumerate() {
+            sheet.write(row, col as u16, v)?;
         }
     }
 
