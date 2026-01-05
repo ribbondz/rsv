@@ -2,26 +2,27 @@
 
 version: "3"
 
-vars:
-  GREETING: Hello, World!
-
 tasks:
   default:
+    desc: Build the project in release mode
     cmds:
       - cargo build --release
-      
+
   publish:
+    desc: Build and compress the release binaries
     cmds:
       - task default
       - task compress
 
   build:
+    desc: Cross-compile for multiple architectures (Windows GNU/MSVC, Linux musl)
     cmds:
       - cross build --release --target x86_64-pc-windows-gnu
       - cross build --release --target x86_64-pc-windows-msvc
       - cross build --release --target x86_64-unknown-linux-musl
 
   compress:
+    desc: Create zip archives for Windows MSVC distribution
     dir: D:\code\rsv
     cmds:
       # - zip.exe -j dis\\x86_64-pc-windows-gnu.zip README.md target\\x86_64-pc-windows-gnu\\release\\rsv.exe
@@ -29,6 +30,7 @@ tasks:
       # - zip.exe -j dis\\x86_64-unknown-linux-musl.zip README.md target\\x86_64-unknown-linux-musl\\release\\rsv
 
   compress1:
+    desc: Create zip archive for Windows MSVC (simplified version)
     dir: D:\code\rsv
     cmds:
       - zip.exe -j dis\\x86_64-pc-windows-msvc.zip README.md target\\release\\rsv.exe
