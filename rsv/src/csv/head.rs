@@ -17,7 +17,7 @@ impl Head {
             .take(self.n + 1 - self.no_header as usize)
             .for_each(|r| match r {
                 Ok(r) => wtr.write_str_unchecked(&r),
-                Err(err) => print!("{:?}\n", err),
+                Err(err) => println!("{:?}", err),
             });
 
         if self.export {

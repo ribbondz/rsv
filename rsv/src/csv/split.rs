@@ -69,7 +69,7 @@ impl Split {
             false => {
                 let header_inserted: DashMap<String, bool> = DashMap::new();
                 for task in rx {
-                    task_handle(&self, task, &mut prog, &dir, &first_row, &header_inserted)?;
+                    task_handle(self, task, &mut prog, &dir, &first_row, &header_inserted)?;
                 }
             }
         }

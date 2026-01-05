@@ -42,7 +42,7 @@ impl To {
 
         //  wtr
         let mut workbook = Workbook::new();
-        let mut sheet = workbook.add_worksheet();
+        let sheet = workbook.add_worksheet();
         let ctypes = if equal_width(&lines) {
             // column type
             let cols = Columns::new("").total_col(lines[0].len()).parse();
@@ -52,7 +52,7 @@ impl To {
                 &self.text_columns,
                 &self.date_columns,
             );
-            ctypes.update_excel_column_width(&mut sheet)?;
+            ctypes.update_excel_column_width(sheet)?;
             Some(ctypes)
         } else {
             None
@@ -63,7 +63,7 @@ impl To {
         let datetime_fmt = Format::new().set_num_format("yyyy-mm-dd hh:mm:ss");
         for (n, r) in lines.iter().enumerate() {
             write_excel_line(
-                &mut sheet,
+                sheet,
                 n,
                 r,
                 ctypes.as_ref(),

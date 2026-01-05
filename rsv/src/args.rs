@@ -441,14 +441,14 @@ macro_rules! impl_row_split {
             }
 
             #[allow(dead_code)]
-            pub fn split_row_to_owned_vec<'a>(&self, row: &'a str) -> Vec<String> {
+            pub fn split_row_to_owned_vec(&self, row: &str) -> Vec<String> {
                 CsvRowSplitter::new(row, self.sep, self.quote)
                     .map(|i| i.to_owned())
                     .collect::<Vec<_>>()
             }
 
             #[allow(dead_code)]
-            pub fn row_field_count<'a>(&self, row: &'a str) -> usize {
+            pub fn row_field_count(&self, row: &str) -> usize {
                 CsvRowSplitter::new(row, self.sep, self.quote).count()
             }
         }

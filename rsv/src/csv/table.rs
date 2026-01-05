@@ -8,7 +8,7 @@ use std::{
 impl Table {
     pub fn csv_run(&self) -> CliResult {
         // rdr
-        let rdr = BufReader::new(File::open(&self.path())?);
+        let rdr = BufReader::new(File::open(self.path())?);
 
         let rows = rdr
             .lines()
