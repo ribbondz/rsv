@@ -3,7 +3,7 @@ use rsv_lib::utils::column::Columns;
 use rsv_lib::utils::filename::new_file;
 use rsv_lib::utils::filter::Filter;
 use rsv_lib::utils::{cli_result::CliResult, writer::Writer};
-use std::io::{stdin, BufRead};
+use std::io::{BufRead, stdin};
 
 impl Select {
     pub fn io_run(&self) -> CliResult {

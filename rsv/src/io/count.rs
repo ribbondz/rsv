@@ -1,6 +1,6 @@
 use crate::args::Count;
 use rsv_lib::utils::cli_result::CliResult;
-use std::io::{stdin, BufRead};
+use std::io::{BufRead, stdin};
 
 impl Count {
     pub fn io_run(&self) -> CliResult {

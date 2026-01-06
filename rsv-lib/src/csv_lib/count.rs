@@ -1,13 +1,13 @@
 use crate::utils::return_result::{CliResultData, ResultData};
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
-pub fn csv_count(file: &PathBuf, no_header: bool) -> CliResultData {
+pub fn csv_count(file: &Path, no_header: bool) -> CliResultData {
     // current file
     let n = match file.is_dir() {
-        true => count_dir_files(&file)?,
-        false => count_file_lines(&file, no_header)?,
+        true => count_dir_files(file)?,
+        false => count_file_lines(file, no_header)?,
     };
 
     Ok(Some(ResultData {

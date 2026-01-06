@@ -3,7 +3,7 @@ use calamine::Data;
 use chrono::Timelike;
 use std::{
     fs::{File, OpenOptions},
-    io::{stdout, BufWriter, Error, Write},
+    io::{BufWriter, Error, Write, stdout},
     path::Path,
     process,
 };
@@ -33,11 +33,7 @@ impl Writer {
 
     pub fn append_to(out: &Path) -> Result<Self, Error> {
         // open file
-        let f = OpenOptions::new()
-            .write(true)
-            .append(true)
-            .create(true)
-            .open(out)?;
+        let f = OpenOptions::new().append(true).create(true).open(out)?;
 
         let wtr = Box::new(BufWriter::new(f));
 

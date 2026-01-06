@@ -30,7 +30,7 @@ impl To {
         // rdr and wtr
         let rdr = BufReader::new(File::open(path)?);
         let mut workbook = Workbook::new();
-        let mut sheet = workbook.add_worksheet();
+        let sheet = workbook.add_worksheet();
 
         // column type
         let cols = Columns::new("")
@@ -48,7 +48,7 @@ impl To {
             Some(v) => v,
             None => return Ok(()),
         };
-        ctypes.update_excel_column_width(&mut sheet)?;
+        ctypes.update_excel_column_width(sheet)?;
         let ctypes = Some(ctypes);
 
         // copy
@@ -67,7 +67,7 @@ impl To {
             let r = r?;
             let l = CsvRowSplitter::new(&r, self.sep, self.quote).collect::<Vec<_>>();
             write_excel_line(
-                &mut sheet,
+                sheet,
                 n,
                 &l,
                 ctypes.as_ref(),

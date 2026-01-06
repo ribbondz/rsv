@@ -49,7 +49,7 @@ pub fn estimate_line_count_by_mb(path: &Path, mb: Option<usize>) -> usize {
     }
 }
 
-pub fn write_frequency_to_csv(path: &Path, names: &Vec<String>, freq: Vec<(String, usize)>) {
+pub fn write_frequency_to_csv(path: &Path, names: &[String], freq: Vec<(String, usize)>) {
     let mut wtr = BufWriter::new(File::create(path).unwrap());
 
     // header

@@ -56,25 +56,22 @@ pub fn out_filename(out: &str) -> PathBuf {
     new_file(&f)
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn write_excel_line(
     sheet: &mut Worksheet,
     row: usize,
     line: &[&str],
     ctypes: Option<&ColumnTypes>,
-    date_columns: &Vec<usize>,
-    date_formats: &Vec<String>,
+    date_columns: &[usize],
+    date_formats: &[String],
     serial_dates: bool,
     parser: &DateSmartParser,
     date_fmt: &Format,
     datetime_fmt: &Format,
 ) -> CliResult {
     let row = row as u32;
-    if ctypes.is_none() {
-        for (col, &v) in line.iter().enumerate() {
-            sheet.write(row, col as u16, v)?;
-        }
-    } else {
-        for ((c, &v), t) in line.iter().enumerate().zip(ctypes.unwrap().iter()) {
+    if let Some(ctypes) = ctypes {
+        for ((c, &v), t) in line.iter().enumerate().zip(ctypes.iter()) {
             let col = c as u16;
             match t.col_type {
                 ColumnType::Float | ColumnType::Int => match v.parse::<f64>() {
@@ -82,7 +79,7 @@ pub fn write_excel_line(
                     Err(_) => sheet.write(row, col, v)?,
                 },
                 ColumnType::Date => {
-                    let assigned_fmt = match &date_formats[..] {
+                    let assigned_fmt = match date_formats {
                         [] => None,
                         [fmt] => Some(fmt),
                         _ => {
@@ -95,12 +92,12 @@ pub fn write_excel_line(
                     };
                     if let Some(dt) = parser.smart_parse(v, assigned_fmt) {
                         if serial_dates {
-                            sheet.write_datetime(row, col, &dt)?
+                            sheet.write_datetime(row, col, dt)?
                         } else {
                             sheet.write_datetime_with_format(
                                 row,
                                 col,
-                                &dt,
+                                dt,
                                 if v.contains(":") {
                                     datetime_fmt
                                 } else {
@@ -114,6 +111,10 @@ pub fn write_excel_line(
                 }
                 _ => sheet.write(row, col, v)?,
             };
+        }
+    } else {
+        for (col, &v) in line.iter().enumerate() {
+            sheet.write(row, col as u16, v)?;
         }
     }
 

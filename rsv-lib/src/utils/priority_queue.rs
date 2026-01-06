@@ -17,7 +17,7 @@ impl<T> Eq for Item<T> {}
 
 impl<T> PartialOrd for Item<T> {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        self.priority.partial_cmp(&other.priority)
+        Some(self.cmp(other))
     }
 }
 

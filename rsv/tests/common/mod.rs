@@ -9,7 +9,7 @@ pub fn rsv() -> String {
     p.pop();
 
     p.push("target");
-    p.push("release");
+    p.push("debug");
 
     if OS == "macos" || OS == "linux" {
         p.push("rsv");

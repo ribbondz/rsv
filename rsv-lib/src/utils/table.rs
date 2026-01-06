@@ -1,6 +1,6 @@
 use super::{cli_result::CliResult, constants::TERMINATOR};
 use std::{
-    io::{stdout, BufWriter, Write},
+    io::{BufWriter, Write, stdout},
     process,
 };
 use tabled::{builder::Builder, settings::Style};
@@ -8,6 +8,12 @@ use tabled::{builder::Builder, settings::Style};
 pub struct Table {
     builder: Builder,
     n: usize,
+}
+
+impl Default for Table {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Table {

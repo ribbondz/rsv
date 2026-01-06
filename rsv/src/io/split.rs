@@ -6,7 +6,7 @@ use rsv_lib::utils::filename::{dir_file, new_file, str_to_filename};
 use rsv_lib::utils::util::datetime_str;
 use rsv_lib::utils::writer::Writer;
 use std::fs::create_dir;
-use std::io::{stdin, BufRead};
+use std::io::{BufRead, stdin};
 use std::path::Path;
 
 impl Split {

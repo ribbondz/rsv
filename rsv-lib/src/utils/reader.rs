@@ -23,6 +23,7 @@ impl ChunkReader {
         Ok(ChunkReader(rdr))
     }
 
+    #[allow(clippy::should_implement_trait)]
     pub fn next(&mut self) -> Option<Result<String, std::io::Error>> {
         self.0.next()
     }
@@ -92,10 +93,15 @@ impl<'a> ExcelReader {
         self.range.get_size().0
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
     pub fn column_n(&self) -> usize {
         self.range.get_size().1
     }
 
+    #[allow(clippy::should_implement_trait)]
     pub fn next(&mut self) -> Option<&[Data]> {
         self.next_called += 1;
         self.range.rows().next()
@@ -135,6 +141,12 @@ pub struct IoReader {
     top_n: Option<usize>,
 }
 
+impl Default for IoReader {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl IoReader {
     pub fn new() -> Self {
         IoReader {
@@ -160,9 +172,9 @@ impl IoReader {
         match self.top_n {
             Some(n) => lines
                 .take(n + 1 - self.no_header as usize)
-                .filter_map(|i| i.ok())
+                .map_while(Result::ok)
                 .collect(),
-            None => lines.filter_map(|i| i.ok()).collect(),
+            None => lines.map_while(Result::ok).collect(),
         }
     }
 }

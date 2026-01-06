@@ -1,5 +1,5 @@
 use crate::args::Search;
-use calamine::{open_workbook_auto, Reader, Sheets};
+use calamine::{Reader, Sheets, open_workbook_auto};
 use rsv_lib::utils::cli_result::CliResult;
 use rsv_lib::utils::column::Columns;
 use rsv_lib::utils::constants::COMMA;
@@ -62,7 +62,7 @@ impl Search {
     }
 }
 
-impl<'a> Args<'a> {
+impl Args<'_> {
     fn parse_sheet(&mut self, sheet: &str) {
         let Ok(v) = sheet.parse::<usize>() else {
             werr_exit!("{} is not a valid int.", sheet);
@@ -72,7 +72,7 @@ impl<'a> Args<'a> {
     }
 
     fn search_one(&mut self) -> CliResult {
-        self.search(self.sheet as usize);
+        self.search(self.sheet);
         Ok(())
     }
 
@@ -80,9 +80,9 @@ impl<'a> Args<'a> {
         let sheets = self.workbook.sheet_names().to_owned();
 
         for (i, sheet) in sheets.iter().enumerate() {
-            write!(self.wtr.0, "[{}]\n", sheet)?;
+            writeln!(self.wtr.0, "[{}]", sheet)?;
             self.search(i);
-            write!(self.wtr.0, "{}\n", "")?;
+            writeln!(self.wtr.0)?;
         }
 
         Ok(())
@@ -110,7 +110,7 @@ impl<'a> Args<'a> {
                 self.wtr.write_excel_line_unchecked(r, COMMA);
             } else {
                 self.wtr
-                    .write_excel_selected_fields_unchecked(&r, &self.cols.cols, COMMA);
+                    .write_excel_selected_fields_unchecked(r, &self.cols.cols, COMMA);
             }
         };
 

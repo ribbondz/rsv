@@ -84,9 +84,9 @@ impl Parser {
         match self.source.chars().nth(self.offset) {
             Some(ch) => {
                 self.ch = ch;
-                return true;
+                true
             }
-            None => return false,
+            None => false,
         }
     }
 
@@ -95,7 +95,7 @@ impl Parser {
     }
 
     fn is_digit_num(&self, c: char) -> bool {
-        ('0' <= c && c <= '9') || c == '.' || c == '_' || c == 'e'
+        c.is_ascii_digit() || c == '.' || c == '_' || c == 'e'
     }
 }
 
@@ -104,6 +104,12 @@ pub struct CompiledExpr {
     node: Node,
     used_columns: Vec<usize>,
     max_column: usize,
+}
+
+impl Default for CompiledExpr {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl CompiledExpr {
@@ -217,7 +223,7 @@ impl AST {
         }
 
         let mut ast = AST {
-            curr_tok: p.tokens.get(0).copied(),
+            curr_tok: p.tokens.first().copied(),
             tokens: p.tokens,
             curr_index: 0,
         };
@@ -232,9 +238,7 @@ impl AST {
 
     fn parse_expression(&mut self) -> Option<Node> {
         let lhs = self.parse_primary();
-        if lhs.is_none() {
-            return None;
-        }
+        lhs.as_ref()?;
         self.parse_bin_op_rhs(0, lhs.unwrap())
     }
 
@@ -270,16 +274,12 @@ impl AST {
                 return Some(lhs);
             }
             let mut rhs = self.parse_primary();
-            if rhs.is_none() {
-                return None;
-            }
+            rhs.as_ref()?;
             let next_prec = self.get_tok_precedence();
             if tok_prec < next_prec {
                 // 递归，将当前优先级+1
                 rhs = self.parse_bin_op_rhs(exec_prec + 1, rhs.unwrap());
-                if rhs.is_none() {
-                    return None;
-                }
+                rhs.as_ref()?;
             }
 
             let rhs = rhs.unwrap();
@@ -364,16 +364,16 @@ mod tests {
 
         let p = AST::parse("  @0  + (1.05 + @1 ^ 2 * 2)");
         // dbg!(&p);
-        assert_eq!(p.evaluate(Some(&vec![1.0, 1.0])), 4.05);
-        assert_eq!(p.evaluate(Some(&vec![2.0, 2.0])), 11.05);
-        assert_eq!(p.evaluate(Some(&vec![1.0, 3.0])), 20.05);
-        assert_eq!(p.evaluate(Some(&vec![2.0, 4.0])), 35.05);
+        assert_eq!(p.evaluate(Some(&[1.0, 1.0])), 4.05);
+        assert_eq!(p.evaluate(Some(&[2.0, 2.0])), 11.05);
+        assert_eq!(p.evaluate(Some(&[1.0, 3.0])), 20.05);
+        assert_eq!(p.evaluate(Some(&[2.0, 4.0])), 35.05);
 
         let p = AST::parse("  @0 + (1.05 + (@1 ^ 2) * 2)");
         // dbg!(&p);
-        assert_eq!(p.evaluate(Some(&vec![1.0, 1.0])), 4.05);
-        assert_eq!(p.evaluate(Some(&vec![2.0, 2.0])), 11.05);
-        assert_eq!(p.evaluate(Some(&vec![1.0, 3.0])), 20.05);
-        assert_eq!(p.evaluate(Some(&vec![2.0, 4.0])), 35.05);
+        assert_eq!(p.evaluate(Some(&[1.0, 1.0])), 4.05);
+        assert_eq!(p.evaluate(Some(&[2.0, 2.0])), 11.05);
+        assert_eq!(p.evaluate(Some(&[1.0, 3.0])), 20.05);
+        assert_eq!(p.evaluate(Some(&[2.0, 4.0])), 35.05);
     }
 }

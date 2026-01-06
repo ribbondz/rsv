@@ -1,6 +1,6 @@
 use crate::args::Size;
 use rsv_lib::utils::cli_result::CliResult;
-use std::io::{stdin, Read};
+use std::io::{Read, stdin};
 
 impl Size {
     pub fn io_run(&self) -> CliResult {

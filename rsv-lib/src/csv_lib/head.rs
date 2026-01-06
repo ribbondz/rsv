@@ -19,11 +19,9 @@ pub fn csv_head(
         .take(n + 1 - no_header as usize);
 
     // Process header
-    if let Some(header) = lines.next() {
-        if let Ok(h) = header {
-            let h = CsvRowSplitter::new(&h, sep, quote).collect_owned();
-            out.insert_header(h);
-        }
+    if let Some(Ok(h)) = lines.next() {
+        let h = CsvRowSplitter::new(&h, sep, quote).collect_owned();
+        out.insert_header(h);
     }
 
     lines.for_each(|r| {

@@ -11,6 +11,12 @@ pub struct Progress {
     start_time: Instant,
 }
 
+impl Default for Progress {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Progress {
     pub fn new() -> Self {
         Progress {

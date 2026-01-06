@@ -3,9 +3,9 @@ use crate::utils::column_stats::{CStat, ColumnStats};
 use crate::utils::column_type::ColumnTypes;
 use crate::utils::reader::ExcelReader;
 use crate::utils::return_result::{CliResultData, ResultData};
-use std::path::PathBuf;
+use std::path::Path;
 
-pub fn excel_stats(file: &PathBuf, no_header: bool, cols: String, sheet: usize) -> CliResultData {
+pub fn excel_stats(file: &Path, no_header: bool, cols: String, sheet: usize) -> CliResultData {
     let mut result_data = ResultData::new();
 
     // read file

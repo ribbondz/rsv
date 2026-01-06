@@ -1,6 +1,6 @@
 use crate::args::Head;
 use rsv_lib::utils::{cli_result::CliResult, filename::new_file, writer::Writer};
-use std::io::{stdin, BufRead};
+use std::io::{BufRead, stdin};
 
 impl Head {
     pub fn io_run(&self) -> CliResult {

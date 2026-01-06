@@ -3,7 +3,7 @@ use rsv_lib::utils::cli_result::CliResult;
 use rsv_lib::utils::filename::new_file;
 use rsv_lib::utils::writer::Writer;
 use std::io::BufRead;
-use std::io::{stdin, BufReader, Stdin};
+use std::io::{BufReader, Stdin, stdin};
 
 impl Slice {
     pub fn io_run(&self) -> CliResult {

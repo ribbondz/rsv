@@ -8,11 +8,11 @@ use std::{
 impl Table {
     pub fn csv_run(&self) -> CliResult {
         // rdr
-        let rdr = BufReader::new(File::open(&self.path())?);
+        let rdr = BufReader::new(File::open(self.path())?);
 
         let rows = rdr
             .lines()
-            .filter_map(|r| r.ok())
+            .map_while(Result::ok)
             .map(|r| self.split_row_to_owned_vec(&r))
             .collect::<Vec<_>>();
 

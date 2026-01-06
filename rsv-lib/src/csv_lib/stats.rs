@@ -9,15 +9,15 @@ use crate::utils::return_result::{CliResultData, ResultData};
 use crate::utils::row_split::CsvRowSplitter;
 use crossbeam_channel::{bounded, unbounded};
 use rayon::ThreadPoolBuilder;
-use std::path::PathBuf;
+use std::path::Path;
 
 pub fn csv_stats(
-    file: &PathBuf,
+    file: &Path,
     sep: char,
     quote: char,
     no_header: bool,
     cols: String,
-    text_columns: &Vec<usize>,
+    text_columns: &[usize],
 ) -> CliResultData {
     let mut result_data = ResultData::new();
     result_data.insert_header(CStat::get_fields.iter().map(|f| f.to_string()).collect());
@@ -27,7 +27,7 @@ pub fn csv_stats(
         .total_col_of(file, sep, quote)
         .parse();
     let Some(col_type) =
-        ColumnTypes::guess_from_csv(file, sep, quote, no_header, &cols, text_columns, &vec![])?
+        ColumnTypes::guess_from_csv(file, sep, quote, no_header, &cols, text_columns, &[])?
     else {
         return Ok(Some(result_data));
     };
