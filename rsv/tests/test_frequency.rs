@@ -13,9 +13,7 @@ fn end_row_of_cmd(cmd: &str, file: &str) -> String {
 
     String::from_utf8(output.stdout)
         .unwrap()
-        .split('\n')
-        .filter(|i| !i.is_empty())
-        .next_back()
+        .split('\n').rfind(|i| !i.is_empty())
         .unwrap()
         .to_owned()
 }

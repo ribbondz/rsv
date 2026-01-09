@@ -53,12 +53,12 @@ impl To {
 
         // copy
         let mut iter = rdr.lines().enumerate();
-        if !self.no_header {
-            if let Some((_, r)) = iter.next() {
-                let r = r?;
-                sheet.write_row(0, 0, CsvRowSplitter::new(&r, self.sep, self.quote))?;
-            };
-        }
+        if !self.no_header
+            && let Some((_, r)) = iter.next()
+        {
+            let r = r?;
+            sheet.write_row(0, 0, CsvRowSplitter::new(&r, self.sep, self.quote))?;
+        };
 
         let parser = DateSmartParser::new();
         let date_fmt = Format::new().set_num_format("yyyy-mm-dd");
